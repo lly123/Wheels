@@ -18,27 +18,13 @@ import static com.google.common.base.Optional.of;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.Thread.currentThread;
 
-class Package {
+class Package
+{
     private String packageName;
 
     public Package(String packageName)
     {
         this.packageName = packageName;
-    }
-
-    public List<Class> getClasses() throws IOException, ClassNotFoundException {
-        Optional<URL> packagePath = getPackagePath();
-        List<Class> beanClasses = new ArrayList<>();
-
-        if (packagePath.isPresent()) {
-            File[] beanFiles = new File(packagePath.get().getFile()).listFiles();
-
-            for (File file : beanFiles) {
-                beanClasses.add(loadClass(packageName, file.getName()));
-            }
-        }
-
-        return beanClasses;
     }
 
     public List<Pod> getPods() throws IOException, ClassNotFoundException {

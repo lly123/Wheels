@@ -1,21 +1,18 @@
 package com.freeroom.di;
 
-import com.freeroom.di.annotations.Bean;
 import com.freeroom.di.exceptions.NotUniqueException;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.google.common.base.Optional.absent;
+import static com.google.common.base.Optional.fromNullable;
 import static com.google.common.base.Optional.of;
-import static com.google.common.collect.Iterables.filter;
-import static com.google.common.collect.Iterables.transform;
+import static com.google.common.collect.Iterables.*;
 import static com.google.common.collect.Lists.newArrayList;
 
 public class BeanContext
@@ -51,7 +48,7 @@ public class BeanContext
         }));
     }
 
-    public <T> Optional<T> getBean(final Class<T> clazz) throws NotUniqueException {
+    public <T> Optional<T> getBean(final Class<T> clazz) {
         List<Object> beans = newArrayList(getBeanCanBeAssignedTo(clazz));
 
         if (beans.size() > 1) {
@@ -71,6 +68,20 @@ public class BeanContext
             @Override
             public boolean apply(Object bean) {
                 return clazz.isAssignableFrom(bean.getClass());
+            }
+        });
+    }
+
+    public Optional<Object> getBean(final String name) {
+        return tryFind(pods, new Predicate<Pod>() {
+            @Override
+            public boolean apply(Pod pod) {
+                return pod.getBeanName().equals(name);
+            }
+        }).transform(new Function<Pod, Object>() {
+            @Override
+            public Object apply(Pod pod) {
+                return pod.getBean();
             }
         });
     }
