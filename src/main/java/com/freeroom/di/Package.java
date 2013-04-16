@@ -1,6 +1,7 @@
 package com.freeroom.di;
 
 import com.freeroom.di.annotations.Bean;
+import com.freeroom.di.exceptions.NotUniqueException;
 import com.freeroom.di.util.Function;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
@@ -35,7 +36,7 @@ class Package
 
         if (packagePath.isPresent()) {
             List<File> beanFiles = newArrayList(new File(packagePath.get().getFile()).listFiles());
-            pods.addAll(beansWithAnnotation(beanFiles));
+            pods.addAll(beansHaveAnnotation(beanFiles));
         }
 
         return pods;
@@ -45,20 +46,26 @@ class Package
         return pods;
     }
 
-    private Collection<? extends Pod> beansWithAnnotation(final List<File> beanFiles) {
+    private Collection<? extends Pod> beansHaveAnnotation(final List<File> beanFiles) {
         return reduce(Lists.<Pod>newArrayList(), beanFiles, new Function<ArrayList<Pod>, File>() {
             @Override
             public ArrayList<Pod> call(ArrayList<Pod> pods, File file) {
                 try {
                     Class beanClass = loadClass(packageName, file.getName());
                     if (beanClass.isAnnotationPresent(Bean.class)) {
-                        pods.add(new Pod(beanClass));
+                        savePod(pods, new Pod(beanClass));
                     }
-                } catch (ClassNotFoundException ignored) {
-                }
+                } catch (ClassNotFoundException ignored) {}
                 return pods;
             }
         });
+    }
+
+    private void savePod(Collection<Pod> pods, Pod pod) {
+        if (!pods.contains(pod)) {
+            throw new NotUniqueException("Beans with same name: " + pod.getBeanName());
+        }
+        pods.add(pod);
     }
 
     private Optional<URL> getPackagePath() {

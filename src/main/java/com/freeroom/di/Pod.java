@@ -22,6 +22,15 @@ class Pod
         return beanName;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || !(o instanceof Pod)) {
+            return false;
+        }
+
+        return getBeanName().equals(((Pod) o).getBeanName());
+    }
+
     private Object createBeanWithDefaultConstructor() {
         try {
             return beanClass.getConstructor().newInstance();

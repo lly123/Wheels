@@ -8,8 +8,6 @@ import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-
 
 public class BeanContextTest {
     @Test
@@ -43,7 +41,7 @@ public class BeanContextTest {
     }
 
     @Test(expected = NotUniqueException.class)
-    public void should_get_NotUniqueException_given_beans_has_same_parent() {
+    public void should_throw_NotUniqueException_given_beans_have_same_parent() {
         BeanContext context = BeanContext.load("com.freeroom.test.beans");
         context.getBean(Shape.class);
     }
@@ -64,5 +62,10 @@ public class BeanContextTest {
     public void should_get_bean_given_bean_customized_name() {
         BeanContext context = BeanContext.load("com.freeroom.test.beans");
         assertThat(context.getBean("Monster").isPresent(), is(true));
+    }
+
+    @Test(expected = NotUniqueException.class)
+    public void should_throw_NotUniqueException_given_beans_have_same_name() {
+        BeanContext.load("com.freeroom.test.beans");
     }
 }
