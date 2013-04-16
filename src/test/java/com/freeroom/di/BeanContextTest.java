@@ -59,4 +59,10 @@ public class BeanContextTest {
         BeanContext context = BeanContext.load("com.freeroom.test.beans");
         assertThat(context.getBean("Dummy").isPresent(), is(false));
     }
+
+    @Test
+    public void should_get_bean_given_bean_customized_name() {
+        BeanContext context = BeanContext.load("com.freeroom.test.beans");
+        assertThat(context.getBean("Monster").isPresent(), is(true));
+    }
 }
