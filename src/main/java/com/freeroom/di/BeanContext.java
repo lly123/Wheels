@@ -1,19 +1,29 @@
 package com.freeroom.di;
 
 import com.freeroom.di.annotations.Bean;
+import com.freeroom.di.exceptions.NotUniqueException;
+import com.google.common.base.Function;
+import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.google.common.base.Optional.absent;
+import static com.google.common.base.Optional.of;
 import static com.google.common.collect.Iterables.filter;
+import static com.google.common.collect.Iterables.transform;
+import static com.google.common.collect.Lists.newArrayList;
 
-public class BeanContext {
+public class BeanContext
+{
     private static BeanContext context;
 
     final Package beanPackage;
-    private List<Object> beans = new ArrayList<>();
+    private List<Pod> pods = new ArrayList<>();
 
     private BeanContext(String packageName) {
         this.beanPackage = new Package(packageName);
@@ -28,34 +38,40 @@ public class BeanContext {
 
     private void initialize() {
         try {
-            List<Class> beanClasses = beanPackage.getClasses();
-            initBeansWithBeanAnnotation(beanClasses);
-        } catch (IOException | ClassNotFoundException ignored) {
-        }
-    }
-
-    private void initBeansWithBeanAnnotation(List<Class> beanClasses) {
-        for (Class beanClass : getBeanClassesWithBeanAnnotation(beanClasses)) {
-            try {
-                beans.add(createBeanWithDefaultConstructor(beanClass));
-            } catch (Exception ignored) {}
-        }
-    }
-
-    private Object createBeanWithDefaultConstructor(Class beanClass) throws Exception {
-        return beanClass.getConstructor().newInstance();
-    }
-
-    private Iterable<Class> getBeanClassesWithBeanAnnotation(List<Class> beanClasses) {
-        return filter(beanClasses, new Predicate<Class>() {
-            @Override
-            public boolean apply(Class beanClass) {
-                return beanClass.isAnnotationPresent(Bean.class);
-            }
-        });
+            this.pods = beanPackage.getPods();
+        } catch (Exception ignored) {}
     }
 
     public List<Object> getBeans() {
-        return beans;
+        return newArrayList(transform(pods, new Function<Pod, Object>() {
+            @Override
+            public Object apply(com.freeroom.di.Pod pod) {
+                return pod.getBean();
+            }
+        }));
+    }
+
+    public <T> Optional<T> getBean(final Class<T> clazz) throws NotUniqueException {
+        List<Object> beans = newArrayList(getBeanCanBeAssignedTo(clazz));
+
+        if (beans.size() > 1) {
+            throw new NotUniqueException("More than one bean is assignable to: " + clazz.getName());
+        }
+
+        Optional<Object> retVal = absent();
+        if (beans.size() == 1) {
+            retVal = of(beans.get(0));
+        }
+
+        return (Optional<T>) retVal;
+    }
+
+    private <T> Iterable<Object> getBeanCanBeAssignedTo(final Class<T> clazz) {
+        return filter(getBeans(), new Predicate<Object>() {
+            @Override
+            public boolean apply(Object bean) {
+                return clazz.isAssignableFrom(bean.getClass());
+            }
+        });
     }
 }
