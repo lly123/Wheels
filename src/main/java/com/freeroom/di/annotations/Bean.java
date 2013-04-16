@@ -1,4 +1,4 @@
-package com.freeroom.di;
+package com.freeroom.di.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

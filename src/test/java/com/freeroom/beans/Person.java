@@ -1,6 +1,6 @@
 package com.freeroom.beans;
 
-import com.freeroom.di.Bean;
+import com.freeroom.di.annotations.Bean;
 
 @Bean
 public class Person {
