@@ -1,8 +1,19 @@
 package com.freeroom.di;
 
 import com.freeroom.di.annotations.Bean;
+import com.freeroom.di.annotations.Inject;
+import com.freeroom.di.util.Function;
+import com.freeroom.di.util.Iterables;
+import com.google.common.collect.Lists;
 
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import static com.freeroom.di.util.Iterables.reduce;
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.google.common.collect.Lists.newArrayList;
 
 class Pod
 {
@@ -46,5 +57,19 @@ class Pod
             beanName = beanClass.getSimpleName();
         }
         return beanName;
+    }
+
+    public List<Field> getInjectionFields() {
+        return reduce(Lists.<Field>newArrayList(), newArrayList(beanClass.getDeclaredFields()),
+            new Function<ArrayList<Field>, Field>() {
+                @Override
+                public ArrayList<Field> call(ArrayList<Field> injectionFields, Field field) {
+                    if (field.isAnnotationPresent(Inject.class)) {
+                        injectionFields.add(field);
+                    }
+                    return injectionFields;
+                }
+            }
+        );
     }
 }

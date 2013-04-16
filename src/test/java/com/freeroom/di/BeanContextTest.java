@@ -9,7 +9,8 @@ import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-public class BeanContextTest {
+public class BeanContextTest
+{
     @Test
     public void should_load_bean_given_bean_with_Bean_annotation() {
         BeanContext context = BeanContext.load("com.freeroom.test.beans");
