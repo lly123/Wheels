@@ -61,7 +61,7 @@ class Package
         });
     }
 
-    private void savePod(Collection<Pod> pods, Pod pod) {
+    private void savePod(final Collection<Pod> pods, final Pod pod) {
         if (pods.contains(pod)) {
             throw new NotUniqueException("Beans with same name: " + pod.getBeanName());
         }

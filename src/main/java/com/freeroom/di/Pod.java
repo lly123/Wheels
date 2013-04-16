@@ -3,12 +3,10 @@ package com.freeroom.di;
 import com.freeroom.di.annotations.Bean;
 import com.freeroom.di.annotations.Inject;
 import com.freeroom.di.util.Function;
-import com.freeroom.di.util.Iterables;
 import com.google.common.collect.Lists;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import static com.freeroom.di.util.Iterables.reduce;
@@ -34,7 +32,7 @@ class Pod
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(final Object o) {
         if (o == null || !(o instanceof Pod)) {
             return false;
         }
