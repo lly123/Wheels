@@ -1,20 +1,17 @@
 package com.freeroom.di;
 
 import com.freeroom.di.annotations.Bean;
-import com.google.common.base.Strings;
-
-import java.lang.annotation.Annotation;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 class Pod
 {
     private final Class beanClass;
-    private String beanName;
+    private final String beanName;
 
-    public Pod(Class beanClass) {
+    public Pod(final Class beanClass) {
         this.beanClass = beanClass;
-        setBeanName(beanClass);
+        this.beanName = findBeanName(beanClass);
     }
 
     public Object getBean() {
@@ -33,11 +30,12 @@ class Pod
         }
     }
 
-    private void setBeanName(Class beanClass) {
+    private String findBeanName(final Class beanClass) {
         Bean beanAnnotation = (Bean) beanClass.getAnnotation(Bean.class);
-        beanName = beanAnnotation.value();
+        String beanName = beanAnnotation.value();
         if (isNullOrEmpty(beanName)) {
             beanName = beanClass.getSimpleName();
         }
+        return beanName;
     }
 }

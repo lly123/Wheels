@@ -2,7 +2,6 @@ package com.freeroom.di;
 
 import com.freeroom.di.annotations.Bean;
 import com.freeroom.di.util.Function;
-import com.freeroom.di.util.Iterables;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 
@@ -14,20 +13,23 @@ import java.util.Collection;
 import java.util.Enumeration;
 import java.util.List;
 
+import static com.freeroom.di.util.Iterables.reduce;
 import static com.google.common.base.Optional.of;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.Thread.currentThread;
 
 class Package
 {
-    private String packageName;
+    private final String packageName;
+    private final Collection<Pod> pods;
 
-    public Package(String packageName)
+    public Package(final String packageName)
     {
         this.packageName = packageName;
+        this.pods = findPods();
     }
 
-    public List<Pod> getPods() throws IOException, ClassNotFoundException {
+    private Collection<Pod> findPods() {
         Optional<URL> packagePath = getPackagePath();
         List<Pod> pods = new ArrayList<>();
 
@@ -39,8 +41,12 @@ class Package
         return pods;
     }
 
-    private Collection<? extends Pod> beansWithAnnotation(List<File> beanFiles) {
-        return Iterables.reduce(Lists.<Pod>newArrayList(), beanFiles, new Function<ArrayList<Pod>, File>() {
+    public Collection<Pod> getPods() {
+        return pods;
+    }
+
+    private Collection<? extends Pod> beansWithAnnotation(final List<File> beanFiles) {
+        return reduce(Lists.<Pod>newArrayList(), beanFiles, new Function<ArrayList<Pod>, File>() {
             @Override
             public ArrayList<Pod> call(ArrayList<Pod> pods, File file) {
                 try {
@@ -48,18 +54,23 @@ class Package
                     if (beanClass.isAnnotationPresent(Bean.class)) {
                         pods.add(new Pod(beanClass));
                     }
-                } catch (ClassNotFoundException ignored) {}
+                } catch (ClassNotFoundException ignored) {
+                }
                 return pods;
             }
         });
     }
 
-    private Optional<URL> getPackagePath() throws IOException {
+    private Optional<URL> getPackagePath() {
         Optional<URL> packagePath = Optional.absent();
 
-        Enumeration<URL> resources = getClassLoader().getResources(toPath(packageName));
-        if (resources.hasMoreElements()) {
-            packagePath = of(resources.nextElement());
+        try {
+            Enumeration<URL> resources = getClassLoader().getResources(toPath(packageName));
+            if (resources.hasMoreElements()) {
+                packagePath = of(resources.nextElement());
+            }
+        } catch (IOException ex) {
+            throw new RuntimeException("Can't get resources from IO.", ex);
         }
 
         return packagePath;
@@ -69,15 +80,15 @@ class Package
         return currentThread().getContextClassLoader();
     }
 
-    private String toPath(String packageName) {
+    private String toPath(final String packageName) {
         return packageName.replaceAll("\\.", "/");
     }
 
-    private Class loadClass(String packageName, String beanFileName) throws ClassNotFoundException {
+    private Class loadClass(final String packageName, final String beanFileName) throws ClassNotFoundException {
         return getClassLoader().loadClass(packageName + "." + getBeanName(beanFileName));
     }
 
-    private String getBeanName(String beanFileName) {
+    private String getBeanName(final String beanFileName) {
         return beanFileName.substring(0, beanFileName.length() - ".class".length());
     }
 }

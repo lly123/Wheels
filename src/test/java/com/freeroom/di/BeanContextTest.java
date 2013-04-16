@@ -15,7 +15,7 @@ public class BeanContextTest {
     @Test
     public void should_load_bean_given_bean_with_Bean_annotation() {
         BeanContext context = BeanContext.load("com.freeroom.test.beans");
-        assertThat(context.getBeans().size(), is(4));
+        assertThat(context.getBeans().size(), is(5));
     }
 
     @Test

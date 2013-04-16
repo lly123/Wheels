@@ -4,13 +4,11 @@ import com.freeroom.di.exceptions.NotUniqueException;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
 
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import static com.google.common.base.Optional.absent;
-import static com.google.common.base.Optional.fromNullable;
 import static com.google.common.base.Optional.of;
 import static com.google.common.collect.Iterables.*;
 import static com.google.common.collect.Lists.newArrayList;
@@ -18,29 +16,19 @@ import static com.google.common.collect.Lists.newArrayList;
 public class BeanContext
 {
     private static BeanContext context;
+    private final Package beanPackage;
 
-    final Package beanPackage;
-    private List<Pod> pods = new ArrayList<>();
-
-    private BeanContext(String packageName) {
+    private BeanContext(final String packageName) {
         this.beanPackage = new Package(packageName);
     }
 
-    public static BeanContext load(String packageName) {
+    public static BeanContext load(final String packageName) {
         context = new BeanContext(packageName);
-        context.initialize();
-
         return context;
     }
 
-    private void initialize() {
-        try {
-            this.pods = beanPackage.getPods();
-        } catch (Exception ignored) {}
-    }
-
-    public List<Object> getBeans() {
-        return newArrayList(transform(pods, new Function<Pod, Object>() {
+    public Collection<Object> getBeans() {
+        return newArrayList(transform(beanPackage.getPods(), new Function<Pod, Object>() {
             @Override
             public Object apply(com.freeroom.di.Pod pod) {
                 return pod.getBean();
@@ -73,7 +61,7 @@ public class BeanContext
     }
 
     public Optional<Object> getBean(final String name) {
-        return tryFind(pods, new Predicate<Pod>() {
+        return tryFind(beanPackage.getPods(), new Predicate<Pod>() {
             @Override
             public boolean apply(Pod pod) {
                 return pod.getBeanName().equals(name);
