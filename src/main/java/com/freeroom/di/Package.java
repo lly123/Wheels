@@ -30,6 +30,10 @@ class Package
         this.pods = findPods();
     }
 
+    public Collection<Pod> getPods() {
+        return pods;
+    }
+
     private Collection<Pod> findPods() {
         Optional<URL> packagePath = getPackagePath();
         List<Pod> pods = new ArrayList<>();
@@ -39,10 +43,6 @@ class Package
             pods.addAll(beansHaveAnnotation(beanFiles));
         }
 
-        return pods;
-    }
-
-    public Collection<Pod> getPods() {
         return pods;
     }
 
@@ -62,7 +62,7 @@ class Package
     }
 
     private void savePod(Collection<Pod> pods, Pod pod) {
-        if (!pods.contains(pod)) {
+        if (pods.contains(pod)) {
             throw new NotUniqueException("Beans with same name: " + pod.getBeanName());
         }
         pods.add(pod);
