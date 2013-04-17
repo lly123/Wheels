@@ -2,7 +2,7 @@ package com.freeroom.di;
 
 import com.freeroom.di.annotations.Bean;
 import com.freeroom.di.exceptions.NotUniqueException;
-import com.freeroom.di.util.RFunc;
+import com.freeroom.di.util.Func;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 
@@ -51,7 +51,7 @@ class Package
 
     private Collection<? extends Pod> beansHaveAnnotation(final List<File> beanFiles)
     {
-        return reduce(Lists.<Pod>newArrayList(), beanFiles, new RFunc<ArrayList<Pod>, File>() {
+        return reduce(Lists.<Pod>newArrayList(), beanFiles, new Func<ArrayList<Pod>, File>() {
             @Override
             public ArrayList<Pod> call(final ArrayList<Pod> pods, final File file) {
                 try {

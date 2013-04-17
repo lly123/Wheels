@@ -12,9 +12,10 @@ import static org.hamcrest.Matchers.is;
 public class FuncUtilsTest
 {
     @Test
-    public void should_sum_integers() {
+    public void should_sum_integers()
+    {
         Collection<Integer> integers = newArrayList(1, 2, 3);
-        Integer sum = reduce(0, integers, new RFunc<Integer, Integer>() {
+        Integer sum = reduce(0, integers, new Func<Integer, Integer>() {
             @Override
             public Integer call(final Integer s, final Integer v) {
                 return s + v;

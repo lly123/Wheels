@@ -1,15 +1,12 @@
 package com.freeroom.di;
 
-import com.freeroom.di.util.Action;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 
 import java.lang.reflect.Constructor;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import static com.freeroom.di.util.FuncUtils.each;
 import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Iterables.tryFind;
 import static com.google.common.collect.Lists.newArrayList;
@@ -35,19 +32,16 @@ class ConstructorHole extends Hole
     public void fill(final Collection<Pod> pods)
     {
         readyBeans.clear();
-        each(copyOf(constructor.getParameterTypes()), new Action<Class>() {
-            @Override
-            public void call(final Class paramClass) {
-                Optional<Pod> pod = getPodForFill(paramClass, pods);
-                assertPodExists(paramClass, pod);
+        for (final Class paramClass : constructor.getParameterTypes()) {
+            Optional<Pod> pod = getPodForFill(paramClass, pods);
+            assertPodExists(paramClass, pod);
 
-                if (pod.get().isBeanConstructed()) {
-                    readyBeans.add(pod.get().getBean());
-                } else {
-                    unreadyPods.add(pod.get());
-                }
+            if (pod.get().isBeanConstructed()) {
+                readyBeans.add(pod.get().getBean());
+            } else {
+                unreadyPods.add(pod.get());
             }
-        });
+        }
     }
 
     public Collection<Pod> getUnreadyPods()

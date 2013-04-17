@@ -2,8 +2,7 @@ package com.freeroom.di;
 
 import com.freeroom.di.annotations.Bean;
 import com.freeroom.di.annotations.Inject;
-import com.freeroom.di.util.Action;
-import com.freeroom.di.util.RFunc;
+import com.freeroom.di.util.Func;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
@@ -15,7 +14,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import static com.freeroom.di.util.FuncUtils.each;
 import static com.freeroom.di.util.FuncUtils.reduce;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Iterables.tryFind;
@@ -72,7 +70,7 @@ class Pod
 
     public Collection<FieldHole> getFieldHoles()
     {
-        return reduce(Lists.<FieldHole>newArrayList(), holes, new RFunc<ArrayList<FieldHole>, Hole>() {
+        return reduce(Lists.<FieldHole>newArrayList(), holes, new Func<ArrayList<FieldHole>, Hole>() {
             @Override
             public ArrayList<FieldHole> call(final ArrayList<FieldHole> fieldHoles, final Hole hole) {
                 if (hole instanceof FieldHole) {
@@ -113,6 +111,25 @@ class Pod
         return getBeanName().equals(((Pod) o).getBeanName());
     }
 
+    public void createBean(ConstructorHole constructorHole)
+    {
+        bean = constructorHole.create();
+    }
+
+    public void tryConstructBean(final Collection<Pod> pods)
+    {
+        Optional<Hole> constructorHole = getConstructorHole();
+        if (constructorHole.isPresent()) {
+            ConstructorHole hole = (ConstructorHole) constructorHole.get();
+            hole.fill(pods);
+            if (hole.isFilled()) {
+                createBean(hole);
+            }
+        } else {
+            createBeanWithDefaultConstructor();
+        }
+    }
+
     private List<Hole> findHoles()
     {
         List<Hole> holes = newArrayList();
@@ -129,7 +146,7 @@ class Pod
     private Optional<Hole> findConstructorHole()
     {
         return reduce(Optional.<Hole>absent(), Lists.<Constructor>newArrayList(beanClass.getConstructors()),
-            new RFunc<Optional<Hole>, Constructor>() {
+            new Func<Optional<Hole>, Constructor>() {
                 @Override
                 public Optional<Hole> call(final Optional<Hole> hole, final Constructor constructor) {
                     return constructor.isAnnotationPresent(Inject.class) ?
@@ -152,7 +169,7 @@ class Pod
     private List<Field> findInjectionFields()
     {
         return reduce(Lists.<Field>newArrayList(), newArrayList(beanClass.getDeclaredFields()),
-            new RFunc<ArrayList<Field>, Field>() {
+            new Func<ArrayList<Field>, Field>() {
                 @Override
                 public ArrayList<Field> call(final ArrayList<Field> injectionFields, final Field field) {
                     if (field.isAnnotationPresent(Inject.class)) {
@@ -168,10 +185,5 @@ class Pod
         Bean beanAnnotation = beanClass.getAnnotation(Bean.class);
 
         return isNullOrEmpty(beanAnnotation.value()) ? beanClass.getSimpleName() : beanAnnotation.value();
-    }
-
-    public void createBean(ConstructorHole constructorHole)
-    {
-        bean = constructorHole.create();
     }
 }
