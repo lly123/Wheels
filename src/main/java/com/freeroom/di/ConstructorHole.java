@@ -7,7 +7,6 @@ import java.lang.reflect.Constructor;
 import java.util.Collection;
 import java.util.List;
 
-import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Iterables.tryFind;
 import static com.google.common.collect.Lists.newArrayList;
 
