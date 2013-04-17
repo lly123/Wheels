@@ -56,18 +56,9 @@ public class Injector
 
     private void populateDependencies(final Pod pod) {
         for (FieldHole hole : pod.getFieldHoles()) {
-            hole.fill(findPodWithType(hole.getType()).getBean());
+            hole.fill(pods);
         }
         pod.populateFields();
-    }
-
-    private Pod findPodWithType(final Type type) {
-        return find(pods, new Predicate<Pod>() {
-            @Override
-            public boolean apply(Pod pod) {
-                return ((Class<?>)type).isAssignableFrom(pod.getBeanClass());
-            }
-        });
     }
 
     private void assertDependenciesCanBeSatisfied() {
@@ -103,7 +94,7 @@ public class Injector
         return Collections2.transform(holes, new com.google.common.base.Function<Hole, Type>() {
             @Override
             public Type apply(Hole hole) {
-                return hole.getType();
+                return ((FieldHole)hole).getType();
             }
         });
     }
