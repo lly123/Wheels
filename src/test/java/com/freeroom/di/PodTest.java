@@ -1,6 +1,7 @@
 package com.freeroom.di;
 
 import com.freeroom.test.beans.Car;
+import com.freeroom.test.beans.Home;
 import com.freeroom.test.beans.Person;
 import org.junit.Test;
 
@@ -26,5 +27,11 @@ public class PodTest
         Pod pod = new Pod(Person.class);
         pod.getHoles().get(0).fill(new Car());
         assertThat(pod.getHoles().get(0).isFilled(), is(true));
+    }
+
+    @Test(expected = ClassCastException.class)
+    public void should_throw_ClassCastException_given_filling_bean_type_is_wrong() {
+        Pod pod = new Pod(Person.class);
+        pod.getHoles().get(0).fill(new Home());
     }
 }

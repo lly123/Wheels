@@ -22,6 +22,9 @@ public class Hole
     }
 
     public void fill(Object bean) {
+        if (!type.isAssignableFrom(bean.getClass())) {
+            throw new ClassCastException("Bean " + bean + " can't be assigned to " + type);
+        }
         this.bean = Optional.of(bean);
     }
 }
