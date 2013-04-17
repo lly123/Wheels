@@ -3,6 +3,8 @@ package com.freeroom.di;
 import com.freeroom.di.exceptions.NoBeanException;
 import com.freeroom.test.beans.Car;
 import com.freeroom.test.beans.Person;
+import com.freeroom.test.beans.constrcutorInjection.Student;
+import com.freeroom.test.beans.constrcutorInjection.Teacher;
 import org.junit.Test;
 
 import java.util.Collection;
@@ -16,19 +18,22 @@ import static org.junit.Assert.fail;
 public class InjectorTest
 {
     @Test(expected = NoBeanException.class)
-    public void should_throw_NoBeanException_given_can_not_find_bean_in_context() {
+    public void should_throw_NoBeanException_given_can_not_find_bean_in_context()
+    {
         Injector injector = new Injector(newArrayList(new Pod(Car.class)));
         injector.resolve();
     }
 
     @Test
-    public void should_have_all_beans_in_context() {
+    public void should_have_all_beans_in_context()
+    {
         Injector injector = new Injector(newArrayList(new Pod(Car.class), new Pod(Person.class)));
         injector.resolve();
     }
 
     @Test
-    public void should_resolve_bean_cycle_dependencies() {
+    public void should_resolve_bean_field_cycle_dependencies()
+    {
         Injector injector = new Injector(newArrayList(new Pod(Car.class), new Pod(Person.class)));
         Collection<Pod> pods = injector.resolve();
 
@@ -43,6 +48,22 @@ public class InjectorTest
                 assertThat(person.getDriver(), is(notNullValue()));
             } else {
                 fail();
+            }
+        }
+    }
+
+    @Test
+    public void should_resolve_beans_with_constructor_injection()
+    {
+        Injector injector = new Injector(newArrayList(new Pod(Student.class), new Pod(Teacher.class)));
+        Collection<Pod> pods = injector.resolve();
+
+        assertThat(pods.size(), is(2));
+
+        for (Pod pod : pods) {
+            if (pod.getBeanClass().equals(Student.class)) {
+                Student person = (Student) pod.getBean();
+                assertThat(person.getTeacher(), is(notNullValue()));
             }
         }
     }

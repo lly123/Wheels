@@ -10,7 +10,7 @@ abstract class Hole
     abstract boolean isFilled();
     abstract void fill(final Collection<Pod> pods);
 
-    protected void assertPodExists(Class paramClass, Optional<Pod> pod)
+    protected void assertPodExists(final Class paramClass, final Optional<Pod> pod)
     {
         if (!pod.isPresent()) {
             throw new NoBeanException("Can't find bean for " + paramClass);

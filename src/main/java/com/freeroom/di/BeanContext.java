@@ -4,78 +4,81 @@ import com.freeroom.di.exceptions.NotUniqueException;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
-import com.google.common.collect.Collections2;
 
 import java.util.Collection;
-import java.util.List;
 
 import static com.google.common.base.Optional.absent;
 import static com.google.common.base.Optional.of;
 import static com.google.common.collect.Collections2.filter;
 import static com.google.common.collect.Collections2.transform;
-import static com.google.common.collect.Iterables.*;
-import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.collect.Iterables.tryFind;
 
 public class BeanContext
 {
     private static BeanContext context;
     private final Package beanPackage;
 
-    public static BeanContext load(final String packageName) {
+    public static BeanContext load(final String packageName)
+    {
         context = new BeanContext(packageName);
         return context;
     }
 
-    public Collection<Object> getBeans() {
+    public Collection<?> getBeans()
+    {
         return transform(beanPackage.getPods(), new Function<Pod, Object>() {
             @Override
-            public Object apply(com.freeroom.di.Pod pod) {
+            public Object apply(final Pod pod) {
                 pod.createBeanWithDefaultConstructor();
                 return pod.getBean();
             }
         });
     }
 
-    public <T> Optional<T> getBean(final Class<T> clazz) {
-        Collection<Object> beans = getBeanCanBeAssignedTo(clazz);
+    public Optional<?> getBean(final Class<?> clazz)
+    {
+        Collection<?> beans = getBeanCanBeAssignedTo(clazz);
 
-        if (beans.size() > 1) {
-            throw new NotUniqueException("More than one bean is assignable to: " + clazz.getName());
-        }
+        assertNotMoreThanOneBean(clazz, beans);
 
-        Optional<Object> retVal = absent();
-        if (beans.size() == 1) {
-            retVal = of(beans.toArray()[0]);
-        }
-
-        return (Optional<T>) retVal;
+        return ((beans.size() == 1) ? of(beans.toArray()[0]) : absent());
     }
 
-    public Optional<Object> getBean(final String name) {
+    public Optional<?> getBean(final String name)
+    {
         return tryFind(beanPackage.getPods(), new Predicate<Pod>() {
             @Override
-            public boolean apply(Pod pod) {
+            public boolean apply(final Pod pod) {
                 return pod.getBeanName().equals(name);
             }
         }).transform(new Function<Pod, Object>() {
             @Override
-            public Object apply(Pod pod) {
+            public Object apply(final Pod pod) {
                 pod.createBeanWithDefaultConstructor();
                 return pod.getBean();
             }
         });
     }
 
-    private BeanContext(final String packageName) {
+    private BeanContext(final String packageName)
+    {
         this.beanPackage = new Package(packageName);
     }
 
-    private <T> Collection<Object> getBeanCanBeAssignedTo(final Class<T> clazz) {
+    private Collection<?> getBeanCanBeAssignedTo(final Class<?> clazz)
+    {
         return filter(getBeans(), new Predicate<Object>() {
             @Override
-            public boolean apply(Object bean) {
+            public boolean apply(final Object bean) {
                 return clazz.isAssignableFrom(bean.getClass());
             }
         });
+    }
+
+    private void assertNotMoreThanOneBean(final Class<?> clazz, final Collection<?> beans)
+    {
+        if (beans.size() > 1) {
+            throw new NotUniqueException("More than one bean can be assigned to: " + clazz);
+        }
     }
 }

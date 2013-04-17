@@ -1,24 +1,19 @@
 package com.freeroom.di;
 
-import com.freeroom.di.exceptions.NoBeanException;
-import com.freeroom.di.util.Function;
+import com.freeroom.di.util.Action;
+import com.freeroom.di.util.FuncUtils;
 import com.google.common.base.Optional;
-import com.google.common.base.Predicate;
-import com.google.common.collect.Collections2;
 
-import java.lang.reflect.Type;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Stack;
 
-import static com.freeroom.di.util.Iterables.reduce;
-import static com.google.common.collect.Iterables.all;
-import static com.google.common.collect.Iterables.any;
-import static java.lang.String.format;
+import static com.freeroom.di.util.FuncUtils.each;
 
 class Injector
 {
     private final Collection<Pod> pods;
+    private final Stack<Pod> waitingForConstruction = new Stack<>();
+    private final Stack<Pod> waitingForPopulation = new Stack<>();
 
     public Injector(final Collection<Pod> pods)
     {
@@ -27,40 +22,21 @@ class Injector
 
     public Collection<Pod> resolve()
     {
-        assertDependenciesCanBeSatisfied();
-
-        Stack<Pod> waitingForConstruction = new Stack<>();
-        Stack<Pod> waitingForPopulation = new Stack<>();
-
         waitingForConstruction.addAll(pods);
 
-        resolveDependencyInjection(waitingForConstruction, waitingForPopulation);
+        resolveDependencyInjection();
 
         return pods;
     }
 
-    private void resolveDependencyInjection(
-            final Stack<Pod> waitingForConstruction,
-            final Stack<Pod> waitingForPopulation)
+    private void resolveDependencyInjection()
     {
         while (!waitingForConstruction.isEmpty()) {
             Pod pod = waitingForConstruction.pop();
 
             Optional<Hole> constructorHole = pod.getConstructorHole();
             if (constructorHole.isPresent()) {
-                ConstructorHole hole = (ConstructorHole) constructorHole.get();
-                hole.fill(pods);
-                if (hole.isFilled()) {
-                    pod.createBean(hole);
-                } else {
-                    Collection<Pod> unreadyPods = hole.getUnreadyPods();
-                    waitingForConstruction.push(pod);
-
-                    for (Pod unreadyPod : unreadyPods) {
-                        waitingForConstruction.push(unreadyPod);
-                        assertNoCycleDependency(waitingForConstruction);
-                    }
-                }
+                resolveBeanConstruction(pod, constructorHole);
             } else {
                 pod.createBeanWithDefaultConstructor();
                 waitingForPopulation.push(pod);
@@ -69,60 +45,41 @@ class Injector
 
         while (!waitingForPopulation.isEmpty()) {
             Pod pod = waitingForPopulation.pop();
-            populateDependencies(pod);
+            populateFieldDependencies(pod);
         }
     }
 
-    private void assertNoCycleDependency(Stack<Pod> waitingForConstruction) {
+    private void resolveBeanConstruction(Pod pod, Optional<Hole> constructorHole)
+    {
+        ConstructorHole hole = (ConstructorHole) constructorHole.get();
+        hole.fill(pods);
+        if (hole.isFilled()) {
+            pod.createBean(hole);
+            waitingForPopulation.push(pod);
+        } else {
+            Collection<Pod> unreadyPods = hole.getUnreadyPods();
+            waitingForConstruction.push(pod);
+
+            for (Pod unreadyPod : unreadyPods) {
+                waitingForConstruction.push(unreadyPod);
+                assertNoCycleDependency();
+            }
+        }
+    }
+
+    private void assertNoCycleDependency()
+    {
         //To change body of created methods use File | Settings | File Templates.
     }
 
-    private void populateDependencies(final Pod pod)
+    private void populateFieldDependencies(final Pod pod)
     {
-        for (FieldHole hole : pod.getFieldHoles()) {
-            hole.fill(pods);
-        }
-        pod.populateFields();
-    }
-
-    private void assertDependenciesCanBeSatisfied()
-    {
-        Collection<Type> dependencyTypes = getUniqueDependencyTypes();
-
-        all(dependencyTypes, new Predicate<Type>() {
+        each(pod.getFieldHoles(), new Action<FieldHole>() {
             @Override
-            public boolean apply(final Type type) {
-                if (!any(pods, new Predicate<Pod>() {
-                    @Override
-                    public boolean apply(Pod pod) {
-                        return pod.getBeanClass().equals(type);
-                    }
-                })) {
-                    throw new NoBeanException(format("Can't find bean of type %s in context.", type));
-                }
-                return true;
+            public void call(final FieldHole hole) {
+                hole.fill(pods);
             }
         });
-    }
-
-    private Collection<Type> getUniqueDependencyTypes()
-    {
-        return reduce(new HashSet<Type>(), pods, new Function<HashSet<Type>, Pod>() {
-            @Override
-            public HashSet<Type> call(HashSet<Type> fieldTypes, Pod pod) {
-                fieldTypes.addAll(toTypes(pod.getHoles()));
-                return fieldTypes;
-            }
-        });
-    }
-
-    private Collection<Type> toTypes(final Collection<Hole> holes)
-    {
-        return Collections2.transform(holes, new com.google.common.base.Function<Hole, Type>() {
-            @Override
-            public Type apply(Hole hole) {
-                return ((FieldHole)hole).getHoleClass();
-            }
-        });
+        pod.populateBeanFields();
     }
 }

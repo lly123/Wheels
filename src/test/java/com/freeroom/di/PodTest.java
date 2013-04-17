@@ -11,13 +11,10 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Collection;
-import java.util.List;
 
 import static java.util.Arrays.asList;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.*;
 
 public class PodTest
 {
@@ -91,7 +88,7 @@ public class PodTest
     }
 
     @Test(expected = NoBeanException.class)
-    public void should_throw_ClassCastException_given_filling_bean_type_is_wrong()
+    public void should_throw_NoBeanException_given_filling_bean_type_is_wrong()
     {
         Pod pod = new Pod(Person.class);
 
@@ -105,7 +102,7 @@ public class PodTest
         pod.getHoles().get(0).fill(podsPool);
         pod.createBeanWithDefaultConstructor();
 
-        pod.populateFields();
+        pod.populateBeanFields();
 
         assertThat(((Person)pod.getBean()).getCar(), is(notNullValue()));
     }
