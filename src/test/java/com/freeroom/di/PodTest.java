@@ -3,11 +3,8 @@ package com.freeroom.di;
 import com.freeroom.test.beans.Car;
 import com.freeroom.test.beans.Home;
 import com.freeroom.test.beans.Person;
-import com.freeroom.test.beans.constrcutorInjection.Student;
-import com.freeroom.test.beans.constrcutorInjection.Teacher;
 import org.junit.Test;
 
-import java.util.Arrays;
 import java.util.List;
 
 import static java.util.Arrays.asList;
@@ -26,7 +23,7 @@ public class PodTest
         assertThat(pod.getHoles().get(0), is(instanceOf(FieldHole.class)));
 
         FieldHole hole = (FieldHole) pod.getHoles().get(0);
-        assertThat(hole.getType().equals(Car.class), is(true));
+        assertThat(hole.getHoleClass().equals(Car.class), is(true));
         assertThat(hole.isFilled(), is(false));
         assertThat(hole.getField(), is(notNullValue()));
     }

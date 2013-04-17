@@ -4,7 +4,6 @@ import com.freeroom.di.exceptions.NoBeanException;
 import com.freeroom.di.util.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
-import com.google.common.collect.Iterables;
 
 import java.lang.reflect.Type;
 import java.util.Collection;
@@ -94,7 +93,7 @@ public class Injector
         return Collections2.transform(holes, new com.google.common.base.Function<Hole, Type>() {
             @Override
             public Type apply(Hole hole) {
-                return ((FieldHole)hole).getType();
+                return ((FieldHole)hole).getHoleClass();
             }
         });
     }

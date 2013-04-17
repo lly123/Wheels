@@ -5,5 +5,5 @@ import java.util.Collection;
 interface Hole
 {
     boolean isFilled();
-    void fill(Collection<Pod> pods);
+    void fill(final Collection<Pod> pods);
 }
