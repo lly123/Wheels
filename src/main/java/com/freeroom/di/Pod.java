@@ -17,11 +17,13 @@ class Pod
 {
     private final Class<?> beanClass;
     private final String beanName;
+    private final List<Hole> holes;
     private Object bean;
 
     public Pod(final Class<?> beanClass) {
         this.beanClass = beanClass;
         this.beanName = findBeanName(beanClass);
+        this.holes = findHoles();
     }
 
     public String getBeanName() {
@@ -36,13 +38,8 @@ class Pod
         return bean;
     }
 
-    @Override
-    public boolean equals(final Object o) {
-        if (o == null || !(o instanceof Pod)) {
-            return false;
-        }
-
-        return getBeanName().equals(((Pod) o).getBeanName());
+    public List<Hole> getHoles() {
+        return holes;
     }
 
     public void createBeanWithDefaultConstructor() {
@@ -53,7 +50,27 @@ class Pod
         }
     }
 
-    private List<Field> getInjectionFields() {
+    @Override
+    public boolean equals(final Object o) {
+        if (o == null || !(o instanceof Pod)) {
+            return false;
+        }
+
+        return getBeanName().equals(((Pod) o).getBeanName());
+    }
+
+    private List<Hole> findHoles() {
+        List<Field> fields = findInjectionFields();
+
+        return newArrayList(Lists.transform(fields, new com.google.common.base.Function<Field, Hole>() {
+            @Override
+            public Hole apply(Field field) {
+                return new FieldHole(field);
+            }
+        }));
+    }
+
+    private List<Field> findInjectionFields() {
         return reduce(Lists.<Field>newArrayList(), newArrayList(beanClass.getDeclaredFields()),
             new Function<ArrayList<Field>, Field>() {
                 @Override
@@ -65,17 +82,6 @@ class Pod
                 }
             }
         );
-    }
-
-    public List<Hole> getHoles() {
-        List<Field> fields = getInjectionFields();
-
-        return Lists.transform(fields, new com.google.common.base.Function<Field, Hole>() {
-            @Override
-            public Hole apply(Field field) {
-                return new Hole(field.getType(), HoleType.FIELD);
-            }
-        });
     }
 
     private String findBeanName(final Class<?> beanClass) {

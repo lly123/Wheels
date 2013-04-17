@@ -8,7 +8,6 @@ import com.google.common.collect.Collections2;
 import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Queue;
 import java.util.Stack;
 
 import static com.freeroom.di.util.Iterables.reduce;
@@ -20,7 +19,7 @@ public class Injector
 {
     private final Collection<Pod> pods;
 
-    public Injector(Collection<Pod> pods) {
+    public Injector(final Collection<Pod> pods) {
         this.pods = pods;
     }
 
@@ -37,9 +36,9 @@ public class Injector
     }
 
     private void resolveDependencyInjection(
-            Stack<Pod> waitingForConstruction,
-            Stack<Pod> waitingForPopulation,
-            Stack<Pod> allFinished)
+            final Stack<Pod> waitingForConstruction,
+            final Stack<Pod> waitingForPopulation,
+            final Stack<Pod> allFinished)
     {
         while (!waitingForConstruction.isEmpty()) {
             Pod pod = waitingForConstruction.pop();
@@ -49,14 +48,13 @@ public class Injector
 
         while (!waitingForPopulation.isEmpty()) {
             Pod pod = waitingForPopulation.pop();
+            populateDependencies(pod);
+            allFinished.push(pod);
         }
     }
 
-    private void resolve(final Pod pod, final Collection<Object> resolvedBeans, final Queue<Pod> waitingForResolve) {
-//        Collection<Pod> pods = findPodsForInjection(pod);
-//        pod.setDependencies(pods);
-//        resolvedBeans.add(pod);
-//        remeberUnresolvedPods(pods, resolvedBeans, waitingForResolve);
+    private void populateDependencies(final Pod pod) {
+        //To change body of created methods use File | Settings | File Templates.
     }
 
     private void assertDependenciesCanBeSatisfied() {

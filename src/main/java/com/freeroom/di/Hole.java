@@ -1,26 +1,27 @@
 package com.freeroom.di;
 
+import com.google.common.base.Optional;
+
 import java.lang.reflect.Type;
 
 public class Hole
 {
     private Class<?> type;
-    private HoleType holeType;
+    private Optional<Object> bean = Optional.absent();
 
-    public Hole(Class<?> type, HoleType holeType) {
+    public Hole(Class<?> type) {
         this.type = type;
-        this.holeType = holeType;
     }
 
     public Type getType() {
         return type;
     }
 
-    public HoleType getHoleType() {
-        return holeType;
+    public boolean isFilled() {
+        return bean.isPresent();
     }
 
-    public boolean isFilled() {
-        return false;
+    public void fill(Object bean) {
+        this.bean = Optional.of(bean);
     }
 }
