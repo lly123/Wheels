@@ -3,17 +3,17 @@ package com.freeroom.di;
 import com.freeroom.di.exceptions.NoBeanException;
 import com.freeroom.di.util.Function;
 import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Queue;
+import java.util.Stack;
 
 import static com.freeroom.di.util.Iterables.reduce;
 import static com.google.common.collect.Iterables.all;
 import static com.google.common.collect.Iterables.any;
-import static com.google.common.collect.Iterables.transform;
-import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.String.format;
 
 public class Injector
@@ -25,17 +25,50 @@ public class Injector
     }
 
     public void resolve() {
-        assertContainAll(pods, getUniqueTypes());
+        assertDependenciesCanBeSatisfied();
+
+        Stack<Pod> waitingForConstruction = new Stack<>();
+        Stack<Pod> waitingForPopulation = new Stack<>();
+        Stack<Pod> allFinished = new Stack<>();
+
+        waitingForConstruction.addAll(pods);
+
+        resolveDependencyInjection(waitingForConstruction, waitingForPopulation, allFinished);
     }
 
-    private void assertContainAll(final Collection<Pod> pods, final Collection<Type> types) {
-        all(types, new Predicate<Type>() {
+    private void resolveDependencyInjection(
+            Stack<Pod> waitingForConstruction,
+            Stack<Pod> waitingForPopulation,
+            Stack<Pod> allFinished)
+    {
+        while (!waitingForConstruction.isEmpty()) {
+            Pod pod = waitingForConstruction.pop();
+            pod.createBeanWithDefaultConstructor();
+            waitingForPopulation.push(pod);
+        }
+
+        while (!waitingForPopulation.isEmpty()) {
+            Pod pod = waitingForPopulation.pop();
+        }
+    }
+
+    private void resolve(final Pod pod, final Collection<Object> resolvedBeans, final Queue<Pod> waitingForResolve) {
+//        Collection<Pod> pods = findPodsForInjection(pod);
+//        pod.setDependencies(pods);
+//        resolvedBeans.add(pod);
+//        remeberUnresolvedPods(pods, resolvedBeans, waitingForResolve);
+    }
+
+    private void assertDependenciesCanBeSatisfied() {
+        Collection<Type> dependencyTypes = getUniqueDependencyTypes();
+
+        all(dependencyTypes, new Predicate<Type>() {
             @Override
             public boolean apply(final Type type) {
                 if (!any(pods, new Predicate<Pod>() {
                     @Override
                     public boolean apply(Pod pod) {
-                        return pod.getBean().getClass().equals(type);
+                        return pod.getBeanClass().equals(type);
                     }
                 })) {
                     throw new NoBeanException(format("Can't find bean of type %s in context.", type));
@@ -45,22 +78,22 @@ public class Injector
         });
     }
 
-    private Collection<Type> getUniqueTypes() {
+    private Collection<Type> getUniqueDependencyTypes() {
         return reduce(new HashSet<Type>(), pods, new Function<HashSet<Type>, Pod>() {
             @Override
             public HashSet<Type> call(HashSet<Type> fieldTypes, Pod pod) {
-                fieldTypes.addAll(toTypes(pod.getInjectionFields()));
+                fieldTypes.addAll(toTypes(pod.getHoles()));
                 return fieldTypes;
             }
         });
     }
 
-    private Collection<Type> toTypes(final Collection<Field> fields) {
-        return newArrayList(transform(fields, new com.google.common.base.Function<Field, Type>() {
+    private Collection<Type> toTypes(final Collection<Hole> holes) {
+        return Collections2.transform(holes, new com.google.common.base.Function<Hole, Type>() {
             @Override
-            public Type apply(Field field) {
-                return field.getType();
+            public Type apply(Hole hole) {
+                return hole.getType();
             }
-        }));
+        });
     }
 }

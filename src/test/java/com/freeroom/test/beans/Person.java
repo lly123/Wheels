@@ -7,8 +7,7 @@ import com.freeroom.di.annotations.Inject;
 public class Person
 {
     @Inject
-    private Home home;
-
-    @Inject
     private Car car;
+
+    private Home home;
 }

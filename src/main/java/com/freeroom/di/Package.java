@@ -24,8 +24,7 @@ class Package
     private final String packageName;
     private final Collection<Pod> pods;
 
-    public Package(final String packageName)
-    {
+    public Package(final String packageName) {
         this.packageName = packageName;
         this.pods = findPods();
     }

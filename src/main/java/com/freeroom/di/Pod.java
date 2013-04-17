@@ -15,20 +15,25 @@ import static com.google.common.collect.Lists.newArrayList;
 
 class Pod
 {
-    private final Class beanClass;
+    private final Class<?> beanClass;
     private final String beanName;
+    private Object bean;
 
-    public Pod(final Class beanClass) {
+    public Pod(final Class<?> beanClass) {
         this.beanClass = beanClass;
         this.beanName = findBeanName(beanClass);
     }
 
-    public Object getBean() {
-        return createBeanWithDefaultConstructor();
-    }
-
     public String getBeanName() {
         return beanName;
+    }
+
+    public Class<?> getBeanClass() {
+        return beanClass;
+    }
+
+    public Object getBean() {
+        return bean;
     }
 
     @Override
@@ -40,24 +45,15 @@ class Pod
         return getBeanName().equals(((Pod) o).getBeanName());
     }
 
-    private Object createBeanWithDefaultConstructor() {
+    public void createBeanWithDefaultConstructor() {
         try {
-            return beanClass.getConstructor().newInstance();
+            bean = beanClass.getConstructor().newInstance();
         } catch (Exception e) {
             throw new RuntimeException("Can't create bean with default constructor.", e);
         }
     }
 
-    private String findBeanName(final Class beanClass) {
-        Bean beanAnnotation = (Bean) beanClass.getAnnotation(Bean.class);
-        String beanName = beanAnnotation.value();
-        if (isNullOrEmpty(beanName)) {
-            beanName = beanClass.getSimpleName();
-        }
-        return beanName;
-    }
-
-    public List<Field> getInjectionFields() {
+    private List<Field> getInjectionFields() {
         return reduce(Lists.<Field>newArrayList(), newArrayList(beanClass.getDeclaredFields()),
             new Function<ArrayList<Field>, Field>() {
                 @Override
@@ -69,5 +65,25 @@ class Pod
                 }
             }
         );
+    }
+
+    public List<Hole> getHoles() {
+        List<Field> fields = getInjectionFields();
+
+        return Lists.transform(fields, new com.google.common.base.Function<Field, Hole>() {
+            @Override
+            public Hole apply(Field field) {
+                return new Hole(field.getType(), HoleType.FIELD);
+            }
+        });
+    }
+
+    private String findBeanName(final Class<?> beanClass) {
+        Bean beanAnnotation = beanClass.getAnnotation(Bean.class);
+        String beanName = beanAnnotation.value();
+        if (isNullOrEmpty(beanName)) {
+            beanName = beanClass.getSimpleName();
+        }
+        return beanName;
     }
 }

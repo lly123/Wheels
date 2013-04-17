@@ -2,7 +2,6 @@ package com.freeroom.di;
 
 import com.freeroom.di.exceptions.NoBeanException;
 import com.freeroom.test.beans.Car;
-import com.freeroom.test.beans.Home;
 import com.freeroom.test.beans.Person;
 import org.junit.Test;
 
@@ -17,8 +16,8 @@ public class InjectorTest
     }
 
     @Test
-    public void should_resolve_beans_in_context() {
-        Injector injector = new Injector(newArrayList(new Pod(Car.class), new Pod(Person.class), new Pod(Home.class)));
+    public void should_have_all_beans_in_context() {
+        Injector injector = new Injector(newArrayList(new Pod(Car.class), new Pod(Person.class)));
         injector.resolve();
     }
 }
