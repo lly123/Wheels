@@ -3,8 +3,12 @@ package com.freeroom.di;
 import com.freeroom.di.annotations.Bean;
 import com.freeroom.di.annotations.Inject;
 import com.freeroom.di.util.Function;
+import com.google.common.base.Optional;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -12,6 +16,8 @@ import java.util.List;
 
 import static com.freeroom.di.util.Iterables.reduce;
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.google.common.collect.Iterables.any;
+import static com.google.common.collect.Iterables.tryFind;
 import static com.google.common.collect.Lists.newArrayList;
 
 class Pod
@@ -21,29 +27,40 @@ class Pod
     private final List<Hole> holes;
     private Object bean;
 
-    public Pod(final Class<?> beanClass) {
+    public Pod(final Class<?> beanClass)
+    {
         this.beanClass = beanClass;
         this.beanName = findBeanName(beanClass);
         this.holes = findHoles();
     }
 
-    public String getBeanName() {
+    public String getBeanName()
+    {
         return beanName;
     }
 
-    public Class<?> getBeanClass() {
+    public Class<?> getBeanClass()
+    {
         return beanClass;
     }
 
-    public Object getBean() {
+    public Object getBean()
+    {
         return bean;
     }
 
-    public List<Hole> getHoles() {
+    public boolean isBeanConstructed()
+    {
+        return bean != null;
+    }
+
+    public List<Hole> getHoles()
+    {
         return holes;
     }
 
-    public void createBeanWithDefaultConstructor() {
+    public void createBeanWithDefaultConstructor()
+    {
         try {
             bean = beanClass.getConstructor().newInstance();
         } catch (Exception e) {
@@ -51,7 +68,8 @@ class Pod
         }
     }
 
-    public Collection<FieldHole> getFieldHoles() {
+    public Collection<FieldHole> getFieldHoles()
+    {
         return reduce(Lists.<FieldHole>newArrayList(), holes, new Function<ArrayList<FieldHole>, Hole>() {
             @Override
             public ArrayList<FieldHole> call(ArrayList<FieldHole> fieldHoles, Hole hole) {
@@ -63,7 +81,8 @@ class Pod
         });
     }
 
-    public void populateFields() {
+    public void populateFields()
+    {
         Collection<FieldHole> fieldHoles = getFieldHoles();
         try {
             for (FieldHole hole : fieldHoles) {
@@ -72,8 +91,19 @@ class Pod
         } catch (Exception ignored) {}
     }
 
+    public Optional<Hole> getConstructorHole()
+    {
+        return tryFind(holes, new Predicate<Hole>() {
+            @Override
+            public boolean apply(Hole hole) {
+                return hole instanceof ConstructorHole;
+            }
+        });
+    }
+
     @Override
-    public boolean equals(final Object o) {
+    public boolean equals(final Object o)
+    {
         if (o == null || !(o instanceof Pod)) {
             return false;
         }
@@ -81,18 +111,45 @@ class Pod
         return getBeanName().equals(((Pod) o).getBeanName());
     }
 
-    private List<Hole> findHoles() {
-        List<Field> fields = findInjectionFields();
+    private List<Hole> findHoles()
+    {
+        List<Hole> holes = newArrayList();
 
-        return newArrayList(Lists.transform(fields, new com.google.common.base.Function<Field, Hole>() {
+        Optional<Hole> hole = findConstructorHole();
+        if (hole.isPresent()) {
+            holes.add(hole.get());
+        }
+        holes.addAll(findFieldHoles());
+
+        return holes;
+    }
+
+    private Optional<Hole> findConstructorHole()
+    {
+        return reduce(Optional.<Hole>absent(), Lists.<Constructor>newArrayList(beanClass.getConstructors()),
+            new Function<Optional<Hole>, Constructor>() {
+                @Override
+                public Optional<Hole> call(Optional<Hole> hole, Constructor constructor) {
+                    if (constructor.isAnnotationPresent(Inject.class)) {
+                        hole = Optional.<Hole>of(new ConstructorHole(constructor));
+                    }
+                    return hole;
+                }
+            });
+    }
+
+    private List<Hole> findFieldHoles()
+    {
+        return Lists.transform(findInjectionFields(), new com.google.common.base.Function<Field, Hole>() {
             @Override
             public Hole apply(Field field) {
                 return new FieldHole(field);
             }
-        }));
+        });
     }
 
-    private List<Field> findInjectionFields() {
+    private List<Field> findInjectionFields()
+    {
         return reduce(Lists.<Field>newArrayList(), newArrayList(beanClass.getDeclaredFields()),
             new Function<ArrayList<Field>, Field>() {
                 @Override
@@ -102,16 +159,20 @@ class Pod
                     }
                     return injectionFields;
                 }
-            }
-        );
+            });
     }
 
-    private String findBeanName(final Class<?> beanClass) {
+    private String findBeanName(final Class<?> beanClass)
+    {
         Bean beanAnnotation = beanClass.getAnnotation(Bean.class);
         String beanName = beanAnnotation.value();
         if (isNullOrEmpty(beanName)) {
             beanName = beanClass.getSimpleName();
         }
         return beanName;
+    }
+
+    public void createBean(ConstructorHole constructorHole) {
+        bean = constructorHole.create();
     }
 }

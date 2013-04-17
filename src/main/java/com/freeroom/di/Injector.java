@@ -2,6 +2,7 @@ package com.freeroom.di;
 
 import com.freeroom.di.exceptions.NoBeanException;
 import com.freeroom.di.util.Function;
+import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 
@@ -13,18 +14,19 @@ import java.util.Stack;
 import static com.freeroom.di.util.Iterables.reduce;
 import static com.google.common.collect.Iterables.all;
 import static com.google.common.collect.Iterables.any;
-import static com.google.common.collect.Iterables.find;
 import static java.lang.String.format;
 
-public class Injector
+class Injector
 {
     private final Collection<Pod> pods;
 
-    public Injector(final Collection<Pod> pods) {
+    public Injector(final Collection<Pod> pods)
+    {
         this.pods = pods;
     }
 
-    public Collection<Pod> resolve() {
+    public Collection<Pod> resolve()
+    {
         assertDependenciesCanBeSatisfied();
 
         Stack<Pod> waitingForConstruction = new Stack<>();
@@ -43,8 +45,26 @@ public class Injector
     {
         while (!waitingForConstruction.isEmpty()) {
             Pod pod = waitingForConstruction.pop();
-            pod.createBeanWithDefaultConstructor();
-            waitingForPopulation.push(pod);
+
+            Optional<Hole> constructorHole = pod.getConstructorHole();
+            if (constructorHole.isPresent()) {
+                ConstructorHole hole = (ConstructorHole) constructorHole.get();
+                hole.fill(pods);
+                if (hole.isFilled()) {
+                    pod.createBean(hole);
+                } else {
+                    Collection<Pod> unreadyPods = hole.getUnreadyPods();
+                    waitingForConstruction.push(pod);
+
+                    for (Pod unreadyPod : unreadyPods) {
+                        waitingForConstruction.push(unreadyPod);
+                        assertNoCycleDependency(waitingForConstruction);
+                    }
+                }
+            } else {
+                pod.createBeanWithDefaultConstructor();
+                waitingForPopulation.push(pod);
+            }
         }
 
         while (!waitingForPopulation.isEmpty()) {
@@ -53,14 +73,20 @@ public class Injector
         }
     }
 
-    private void populateDependencies(final Pod pod) {
+    private void assertNoCycleDependency(Stack<Pod> waitingForConstruction) {
+        //To change body of created methods use File | Settings | File Templates.
+    }
+
+    private void populateDependencies(final Pod pod)
+    {
         for (FieldHole hole : pod.getFieldHoles()) {
             hole.fill(pods);
         }
         pod.populateFields();
     }
 
-    private void assertDependenciesCanBeSatisfied() {
+    private void assertDependenciesCanBeSatisfied()
+    {
         Collection<Type> dependencyTypes = getUniqueDependencyTypes();
 
         all(dependencyTypes, new Predicate<Type>() {
@@ -79,7 +105,8 @@ public class Injector
         });
     }
 
-    private Collection<Type> getUniqueDependencyTypes() {
+    private Collection<Type> getUniqueDependencyTypes()
+    {
         return reduce(new HashSet<Type>(), pods, new Function<HashSet<Type>, Pod>() {
             @Override
             public HashSet<Type> call(HashSet<Type> fieldTypes, Pod pod) {
@@ -89,7 +116,8 @@ public class Injector
         });
     }
 
-    private Collection<Type> toTypes(final Collection<Hole> holes) {
+    private Collection<Type> toTypes(final Collection<Hole> holes)
+    {
         return Collections2.transform(holes, new com.google.common.base.Function<Hole, Type>() {
             @Override
             public Type apply(Hole hole) {
