@@ -4,6 +4,7 @@ import com.freeroom.di.exceptions.NoBeanException;
 import com.freeroom.di.util.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
+import com.google.common.collect.Iterables;
 
 import java.lang.reflect.Type;
 import java.util.Collection;
@@ -13,6 +14,7 @@ import java.util.Stack;
 import static com.freeroom.di.util.Iterables.reduce;
 import static com.google.common.collect.Iterables.all;
 import static com.google.common.collect.Iterables.any;
+import static com.google.common.collect.Iterables.find;
 import static java.lang.String.format;
 
 public class Injector
@@ -23,22 +25,22 @@ public class Injector
         this.pods = pods;
     }
 
-    public void resolve() {
+    public Collection<Pod> resolve() {
         assertDependenciesCanBeSatisfied();
 
         Stack<Pod> waitingForConstruction = new Stack<>();
         Stack<Pod> waitingForPopulation = new Stack<>();
-        Stack<Pod> allFinished = new Stack<>();
 
         waitingForConstruction.addAll(pods);
 
-        resolveDependencyInjection(waitingForConstruction, waitingForPopulation, allFinished);
+        resolveDependencyInjection(waitingForConstruction, waitingForPopulation);
+
+        return pods;
     }
 
     private void resolveDependencyInjection(
             final Stack<Pod> waitingForConstruction,
-            final Stack<Pod> waitingForPopulation,
-            final Stack<Pod> allFinished)
+            final Stack<Pod> waitingForPopulation)
     {
         while (!waitingForConstruction.isEmpty()) {
             Pod pod = waitingForConstruction.pop();
@@ -49,12 +51,23 @@ public class Injector
         while (!waitingForPopulation.isEmpty()) {
             Pod pod = waitingForPopulation.pop();
             populateDependencies(pod);
-            allFinished.push(pod);
         }
     }
 
     private void populateDependencies(final Pod pod) {
-        //To change body of created methods use File | Settings | File Templates.
+        for (FieldHole hole : pod.getFieldHoles()) {
+            hole.fill(findPodWithType(hole.getType()).getBean());
+        }
+        pod.populateFields();
+    }
+
+    private Pod findPodWithType(final Type type) {
+        return find(pods, new Predicate<Pod>() {
+            @Override
+            public boolean apply(Pod pod) {
+                return ((Class<?>)type).isAssignableFrom(pod.getBeanClass());
+            }
+        });
     }
 
     private void assertDependenciesCanBeSatisfied() {

@@ -34,4 +34,15 @@ public class PodTest
         Pod pod = new Pod(Person.class);
         pod.getHoles().get(0).fill(new Home());
     }
+
+    @Test
+    public void should_populate_bean_injection_fields() {
+        Car car = new Car();
+        Pod pod = new Pod(Person.class);
+
+        pod.getHoles().get(0).fill(car);
+        pod.createBeanWithDefaultConstructor();
+        pod.populateFields();
+        assertThat(((Person)pod.getBean()).getCar(), is(car));
+    }
 }

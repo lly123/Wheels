@@ -9,6 +9,7 @@ public class FieldHole extends Hole
     public FieldHole(Field field) {
         super(field.getType());
         this.field = field;
+        this.field.setAccessible(true);
     }
 
     public Field getField() {

@@ -7,6 +7,7 @@ import com.google.common.collect.Lists;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import static com.freeroom.di.util.Iterables.reduce;
@@ -48,6 +49,27 @@ class Pod
         } catch (Exception e) {
             throw new RuntimeException("Can't create bean with default constructor.", e);
         }
+    }
+
+    public Collection<FieldHole> getFieldHoles() {
+        return reduce(Lists.<FieldHole>newArrayList(), holes, new Function<ArrayList<FieldHole>, Hole>() {
+            @Override
+            public ArrayList<FieldHole> call(ArrayList<FieldHole> fieldHoles, Hole hole) {
+                if (hole instanceof FieldHole) {
+                    fieldHoles.add((FieldHole) hole);
+                }
+                return fieldHoles;
+            }
+        });
+    }
+
+    public void populateFields() {
+        Collection<FieldHole> fieldHoles = getFieldHoles();
+        try {
+            for (FieldHole hole : fieldHoles) {
+                hole.getField().set(getBean(), hole.getBean());
+            }
+        } catch (Exception ignored) {}
     }
 
     @Override

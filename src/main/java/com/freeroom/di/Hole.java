@@ -27,4 +27,8 @@ public class Hole
         }
         this.bean = Optional.of(bean);
     }
+
+    public Object getBean() {
+        return bean.get();
+    }
 }

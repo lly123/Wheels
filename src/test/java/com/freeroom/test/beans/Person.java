@@ -10,4 +10,8 @@ public class Person
     private Car car;
 
     private Home home;
+
+    public Car getCar() {
+        return car;
+    }
 }

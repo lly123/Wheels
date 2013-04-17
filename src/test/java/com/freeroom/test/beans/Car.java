@@ -8,4 +8,8 @@ public class Car
 {
     @Inject
     private Person driver;
+
+    public Person getDriver() {
+        return driver;
+    }
 }
