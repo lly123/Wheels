@@ -27,7 +27,8 @@ class Injector
         resolveFieldInjection();
     }
 
-    private void resolveConstructionInjection() {
+    private void resolveConstructionInjection()
+    {
         while (!waitingForConstruction.isEmpty()) {
             Pod pod = waitingForConstruction.pop();
 
@@ -40,14 +41,21 @@ class Injector
         }
     }
 
-    private void resolveFieldInjection() {
+    private void resolveFieldInjection()
+    {
         while (!waitingForPopulation.isEmpty()) {
             Pod pod = waitingForPopulation.pop();
             populateFieldDependencies(pod);
         }
     }
 
-    private void prepareUnreadyPodsForConstruction(Pod pod) {
+    private void preparePodForPopulateFields(final Pod pod)
+    {
+        waitingForPopulation.push(pod);
+    }
+
+    private void prepareUnreadyPodsForConstruction(final Pod pod)
+    {
         ConstructorHole constructorHole = (ConstructorHole) pod.getConstructorHole().get();
         Collection<Pod> unreadyPods = constructorHole.getUnreadyPods();
 
@@ -56,10 +64,6 @@ class Injector
             waitingForConstruction.push(unreadyPod);
             assertNoCycleDependency();
         }
-    }
-
-    private void preparePodForPopulateFields(Pod pod) {
-        waitingForPopulation.push(pod);
     }
 
     private void assertNoCycleDependency()
