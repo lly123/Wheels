@@ -50,7 +50,7 @@ class Pod
         return bean;
     }
 
-    public boolean isBeanConstructed()
+    public boolean isBeanReady()
     {
         return bean != null;
     }
@@ -129,6 +129,11 @@ class Pod
         } else {
             createBeanWithDefaultConstructor();
         }
+    }
+
+    public void removeBean()
+    {
+        this.bean = null;
     }
 
     private List<Hole> findHoles()

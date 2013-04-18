@@ -50,7 +50,7 @@ class FieldHole extends Hole
         Optional<Pod> pod = tryFind(pods, new Predicate<Pod>() {
             @Override
             public boolean apply(final Pod pod) {
-                return clazz.isAssignableFrom(pod.getBeanClass()) && pod.isBeanConstructed();
+                return clazz.isAssignableFrom(pod.getBeanClass()) && pod.isBeanReady();
             }
         });
 

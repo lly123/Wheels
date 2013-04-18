@@ -1,9 +1,12 @@
 package com.freeroom.di;
 
 import com.freeroom.di.exceptions.ConstructorCycleDependencyException;
+import com.google.common.base.Predicate;
 
 import java.util.Collection;
 import java.util.Stack;
+
+import static com.google.common.collect.Collections2.filter;
 
 class Injector
 {
@@ -18,13 +21,14 @@ class Injector
 
     public Collection<Pod> resolve()
     {
-        waitingForConstruction.addAll(pods);
-        resolveDependencyInjection();
+        Collection<Pod> unreadyPods = findUnreadyPods(pods);
+        resolveDependencyInjection(unreadyPods);
         return pods;
     }
 
-    private void resolveDependencyInjection()
+    private void resolveDependencyInjection(Collection<Pod> unreadyPods)
     {
+        waitingForConstruction.addAll(unreadyPods);
         resolveConstructionInjection();
         resolveFieldInjection();
     }
@@ -35,7 +39,7 @@ class Injector
             Pod pod = waitingForConstruction.pop();
 
             pod.tryConstructBean(pods);
-            if (pod.isBeanConstructed()) {
+            if (pod.isBeanReady()) {
                 preparePodForPopulateFields(pod);
             } else {
                 prepareUnreadyPodsForConstruction(pod);
@@ -84,5 +88,15 @@ class Injector
                             " have constructor cycle dependencies."
             );
         }
+    }
+
+    private Collection<Pod> findUnreadyPods(final Collection<Pod> pods)
+    {
+        return filter(pods, new Predicate<Pod>() {
+            @Override
+            public boolean apply(final Pod pod) {
+                return !pod.isBeanReady();
+            }
+        });
     }
 }
