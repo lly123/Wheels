@@ -48,7 +48,8 @@ class ConstructorHole extends Hole
         return unreadyPods;
     }
 
-    public Object create() {
+    public Object create()
+    {
         try {
             return constructor.newInstance(readyBeans.toArray());
         } catch (Exception e) {

@@ -3,12 +3,10 @@ package com.freeroom.di;
 import com.freeroom.di.exceptions.NoBeanException;
 import com.freeroom.di.exceptions.NotUniqueException;
 import com.freeroom.test.beans.Car;
+import com.freeroom.test.beans.EmptyBean;
 import com.freeroom.test.beans.Home;
 import com.freeroom.test.beans.Person;
-import com.freeroom.test.beans.constrcutorInjection.NoBeanForConstructor;
-import com.freeroom.test.beans.constrcutorInjection.Student;
-import com.freeroom.test.beans.constrcutorInjection.Teacher;
-import com.freeroom.test.beans.constrcutorInjection.TwoConstructorsInjection;
+import com.freeroom.test.beans.constrcutorInjection.*;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -26,6 +24,16 @@ public class PodTest
     public void setUp()
     {
         podsPool = generatePods();
+    }
+
+    @Test
+    public void should_create_bean_by_default_constructor()
+    {
+        Pod pod = new Pod(EmptyBean.class);
+
+        pod.createBeanWithDefaultConstructor();
+
+        assertThat(pod.getBean(), is(instanceOf(EmptyBean.class)));
     }
 
     @Test
@@ -70,15 +78,6 @@ public class PodTest
         assertThat(fieldHole.isFilled(), is(true));
     }
 
-    @Test(expected = NoBeanException.class)
-    public void should_throw_NoBeanException_given_no_bean_for_constructor_parameter()
-    {
-        Pod pod = new Pod(NoBeanForConstructor.class);
-
-        Hole constructorHole = pod.getHoles().get(0);
-        constructorHole.fill(podsPool);
-    }
-
     @Test
     public void should_fill_holes_given_a_constructor_hole()
     {
@@ -91,11 +90,35 @@ public class PodTest
     }
 
     @Test(expected = NoBeanException.class)
+    public void should_throw_NoBeanException_given_no_bean_for_constructor_parameter()
+    {
+        Pod pod = new Pod(NoBeanForConstructor.class);
+
+        Hole constructorHole = pod.getHoles().get(0);
+        constructorHole.fill(podsPool);
+    }
+
+    @Test(expected = NoBeanException.class)
     public void should_throw_NoBeanException_given_filling_bean_type_is_wrong()
     {
         Pod pod = new Pod(Person.class);
 
         pod.getHoles().get(0).fill(asList(new Pod(Home.class)));
+    }
+
+    @Test
+    public void should_not_fill_constructor_holes_given_beans_not_ready()
+    {
+        Pod pod = new Pod(FamilyStudy.class);
+
+        ConstructorHole hole = (ConstructorHole) pod.getHoles().get(0);
+        hole.fill(studentPodIsUnready());
+
+        assertThat(hole.isFilled(), is(false));
+        assertThat(hole.getUnreadyPods().size(), is(1));
+
+        Pod unreadyPod = (Pod) hole.getUnreadyPods().toArray()[0];
+        assertThat(unreadyPod.getBeanClass().equals(Student.class), is(true));
     }
 
     @Test
@@ -122,5 +145,15 @@ public class PodTest
         teacherPod.createBeanWithDefaultConstructor();
 
         return asList(carPod, homePod, teacherPod);
+    }
+
+    private Collection<Pod> studentPodIsUnready()
+    {
+        Pod teacherPod = new Pod(Teacher.class);
+        teacherPod.createBeanWithDefaultConstructor();
+
+        Pod studentPod = new Pod(Student.class);
+
+        return asList(teacherPod, studentPod);
     }
 }
