@@ -78,13 +78,13 @@ public class BeanContextTest
     }
 
     @Test(expected = NotUniqueException.class)
-    public void should_throw_NotUniqueException_given_beans_have_same_name()
+    public void should_throw_NotUniqueException_given_beans_have_same_customized_name()
     {
         BeanContext.load("com.freeroom.test.beans.sameBeanName");
     }
 
     @Test
-    public void should_create_new_beans_given_Required_scope()
+    public void should_create_new_beans_given_REQUIRED_scope()
     {
         BeanContext context = BeanContext.load("com.freeroom.test.beans.requiredScope");
 
