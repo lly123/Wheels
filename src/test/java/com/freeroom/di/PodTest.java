@@ -2,10 +2,10 @@ package com.freeroom.di;
 
 import com.freeroom.di.exceptions.NoBeanException;
 import com.freeroom.di.exceptions.NotUniqueException;
-import com.freeroom.test.beans.Car;
+import com.freeroom.test.beans.fieldInjection.Car;
 import com.freeroom.test.beans.EmptyBean;
-import com.freeroom.test.beans.Home;
-import com.freeroom.test.beans.Person;
+import com.freeroom.test.beans.fieldInjection.Home;
+import com.freeroom.test.beans.fieldInjection.Person;
 import com.freeroom.test.beans.constrcutorInjection.*;
 import org.junit.Before;
 import org.junit.Test;

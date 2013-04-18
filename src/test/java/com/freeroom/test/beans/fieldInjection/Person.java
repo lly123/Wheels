@@ -1,4 +1,4 @@
-package com.freeroom.test.beans;
+package com.freeroom.test.beans.fieldInjection;
 
 import com.freeroom.di.annotations.Bean;
 import com.freeroom.di.annotations.Inject;

@@ -2,8 +2,8 @@ package com.freeroom.di;
 
 import com.freeroom.di.exceptions.ConstructorCycleDependencyException;
 import com.freeroom.di.exceptions.NoBeanException;
-import com.freeroom.test.beans.Car;
-import com.freeroom.test.beans.Person;
+import com.freeroom.test.beans.fieldInjection.Car;
+import com.freeroom.test.beans.fieldInjection.Person;
 import com.freeroom.test.beans.constrcutorInjection.Student;
 import com.freeroom.test.beans.constrcutorInjection.Teacher;
 import com.freeroom.test.beans.constrcutorInjection.cycleDependency.ClassA;

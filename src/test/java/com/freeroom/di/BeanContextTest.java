@@ -2,7 +2,7 @@ package com.freeroom.di;
 
 import com.freeroom.di.exceptions.NotUniqueException;
 import com.freeroom.test.beans.Dummy;
-import com.freeroom.test.beans.Person;
+import com.freeroom.test.beans.fieldInjection.Person;
 import com.freeroom.test.beans.Shape;
 import org.junit.Test;
 
