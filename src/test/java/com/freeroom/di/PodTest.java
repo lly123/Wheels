@@ -7,7 +7,7 @@ import com.freeroom.test.beans.fieldInjection.Car;
 import com.freeroom.test.beans.EmptyBean;
 import com.freeroom.test.beans.fieldInjection.Home;
 import com.freeroom.test.beans.fieldInjection.Person;
-import com.freeroom.test.beans.constrcutorInjection.*;
+import com.freeroom.test.beans.constructorInjection.*;
 import com.freeroom.test.beans.requiredScope.Otter;
 import org.junit.Before;
 import org.junit.Test;

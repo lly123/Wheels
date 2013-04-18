@@ -1,4 +1,4 @@
-package com.freeroom.test.beans.constrcutorInjection.cycleDependency;
+package com.freeroom.test.beans.constructorInjection.cycleDependency;
 
 import com.freeroom.di.annotations.Bean;
 import com.freeroom.di.annotations.Inject;

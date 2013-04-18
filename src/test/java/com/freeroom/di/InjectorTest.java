@@ -2,10 +2,10 @@ package com.freeroom.di;
 
 import com.freeroom.di.exceptions.ConstructorCycleDependencyException;
 import com.freeroom.di.exceptions.NoBeanException;
-import com.freeroom.test.beans.constrcutorInjection.Student;
-import com.freeroom.test.beans.constrcutorInjection.Teacher;
-import com.freeroom.test.beans.constrcutorInjection.cycleDependency.ClassA;
-import com.freeroom.test.beans.constrcutorInjection.cycleDependency.ClassB;
+import com.freeroom.test.beans.constructorInjection.Student;
+import com.freeroom.test.beans.constructorInjection.Teacher;
+import com.freeroom.test.beans.constructorInjection.cycleDependency.ClassA;
+import com.freeroom.test.beans.constructorInjection.cycleDependency.ClassB;
 import com.freeroom.test.beans.dependentBeans.ClassC;
 import com.freeroom.test.beans.dependentBeans.ClassD;
 import com.freeroom.test.beans.dependentBeans.ClassE;
