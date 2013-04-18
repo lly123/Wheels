@@ -1,6 +1,6 @@
 package com.freeroom.di.annotations;
 
-public enum BeanScope
+public enum Scope
 {
     Context, Required;
 }

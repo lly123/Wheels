@@ -10,5 +10,5 @@ import java.lang.annotation.Target;
 public @interface Bean
 {
     String value() default "";
-    BeanScope scope() default BeanScope.Context;
+    Scope scope() default Scope.Context;
 }
