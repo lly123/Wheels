@@ -85,7 +85,7 @@ public class BeanContext
     private void podsInjection()
     {
         cleanRequiredScopeBeans();
-        new Injector(beanPackage.getPods()).resolve();
+        new Injector(beanPackage).resolve();
     }
 
     private void cleanRequiredScopeBeans()

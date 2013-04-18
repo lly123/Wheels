@@ -10,20 +10,20 @@ import static com.google.common.collect.Collections2.filter;
 
 class Injector
 {
-    private final Collection<Pod> pods;
+    private final Package beanPackage;
     private final Stack<Pod> waitingForConstruction = new Stack<>();
     private final Stack<Pod> waitingForPopulation = new Stack<>();
 
-    public Injector(final Collection<Pod> pods)
+    public Injector(final Package beanPackage)
     {
-        this.pods = pods;
+        this.beanPackage = beanPackage;
     }
 
     public Collection<Pod> resolve()
     {
-        Collection<Pod> unreadyPods = findUnreadyPods(pods);
+        final Collection<Pod> unreadyPods = findUnreadyPods(beanPackage.getPods());
         resolveDependencyInjection(unreadyPods);
-        return pods;
+        return beanPackage.getPods();
     }
 
     private void resolveDependencyInjection(Collection<Pod> unreadyPods)
@@ -36,9 +36,9 @@ class Injector
     private void resolveConstructionInjection()
     {
         while (!waitingForConstruction.isEmpty()) {
-            Pod pod = waitingForConstruction.pop();
+            final Pod pod = waitingForConstruction.pop();
 
-            pod.tryConstructBean(pods);
+            pod.tryConstructBean(beanPackage.getPods());
             if (pod.isBeanReady()) {
                 preparePodForPopulateFields(pod);
             } else {
@@ -50,7 +50,7 @@ class Injector
     private void resolveFieldInjection()
     {
         while (!waitingForPopulation.isEmpty()) {
-            Pod pod = waitingForPopulation.pop();
+            final Pod pod = waitingForPopulation.pop();
             populateFieldDependencies(pod);
         }
     }
@@ -62,8 +62,8 @@ class Injector
 
     private void prepareUnreadyPodsForConstruction(final Pod pod)
     {
-        ConstructorHole constructorHole = (ConstructorHole) pod.getConstructorHole().get();
-        Collection<Pod> unreadyPods = constructorHole.getUnreadyPods();
+        final ConstructorHole constructorHole = (ConstructorHole) pod.getConstructorHole().get();
+        final Collection<Pod> unreadyPods = constructorHole.getUnreadyPods();
 
         waitingForConstruction.push(pod);
         for (final Pod unreadyPod : unreadyPods) {
@@ -75,7 +75,7 @@ class Injector
     private void populateFieldDependencies(final Pod pod)
     {
         for (final FieldHole hole : pod.getFieldHoles()) {
-            hole.fill(pods);
+            hole.fill(beanPackage.getPods());
         }
         pod.populateBeanFields();
     }
