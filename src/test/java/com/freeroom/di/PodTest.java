@@ -1,12 +1,14 @@
 package com.freeroom.di;
 
 import com.freeroom.di.exceptions.NoBeanException;
+import com.freeroom.di.exceptions.NotUniqueException;
 import com.freeroom.test.beans.Car;
 import com.freeroom.test.beans.Home;
 import com.freeroom.test.beans.Person;
 import com.freeroom.test.beans.constrcutorInjection.NoBeanForConstructor;
 import com.freeroom.test.beans.constrcutorInjection.Student;
 import com.freeroom.test.beans.constrcutorInjection.Teacher;
+import com.freeroom.test.beans.constrcutorInjection.TwoConstructorsInjection;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -51,9 +53,10 @@ public class PodTest
         assertThat(constructorHole.isFilled(), is(false));
     }
 
-    @Test
+    @Test(expected = NotUniqueException.class)
     public void should_throw_NotUniqueException_given_injecting_two_constructors()
     {
+        new Pod(TwoConstructorsInjection.class);
     }
 
     @Test

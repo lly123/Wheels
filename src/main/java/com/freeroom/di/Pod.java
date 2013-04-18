@@ -2,6 +2,7 @@ package com.freeroom.di;
 
 import com.freeroom.di.annotations.Bean;
 import com.freeroom.di.annotations.Inject;
+import com.freeroom.di.exceptions.NotUniqueException;
 import com.freeroom.di.util.Func;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
@@ -148,12 +149,21 @@ class Pod
         return reduce(Optional.<Hole>absent(), Lists.<Constructor>newArrayList(beanClass.getConstructors()),
             new Func<Optional<Hole>, Constructor>() {
                 @Override
-                public Optional<Hole> call(final Optional<Hole> hole, final Constructor constructor) {
-                    return constructor.isAnnotationPresent(Inject.class) ?
-                        Optional.<Hole>of(new ConstructorHole(constructor)) :
-                        hole;
+                public Optional<Hole> call(Optional<Hole> hole, final Constructor constructor) {
+                    if (constructor.isAnnotationPresent(Inject.class)) {
+                        assertNoConstructorHoleBefore(hole);
+                        hole = Optional.<Hole>of(new ConstructorHole(constructor));
+                    }
+                    return hole;
                 }
             });
+    }
+
+    private void assertNoConstructorHoleBefore(final Optional<Hole> hole)
+    {
+        if (hole.isPresent()) {
+            throw new NotUniqueException("Has more than one constructor injection of bean: " + getBeanClass());
+        }
     }
 
     private List<Hole> findFieldHoles()
