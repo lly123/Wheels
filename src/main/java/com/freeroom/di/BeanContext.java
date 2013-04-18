@@ -1,5 +1,6 @@
 package com.freeroom.di;
 
+import com.freeroom.di.annotations.Scope;
 import com.freeroom.di.exceptions.NotUniqueException;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
@@ -24,12 +25,13 @@ public class BeanContext
 
     private BeanContext(final String packageName)
     {
-        this.beanPackage = new Package(packageName);
+        beanPackage = new Package(packageName);
         podsInjection();
     }
 
     public Collection<?> getBeans()
     {
+        podsInjection();
         return transform(beanPackage.getPods(), new Function<Pod, Object>() {
             @Override
             public Object apply(final Pod pod) {
@@ -40,7 +42,7 @@ public class BeanContext
 
     public Optional<?> getBean(final Class<?> clazz)
     {
-        Collection<?> beans = getBeanCanBeAssignedTo(clazz);
+        final Collection<?> beans = getBeanCanBeAssignedTo(clazz);
 
         assertNotMoreThanOneBean(clazz, beans);
 
@@ -49,6 +51,7 @@ public class BeanContext
 
     public Optional<?> getBean(final String name)
     {
+        podsInjection();
         return tryFind(beanPackage.getPods(), new Predicate<Pod>() {
             @Override
             public boolean apply(final Pod pod) {
@@ -79,7 +82,18 @@ public class BeanContext
         }
     }
 
-    private void podsInjection() {
+    private void podsInjection()
+    {
+        cleanRequiredScopeBeans();
         new Injector(beanPackage.getPods()).resolve();
+    }
+
+    private void cleanRequiredScopeBeans()
+    {
+        for (Pod pod : beanPackage.getPods()) {
+            if (pod.getScope().equals(Scope.Required)) {
+                pod.removeBean();
+            }
+        }
     }
 }
