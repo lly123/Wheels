@@ -9,14 +9,10 @@ import com.google.common.collect.Lists;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.List;
+import java.util.*;
 
 import static com.freeroom.di.util.FuncUtils.reduce;
 import static com.google.common.base.Optional.of;
-import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.Thread.currentThread;
 
@@ -39,14 +35,34 @@ class Package
     private Collection<Pod> findPods()
     {
         final Optional<URL> packagePath = getPackagePath();
+        final Stack<File> pathStack = new Stack<>();
+
         final List<Pod> pods = newArrayList();
-
         if (packagePath.isPresent()) {
-            List<File> beanFiles = copyOf(new File(packagePath.get().getFile()).listFiles());
-            pods.addAll(beansHaveAnnotation(beanFiles));
+            pathStack.push(new File(packagePath.get().getFile()));
+            loadPods(pathStack, pods);
         }
-
         return pods;
+    }
+
+    private void loadPods(Stack<File> pathStack, List<Pod> pods) {
+        while (!pathStack.isEmpty()) {
+            File path = pathStack.pop();
+            loadPodsInPath(pods, path, pathStack);
+        }
+    }
+
+    private void loadPodsInPath(final List<Pod> pods, final File path, final Stack<File> pathStack)
+    {
+        final List<File> beanFiles = newArrayList();
+        for (File file : path.listFiles()) {
+            if (file.isDirectory()) {
+                pathStack.push(file);
+            } else {
+                beanFiles.add(file);
+            }
+        }
+        pods.addAll(beansHaveAnnotation(beanFiles));
     }
 
     private Collection<? extends Pod> beansHaveAnnotation(final List<File> beanFiles)
@@ -55,7 +71,7 @@ class Package
             @Override
             public ArrayList<Pod> call(final ArrayList<Pod> pods, final File file) {
                 try {
-                    final Class beanClass = loadClass(packageName, file.getName());
+                    final Class beanClass = loadClass(packageName, file.getAbsolutePath());
                     if (beanClass.isAnnotationPresent(Bean.class)) {
                         savePod(pods, new Pod(beanClass));
                     }
@@ -94,18 +110,28 @@ class Package
         return currentThread().getContextClassLoader();
     }
 
+    private Class loadClass(final String packageName, final String beanFilePath) throws ClassNotFoundException
+    {
+        return getClassLoader().loadClass(getBeanClassName(packageName, beanFilePath));
+    }
+
+    private String getBeanClassName(final String packageName, final String beanFileName)
+    {
+        final String restPart = removeThePrefix(toPath(packageName), beanFileName);
+        final String beanFullName = toDotSeparate(restPart);
+        return beanFullName.substring(0, beanFullName.length() - ".class".length());
+    }
+
     private String toPath(final String packageName)
     {
         return packageName.replaceAll("\\.", "/");
     }
 
-    private Class loadClass(final String packageName, final String beanFileName) throws ClassNotFoundException
-    {
-        return getClassLoader().loadClass(packageName + "." + getBeanName(beanFileName));
+    private String toDotSeparate(final String path) {
+        return path.replaceAll("/", "\\.");
     }
 
-    private String getBeanName(final String beanFileName)
-    {
-        return beanFileName.substring(0, beanFileName.length() - ".class".length());
+    private String removeThePrefix(final String packageName, final String beanFileName) {
+        return beanFileName.substring(beanFileName.indexOf(packageName));
     }
 }

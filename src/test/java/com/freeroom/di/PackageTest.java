@@ -13,4 +13,11 @@ public class PackageTest
         Package beanPackage = new Package("com.freeroom.test.beans.fieldInjection");
         assertThat(beanPackage.getPods().size(), is(3));
     }
+
+    @Test
+    public void should_load_beans_in_nested_packages()
+    {
+        Package beanPackage = new Package("com.freeroom.test.beans.dummyPackage");
+        assertThat(beanPackage.getPods().size(), is(2));
+    }
 }
