@@ -25,7 +25,7 @@ public class BeanContext
     private BeanContext(final String packageName)
     {
         this.beanPackage = new Package(packageName);
-        new Injector(this.beanPackage.getPods()).resolve();
+        podsInjection();
     }
 
     public Collection<?> getBeans()
@@ -57,7 +57,6 @@ public class BeanContext
         }).transform(new Function<Pod, Object>() {
             @Override
             public Object apply(final Pod pod) {
-                pod.createBeanWithDefaultConstructor();
                 return pod.getBean();
             }
         });
@@ -78,5 +77,9 @@ public class BeanContext
         if (beans.size() > 1) {
             throw new NotUniqueException("More than one bean can be assigned to: " + clazz);
         }
+    }
+
+    private void podsInjection() {
+        new Injector(beanPackage.getPods()).resolve();
     }
 }

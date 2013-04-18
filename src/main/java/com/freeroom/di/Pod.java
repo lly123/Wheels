@@ -2,6 +2,7 @@ package com.freeroom.di;
 
 import com.freeroom.di.annotations.Bean;
 import com.freeroom.di.annotations.Inject;
+import com.freeroom.di.annotations.Scope;
 import com.freeroom.di.exceptions.NotUniqueException;
 import com.freeroom.di.util.Func;
 import com.google.common.base.Function;
@@ -26,13 +27,15 @@ class Pod
     private final Class<?> beanClass;
     private final String beanName;
     private final List<Hole> holes;
+    private final Scope scope;
     private Object bean;
 
     public Pod(final Class<?> beanClass)
     {
         this.beanClass = beanClass;
-        this.beanName = findBeanName(beanClass);
+        this.beanName = findBeanName();
         this.holes = findHoles();
+        this.scope = findScope();
     }
 
     public String getBeanName()
@@ -60,6 +63,11 @@ class Pod
         return holes;
     }
 
+    public Scope getScope()
+    {
+        return scope;
+    }
+
     public void createBeanWithDefaultConstructor()
     {
         try {
@@ -84,7 +92,7 @@ class Pod
 
     public void populateBeanFields()
     {
-        Collection<FieldHole> fieldHoles = getFieldHoles();
+        final Collection<FieldHole> fieldHoles = getFieldHoles();
         try {
             for (FieldHole hole : fieldHoles) {
                 hole.getField().set(getBean(), hole.getBean());
@@ -119,7 +127,8 @@ class Pod
 
     public void tryConstructBean(final Collection<Pod> pods)
     {
-        Optional<Hole> constructorHole = getConstructorHole();
+        final Optional<Hole> constructorHole = getConstructorHole();
+
         if (constructorHole.isPresent()) {
             ConstructorHole hole = (ConstructorHole) constructorHole.get();
             hole.fill(pods);
@@ -138,9 +147,9 @@ class Pod
 
     private List<Hole> findHoles()
     {
-        List<Hole> holes = newArrayList();
+        final List<Hole> holes = newArrayList();
 
-        Optional<Hole> hole = findConstructorHole();
+        final Optional<Hole> hole = findConstructorHole();
         if (hole.isPresent()) {
             holes.add(hole.get());
         }
@@ -195,10 +204,15 @@ class Pod
             });
     }
 
-    private String findBeanName(final Class<?> beanClass)
+    private String findBeanName()
     {
-        Bean beanAnnotation = beanClass.getAnnotation(Bean.class);
-
+        final Bean beanAnnotation = beanClass.getAnnotation(Bean.class);
         return isNullOrEmpty(beanAnnotation.value()) ? beanClass.getSimpleName() : beanAnnotation.value();
+    }
+
+    private Scope findScope()
+    {
+        final Bean beanAnnotation = beanClass.getAnnotation(Bean.class);
+        return beanAnnotation.scope();
     }
 }

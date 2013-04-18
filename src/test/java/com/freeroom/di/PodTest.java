@@ -1,5 +1,6 @@
 package com.freeroom.di;
 
+import com.freeroom.di.annotations.Scope;
 import com.freeroom.di.exceptions.NoBeanException;
 import com.freeroom.di.exceptions.NotUniqueException;
 import com.freeroom.test.beans.fieldInjection.Car;
@@ -7,6 +8,7 @@ import com.freeroom.test.beans.EmptyBean;
 import com.freeroom.test.beans.fieldInjection.Home;
 import com.freeroom.test.beans.fieldInjection.Person;
 import com.freeroom.test.beans.constrcutorInjection.*;
+import com.freeroom.test.beans.requiredScope.Otter;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -131,6 +133,13 @@ public class PodTest
         pod.populateBeanFields();
 
         assertThat(((Person)pod.getBean()).getCar(), is(notNullValue()));
+    }
+
+    @Test
+    public void should_get_required_scope()
+    {
+        Pod pod = new Pod(Otter.class);
+        assertThat(pod.getScope(), is(Scope.Required));
     }
 
     private Collection<Pod> generatePods()
