@@ -15,13 +15,17 @@ import static com.google.common.collect.Iterables.tryFind;
 
 public class BeanContext
 {
-    private static BeanContext context;
     private final Package beanPackage;
 
     public static BeanContext load(final String packageName)
     {
-        context = new BeanContext(packageName);
-        return context;
+        return new BeanContext(packageName);
+    }
+
+    private BeanContext(final String packageName)
+    {
+        this.beanPackage = new Package(packageName);
+        new Injector(this.beanPackage.getPods()).resolve();
     }
 
     public Collection<?> getBeans()
@@ -29,7 +33,6 @@ public class BeanContext
         return transform(beanPackage.getPods(), new Function<Pod, Object>() {
             @Override
             public Object apply(final Pod pod) {
-                pod.createBeanWithDefaultConstructor();
                 return pod.getBean();
             }
         });
@@ -58,11 +61,6 @@ public class BeanContext
                 return pod.getBean();
             }
         });
-    }
-
-    private BeanContext(final String packageName)
-    {
-        this.beanPackage = new Package(packageName);
     }
 
     private Collection<?> getBeanCanBeAssignedTo(final Class<?> clazz)

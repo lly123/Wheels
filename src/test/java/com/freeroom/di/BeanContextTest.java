@@ -3,7 +3,7 @@ package com.freeroom.di;
 import com.freeroom.di.exceptions.NotUniqueException;
 import com.freeroom.test.beans.Dummy;
 import com.freeroom.test.beans.fieldInjection.Person;
-import com.freeroom.test.beans.Shape;
+import com.freeroom.test.beans.sameParent.Shape;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -14,7 +14,7 @@ public class BeanContextTest
     @Test
     public void should_load_bean_given_bean_with_Bean_annotation() {
         BeanContext context = BeanContext.load("com.freeroom.test.beans");
-        assertThat(context.getBeans().size(), is(5));
+        assertThat(context.getBeans().size(), is(1));
     }
 
     @Test
@@ -31,7 +31,7 @@ public class BeanContextTest
 
     @Test
     public void should_get_bean_given_class_instance() {
-        BeanContext context = BeanContext.load("com.freeroom.test.beans");
+        BeanContext context = BeanContext.load("com.freeroom.test.beans.fieldInjection");
         assertThat(context.getBean(Person.class).isPresent(), is(true));
     }
 
@@ -43,13 +43,13 @@ public class BeanContextTest
 
     @Test(expected = NotUniqueException.class)
     public void should_throw_NotUniqueException_given_beans_have_same_parent() {
-        BeanContext context = BeanContext.load("com.freeroom.test.beans");
+        BeanContext context = BeanContext.load("com.freeroom.test.beans.sameParent");
         context.getBean(Shape.class);
     }
 
     @Test
     public void should_get_bean_given_bean_name() {
-        BeanContext context = BeanContext.load("com.freeroom.test.beans");
+        BeanContext context = BeanContext.load("com.freeroom.test.beans.fieldInjection");
         assertThat(context.getBean("Person").isPresent(), is(true));
     }
 
@@ -61,7 +61,7 @@ public class BeanContextTest
 
     @Test
     public void should_get_bean_given_bean_customized_name() {
-        BeanContext context = BeanContext.load("com.freeroom.test.beans");
+        BeanContext context = BeanContext.load("com.freeroom.test.beans.fieldInjection");
         assertThat(context.getBean("Monster").isPresent(), is(true));
     }
 
