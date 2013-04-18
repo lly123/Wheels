@@ -68,21 +68,21 @@ class Injector
         }
     }
 
-    private void assertNoCycleDependency(Pod pod, Pod unreadyPod, Stack<Pod> waitingForConstruction)
-    {
-        if (waitingForConstruction.indexOf(unreadyPod) > -1) {
-            throw new ConstructorCycleDependencyException(
-                    "Bean " + pod.getBeanName() + " and " + unreadyPod.getBeanName() +
-                    " have constructor cycle dependencies."
-            );
-        }
-    }
-
     private void populateFieldDependencies(final Pod pod)
     {
         for (final FieldHole hole : pod.getFieldHoles()) {
             hole.fill(pods);
         }
         pod.populateBeanFields();
+    }
+
+    private void assertNoCycleDependency(final Pod pod, final Pod unreadyPod, final Stack<Pod> waitingForConstruction)
+    {
+        if (waitingForConstruction.indexOf(unreadyPod) > -1) {
+            throw new ConstructorCycleDependencyException(
+                    "Bean " + pod.getBeanName() + " and " + unreadyPod.getBeanName() +
+                            " have constructor cycle dependencies."
+            );
+        }
     }
 }
