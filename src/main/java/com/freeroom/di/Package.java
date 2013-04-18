@@ -38,8 +38,8 @@ class Package
 
     private Collection<Pod> findPods()
     {
-        Optional<URL> packagePath = getPackagePath();
-        List<Pod> pods = newArrayList();
+        final Optional<URL> packagePath = getPackagePath();
+        final List<Pod> pods = newArrayList();
 
         if (packagePath.isPresent()) {
             List<File> beanFiles = copyOf(new File(packagePath.get().getFile()).listFiles());
@@ -55,7 +55,7 @@ class Package
             @Override
             public ArrayList<Pod> call(final ArrayList<Pod> pods, final File file) {
                 try {
-                    Class beanClass = loadClass(packageName, file.getName());
+                    final Class beanClass = loadClass(packageName, file.getName());
                     if (beanClass.isAnnotationPresent(Bean.class)) {
                         savePod(pods, new Pod(beanClass));
                     }

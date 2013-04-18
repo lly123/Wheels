@@ -56,6 +56,6 @@ class FieldHole extends Hole
 
         assertPodExists(clazz, pod);
 
-        this.bean = of(pod.get().getBean());
+        bean = of(pod.get().getBean());
     }
 }

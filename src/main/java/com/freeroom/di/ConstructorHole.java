@@ -32,7 +32,7 @@ class ConstructorHole extends Hole
     {
         readyBeans.clear();
         for (final Class paramClass : constructor.getParameterTypes()) {
-            Optional<Pod> pod = getPodForFill(paramClass, pods);
+            final Optional<Pod> pod = getPodForFill(paramClass, pods);
             assertPodExists(paramClass, pod);
 
             if (pod.get().isBeanReady()) {

@@ -130,7 +130,7 @@ class Pod
         final Optional<Hole> constructorHole = getConstructorHole();
 
         if (constructorHole.isPresent()) {
-            ConstructorHole hole = (ConstructorHole) constructorHole.get();
+            final ConstructorHole hole = (ConstructorHole) constructorHole.get();
             hole.fill(pods);
             if (hole.isFilled()) {
                 createBean(hole);
@@ -142,14 +142,14 @@ class Pod
 
     public void removeBean()
     {
-        this.bean = null;
+        bean = null;
     }
 
     private List<Hole> findHoles()
     {
         final List<Hole> holes = newArrayList();
-
         final Optional<Hole> hole = findConstructorHole();
+
         if (hole.isPresent()) {
             holes.add(hole.get());
         }
