@@ -1,10 +1,13 @@
 package com.freeroom.di;
 
+import com.freeroom.di.exceptions.ConstructorCycleDependencyException;
 import com.freeroom.di.exceptions.NoBeanException;
 import com.freeroom.test.beans.Car;
 import com.freeroom.test.beans.Person;
 import com.freeroom.test.beans.constrcutorInjection.Student;
 import com.freeroom.test.beans.constrcutorInjection.Teacher;
+import com.freeroom.test.beans.constrcutorInjection.cycleDependency.ClassA;
+import com.freeroom.test.beans.constrcutorInjection.cycleDependency.ClassB;
 import org.junit.Test;
 
 import java.util.Collection;
@@ -66,5 +69,12 @@ public class InjectorTest
                 assertThat(person.getTeacher(), is(notNullValue()));
             }
         }
+    }
+
+    @Test(expected = ConstructorCycleDependencyException.class)
+    public void should_throw_ConstructorCycleDependencyException()
+    {
+        Injector injector = new Injector(newArrayList(new Pod(ClassA.class), new Pod(ClassB.class)));
+        injector.resolve();
     }
 }
