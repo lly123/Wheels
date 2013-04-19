@@ -20,12 +20,12 @@ class Package
 {
     public static final String CLASS_FILE_SUFFIX = ".class";
     private final String packageName;
-    private final Collection<Pod> pods;
+    private final Collection<Pod> pods = new ArrayList<>();
 
     public Package(final String packageName)
     {
         this.packageName = packageName;
-        this.pods = findPods();
+        loadPods();
     }
 
     public Collection<Pod> getPods()
@@ -33,27 +33,25 @@ class Package
         return pods;
     }
 
-    private Collection<Pod> findPods()
+    private void loadPods()
     {
         final Optional<URL> packagePath = getPackagePath();
         final Stack<File> pathStack = new Stack<>();
 
-        final List<Pod> pods = newArrayList();
         if (packagePath.isPresent()) {
             pathStack.push(new File(packagePath.get().getFile()));
-            loadPods(pathStack, pods);
+            loadPods(pathStack);
         }
-        return pods;
     }
 
-    private void loadPods(Stack<File> pathStack, List<Pod> pods) {
+    private void loadPods(Stack<File> pathStack) {
         while (!pathStack.isEmpty()) {
             File path = pathStack.pop();
-            loadPodsInPath(pods, path, pathStack);
+            loadPodsInPath(path, pathStack);
         }
     }
 
-    private void loadPodsInPath(final List<Pod> pods, final File path, final Stack<File> pathStack)
+    private void loadPodsInPath(final File path, final Stack<File> pathStack)
     {
         final List<File> beanFiles = newArrayList();
         for (File file : path.listFiles()) {
@@ -63,31 +61,34 @@ class Package
                 beanFiles.add(file);
             }
         }
-        pods.addAll(beansHaveAnnotation(beanFiles));
+        Collection<Pod> podsInPath = createPods(beanFiles);
+        assertNoPodsAreSame(podsInPath);
+        pods.addAll(podsInPath);
     }
 
-    private Collection<? extends Pod> beansHaveAnnotation(final List<File> beanFiles)
+    private void assertNoPodsAreSame(final Collection<Pod> podsInPath)
     {
-        return reduce(Lists.<Pod>newArrayList(), beanFiles, new Func<ArrayList<Pod>, File>() {
+        for (final Pod pod : podsInPath) {
+            if (pods.contains(pod)) {
+                throw new NotUniqueException("Beans with same name: " + pod.getBeanName());
+            }
+        }
+    }
+
+    private Collection<Pod> createPods(final List<File> beanFiles)
+    {
+        return reduce(Lists.<Pod>newArrayList(), beanFiles, new Func<List<Pod>, File>() {
             @Override
-            public ArrayList<Pod> call(final ArrayList<Pod> pods, final File file) {
+            public List<Pod> call(final List<Pod> pods, final File file) {
                 try {
                     final Class beanClass = loadClass(packageName, file.getAbsolutePath());
                     if (beanClass.isAnnotationPresent(Bean.class)) {
-                        savePod(pods, new Pod(beanClass));
+                        pods.add(new Pod(beanClass));
                     }
                 } catch (ClassNotFoundException ignored) {}
                 return pods;
             }
         });
-    }
-
-    private void savePod(final Collection<Pod> pods, final Pod pod)
-    {
-        if (pods.contains(pod)) {
-            throw new NotUniqueException("Beans with same name: " + pod.getBeanName());
-        }
-        pods.add(pod);
     }
 
     private Optional<URL> getPackagePath()
