@@ -4,9 +4,10 @@ import com.freeroom.di.annotations.Bean;
 import com.freeroom.di.annotations.Inject;
 
 @Bean
-public class ClassA
+public class Swan
 {
     @Inject
-    public ClassA(ClassB classB) {
+    public Swan(Balloonfish balloonfish)
+    {
     }
 }

@@ -4,17 +4,17 @@ import com.freeroom.di.annotations.Bean;
 import com.freeroom.di.annotations.Inject;
 
 @Bean
-public class ClassC
+public class Mustang
 {
-    private ClassD classD;
+    private Jaguar jaguar;
 
     @Inject
-    public ClassC(ClassD classD)
+    public Mustang(Jaguar jaguar)
     {
-        this.classD = classD;
+        this.jaguar = jaguar;
     }
 
-    public ClassD getClassD() {
-        return classD;
+    public Jaguar getJaguar() {
+        return jaguar;
     }
 }

@@ -4,11 +4,11 @@ import com.freeroom.di.exceptions.ConstructorCycleDependencyException;
 import com.freeroom.di.exceptions.NoBeanException;
 import com.freeroom.test.beans.constructorInjection.Student;
 import com.freeroom.test.beans.constructorInjection.Teacher;
-import com.freeroom.test.beans.constructorInjection.cycleDependency.ClassA;
-import com.freeroom.test.beans.constructorInjection.cycleDependency.ClassB;
-import com.freeroom.test.beans.dependentBeans.ClassC;
-import com.freeroom.test.beans.dependentBeans.ClassD;
-import com.freeroom.test.beans.dependentBeans.ClassE;
+import com.freeroom.test.beans.constructorInjection.cycleDependency.Balloonfish;
+import com.freeroom.test.beans.constructorInjection.cycleDependency.Swan;
+import com.freeroom.test.beans.dependentBeans.Mustang;
+import com.freeroom.test.beans.dependentBeans.Jaguar;
+import com.freeroom.test.beans.dependentBeans.Ostrich;
 import com.freeroom.test.beans.fieldInjection.Car;
 import com.freeroom.test.beans.fieldInjection.Person;
 import org.junit.Test;
@@ -81,27 +81,27 @@ public class InjectorTest
     @Test(expected = ConstructorCycleDependencyException.class)
     public void should_throw_ConstructorCycleDependencyException()
     {
-        Injector injector = new Injector(givenABeanPackage(ClassA.class, ClassB.class));
+        Injector injector = new Injector(givenABeanPackage(Swan.class, Balloonfish.class));
         injector.resolve();
     }
 
     @Test
     public void should_resolve_bean_again_given_part_of_beans_are_cleaned()
     {
-        Injector injector = new Injector(givenABeanPackage(ClassC.class, ClassD.class, ClassE.class));
+        Injector injector = new Injector(givenABeanPackage(Mustang.class, Jaguar.class, Ostrich.class));
         Collection<Pod> readyPods = injector.resolve();
-        cleanBeans(readyPods, asList(ClassC.class, ClassE.class));
+        cleanBeans(readyPods, asList(Mustang.class, Ostrich.class));
 
         injector.resolve();
 
         assertThat(readyPods.size(), is(3));
         for (Pod pod : readyPods) {
-            if (pod.getBean() instanceof ClassC) {
-                assert_ClassC_is_ready((ClassC) pod.getBean());
-            } else if (pod.getBean() instanceof ClassD) {
-                assert_ClassD_is_ready((ClassD) pod.getBean());
-            } else if (pod.getBean() instanceof ClassE) {
-                assert_ClassE_is_ready((ClassE) pod.getBean());
+            if (pod.getBean() instanceof Mustang) {
+                assert_ClassC_is_ready((Mustang) pod.getBean());
+            } else if (pod.getBean() instanceof Jaguar) {
+                assert_ClassD_is_ready((Jaguar) pod.getBean());
+            } else if (pod.getBean() instanceof Ostrich) {
+                assert_ClassE_is_ready((Ostrich) pod.getBean());
             } else {
                 fail();
             }
@@ -119,21 +119,21 @@ public class InjectorTest
         }
     }
 
-    private void assert_ClassC_is_ready(final ClassC bean)
+    private void assert_ClassC_is_ready(final Mustang bean)
     {
-        assertThat(bean.getClassD(), is(notNullValue()));
+        assertThat(bean.getJaguar(), is(notNullValue()));
     }
 
-    private void assert_ClassD_is_ready(final ClassD bean)
+    private void assert_ClassD_is_ready(final Jaguar bean)
     {
-        assertThat(bean.getClassC(), is(notNullValue()));
-        assertThat(bean.getClassE(), is(notNullValue()));
+        assertThat(bean.getMustang(), is(notNullValue()));
+        assertThat(bean.getOstrich(), is(notNullValue()));
     }
 
-    private void assert_ClassE_is_ready(final ClassE bean)
+    private void assert_ClassE_is_ready(final Ostrich bean)
     {
-        assertThat(bean.getClassC(), is(notNullValue()));
-        assertThat(bean.getClassD(), is(notNullValue()));
+        assertThat(bean.getMustang(), is(notNullValue()));
+        assertThat(bean.getJaguar(), is(notNullValue()));
     }
 
     private Package givenABeanPackage(Class<?>... classes)
