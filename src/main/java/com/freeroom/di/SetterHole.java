@@ -1,22 +1,24 @@
 package com.freeroom.di;
 
 import java.lang.reflect.Method;
-import java.util.Collection;
 
-public class SetterHole extends Hole
+class SetterHole extends Wormhole
 {
+    private final Method method;
+
     public SetterHole(final Method method)
     {
+        super(getFirstParamClass(method));
+        this.method = method;
     }
 
-    @Override
-    boolean isFilled()
+    private static Class<?> getFirstParamClass(final Method method)
     {
-        return false;
+        return method.getParameterTypes()[0];
     }
 
-    @Override
-    void fill(final Collection<Pod> pods)
+    public Method getMethod()
     {
+        return method;
     }
 }

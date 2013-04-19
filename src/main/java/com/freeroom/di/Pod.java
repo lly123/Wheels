@@ -186,10 +186,14 @@ class Pod
     }
 
     private List<Hole> findSetterHoles() {
-        return transform(findInjectionSetters(), new Function<Method, Hole>() {
+        return reduce(Lists.<Hole>newArrayList(), findInjectionSetters(), new Func<ArrayList<Hole>, Method>() {
             @Override
-            public Hole apply(final Method method) {
-                return new SetterHole(method);
+            public ArrayList<Hole> call(final ArrayList<Hole> holes, final Method method) {
+                if (startsWithSetPrefix(method)) {
+                    assertHasOnlyOneParameter(method);
+                    holes.add(new SetterHole(method));
+                }
+                return holes;
             }
         });
     }
@@ -237,6 +241,19 @@ class Pod
     {
         if (hole.isPresent()) {
             throw new NotUniqueException("Has more than one constructor injection of bean: " + getBeanClass());
+        }
+    }
+
+    private boolean startsWithSetPrefix(final Method method)
+    {
+        return method.getName().startsWith("set");
+    }
+
+    private void assertHasOnlyOneParameter(final Method method)
+    {
+        if (method.getParameterTypes().length != 1) {
+            throw new NotUniqueException("Method " + method.getName() + " of bean " + getBeanClass() +
+                " must have one parameter.");
         }
     }
 }

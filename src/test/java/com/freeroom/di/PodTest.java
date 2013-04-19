@@ -10,6 +10,8 @@ import com.freeroom.test.beans.fieldInjection.Person;
 import com.freeroom.test.beans.constructorInjection.*;
 import com.freeroom.test.beans.requiredScope.Otter;
 import com.freeroom.test.beans.setterInjection.Camel;
+import com.freeroom.test.beans.setterInjection.Leopard;
+import com.freeroom.test.beans.setterInjection.Mackerels;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -73,6 +75,22 @@ public class PodTest
         Hole setterHole = pod.getHoles().get(0);
         assertThat(setterHole, is(instanceOf(SetterHole.class)));
         assertThat(setterHole.isFilled(), is(false));
+    }
+
+    @Test
+    public void should_get_setter_hole_given_injection_method_begins_with_SET_prefix()
+    {
+        Pod pod = new Pod(Mackerels.class);
+        assertThat(pod.getHoles().size(), is(1));
+
+        SetterHole setterHole = (SetterHole) pod.getHoles().get(0);
+        assertThat(setterHole.getMethod().getName(), is(startsWith("set")));
+    }
+
+    @Test(expected = NotUniqueException.class)
+    public void should_throw_NotUniqueException_given_injection_method_has_more_than_one_parameter()
+    {
+        new Pod(Leopard.class);
     }
 
     @Test(expected = NotUniqueException.class)
