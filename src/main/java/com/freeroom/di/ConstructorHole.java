@@ -31,7 +31,7 @@ class ConstructorHole extends Hole
     public void fill(final Collection<Pod> pods)
     {
         readyBeans.clear();
-        for (final Class paramClass : constructor.getParameterTypes()) {
+        for (Class paramClass : constructor.getParameterTypes()) {
             final Optional<Pod> pod = getPodForFill(paramClass, pods);
             assertPodExists(paramClass, pod);
 
