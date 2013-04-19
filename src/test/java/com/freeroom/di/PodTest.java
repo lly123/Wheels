@@ -121,6 +121,17 @@ public class PodTest
         assertThat(constructorHole.isFilled(), is(true));
     }
 
+    @Test
+    public void should_fill_hole_given_a_setter_hole()
+    {
+        Pod pod = new Pod(Camel.class);
+
+        Hole setterHole = pod.getHoles().get(0);
+        setterHole.fill(podsPool);
+
+        assertThat(setterHole.isFilled(), is(true));
+    }
+
     @Test(expected = NoBeanException.class)
     public void should_throw_NoBeanException_given_no_bean_for_constructor_parameter()
     {
@@ -183,7 +194,10 @@ public class PodTest
         Pod teacherPod = new Pod(Teacher.class);
         teacherPod.createBeanWithDefaultConstructor();
 
-        return asList(carPod, homePod, teacherPod);
+        Pod mackerelsPod = new Pod(Mackerels.class);
+        mackerelsPod.createBeanWithDefaultConstructor();
+
+        return asList(carPod, homePod, teacherPod, mackerelsPod);
     }
 
     private Collection<Pod> studentPodIsUnready()
