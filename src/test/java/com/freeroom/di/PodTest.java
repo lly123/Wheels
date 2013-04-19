@@ -4,7 +4,7 @@ import com.freeroom.di.annotations.Scope;
 import com.freeroom.di.exceptions.NoBeanException;
 import com.freeroom.di.exceptions.NotUniqueException;
 import com.freeroom.test.beans.fieldInjection.Car;
-import com.freeroom.test.beans.EmptyBean;
+import com.freeroom.test.beans.dummy.EmptyBean;
 import com.freeroom.test.beans.fieldInjection.Home;
 import com.freeroom.test.beans.fieldInjection.Person;
 import com.freeroom.test.beans.constructorInjection.*;

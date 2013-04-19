@@ -1,7 +1,7 @@
 package com.freeroom.di;
 
 import com.freeroom.di.exceptions.NotUniqueException;
-import com.freeroom.test.beans.Dummy;
+import com.freeroom.test.beans.dummy.Dummy;
 import com.freeroom.test.beans.fieldInjection.Person;
 import com.freeroom.test.beans.sameParent.Shape;
 import com.google.common.base.Optional;
@@ -17,7 +17,7 @@ public class BeanContextTest
     @Test
     public void should_load_bean_given_bean_with_Bean_annotation()
     {
-        BeanContext context = BeanContext.load("com.freeroom.test.beans");
+        BeanContext context = BeanContext.load("com.freeroom.test.beans.requiredScope");
         assertThat(context.getBeans().size(), is(1));
     }
 
@@ -45,7 +45,7 @@ public class BeanContextTest
     @Test
     public void should_get_nothing_given_no_bean_with_class()
     {
-        BeanContext context = BeanContext.load("com.freeroom.test.beans");
+        BeanContext context = BeanContext.load("com.freeroom.test.beans.dummy");
         assertThat(context.getBean(Dummy.class).isPresent(), is(false));
     }
 
@@ -66,7 +66,7 @@ public class BeanContextTest
     @Test
     public void should_not_get_bean_given_no_bean_with_this_name()
     {
-        BeanContext context = BeanContext.load("com.freeroom.test.beans");
+        BeanContext context = BeanContext.load("com.freeroom.test.beans.dummy");
         assertThat(context.getBean("Dummy").isPresent(), is(false));
     }
 

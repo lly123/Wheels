@@ -1,4 +1,4 @@
-package com.freeroom.test.beans;
+package com.freeroom.test.beans.dummy;
 
 import com.freeroom.di.annotations.Bean;
 
