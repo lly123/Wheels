@@ -1,4 +1,4 @@
-package com.freeroom.test.beans.sameBeanName;
+package com.freeroom.test.beans.sameBeanCustomizedName;
 
 import com.freeroom.di.annotations.Bean;
 
