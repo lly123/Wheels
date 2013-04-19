@@ -77,7 +77,7 @@ class Injector
         for (final FieldHole hole : pod.getFieldHoles()) {
             hole.fill(beanPackage.getPods());
         }
-        pod.populateBeanFields();
+        pod.fosterBean();
     }
 
     private void assertNoCycleDependency(final Pod pod, final Pod unreadyPod, final Stack<Pod> waitingForConstruction)

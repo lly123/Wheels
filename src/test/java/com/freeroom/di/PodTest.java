@@ -171,9 +171,21 @@ public class PodTest
         pod.getHoles().get(0).fill(podsPool);
         pod.createBeanWithDefaultConstructor();
 
-        pod.populateBeanFields();
+        pod.fosterBean();
 
         assertThat(((Person)pod.getBean()).getCar(), is(notNullValue()));
+    }
+
+    @Test
+    public void should_inject_bean_by_setters()
+    {
+        Pod pod = new Pod(Camel.class);
+        pod.getHoles().get(0).fill(podsPool);
+        pod.createBeanWithDefaultConstructor();
+
+        pod.fosterBean();
+
+        assertThat(((Camel)pod.getBean()).getMackerels(), is(notNullValue()));
     }
 
     @Test

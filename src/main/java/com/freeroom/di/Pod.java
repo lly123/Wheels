@@ -78,27 +78,10 @@ class Pod
         }
     }
 
-    public Collection<FieldHole> getFieldHoles()
+    public void fosterBean()
     {
-        return reduce(Lists.<FieldHole>newArrayList(), holes, new Func<ArrayList<FieldHole>, Hole>() {
-            @Override
-            public ArrayList<FieldHole> call(final ArrayList<FieldHole> fieldHoles, final Hole hole) {
-                if (hole instanceof FieldHole) {
-                    fieldHoles.add((FieldHole) hole);
-                }
-                return fieldHoles;
-            }
-        });
-    }
-
-    public void populateBeanFields()
-    {
-        final Collection<FieldHole> fieldHoles = getFieldHoles();
-        try {
-            for (FieldHole hole : fieldHoles) {
-                hole.getField().set(getBean(), hole.getBean());
-            }
-        } catch (Exception ignored) {}
+        populateBeanFields();
+        callBeanSetters();
     }
 
     public Optional<Hole> getConstructorHole()
@@ -235,6 +218,52 @@ class Pod
     {
         final Bean beanAnnotation = beanClass.getAnnotation(Bean.class);
         return beanAnnotation.scope();
+    }
+
+    private void populateBeanFields()
+    {
+        final Collection<FieldHole> fieldHoles = getFieldHoles();
+        try {
+            for (FieldHole hole : fieldHoles) {
+                hole.getField().set(getBean(), hole.getBean());
+            }
+        } catch (Exception ignored) {}
+    }
+
+    private void callBeanSetters()
+    {
+        final Collection<SetterHole> setterHoles = getSetterHoles();
+        try {
+            for (SetterHole hole : setterHoles) {
+                hole.getMethod().invoke(getBean(), hole.getBean());
+            }
+        } catch (Exception ignored) {}
+    }
+
+    public Collection<FieldHole> getFieldHoles()
+    {
+        return reduce(Lists.<FieldHole>newArrayList(), holes, new Func<ArrayList<FieldHole>, Hole>() {
+            @Override
+            public ArrayList<FieldHole> call(final ArrayList<FieldHole> fieldHoles, final Hole hole) {
+                if (hole instanceof FieldHole) {
+                    fieldHoles.add((FieldHole) hole);
+                }
+                return fieldHoles;
+            }
+        });
+    }
+
+    private Collection<SetterHole> getSetterHoles()
+    {
+        return reduce(Lists.<SetterHole>newArrayList(), holes, new Func<ArrayList<SetterHole>, Hole>() {
+            @Override
+            public ArrayList<SetterHole> call(final ArrayList<SetterHole> setterHoles, final Hole hole) {
+                if (hole instanceof SetterHole) {
+                    setterHoles.add((SetterHole) hole);
+                }
+                return setterHoles;
+            }
+        });
     }
 
     private void assertNoConstructorHoleBefore(final Optional<Hole> hole)
