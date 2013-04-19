@@ -9,6 +9,7 @@ import com.freeroom.test.beans.fieldInjection.Home;
 import com.freeroom.test.beans.fieldInjection.Person;
 import com.freeroom.test.beans.constructorInjection.*;
 import com.freeroom.test.beans.requiredScope.Otter;
+import com.freeroom.test.beans.setterInjection.Camel;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -61,6 +62,17 @@ public class PodTest
         Hole constructorHole = pod.getHoles().get(0);
         assertThat(constructorHole, is(instanceOf(ConstructorHole.class)));
         assertThat(constructorHole.isFilled(), is(false));
+    }
+
+    @Test
+    public void should_get_holes_of_setter_type()
+    {
+        Pod pod = new Pod(Camel.class);
+        assertThat(pod.getHoles().size(), is(1));
+
+        Hole setterHole = pod.getHoles().get(0);
+        assertThat(setterHole, is(instanceOf(SetterHole.class)));
+        assertThat(setterHole.isFilled(), is(false));
     }
 
     @Test(expected = NotUniqueException.class)

@@ -12,6 +12,7 @@ import com.google.common.collect.Lists;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -154,6 +155,7 @@ class Pod
             holes.add(hole.get());
         }
         holes.addAll(findFieldHoles());
+        holes.addAll(findSetterHoles());
 
         return holes;
     }
@@ -173,19 +175,21 @@ class Pod
             });
     }
 
-    private void assertNoConstructorHoleBefore(final Optional<Hole> hole)
-    {
-        if (hole.isPresent()) {
-            throw new NotUniqueException("Has more than one constructor injection of bean: " + getBeanClass());
-        }
-    }
-
     private List<Hole> findFieldHoles()
     {
         return transform(findInjectionFields(), new Function<Field, Hole>() {
             @Override
             public Hole apply(final Field field) {
                 return new FieldHole(field);
+            }
+        });
+    }
+
+    private List<Hole> findSetterHoles() {
+        return transform(findInjectionSetters(), new Function<Method, Hole>() {
+            @Override
+            public Hole apply(final Method method) {
+                return new SetterHole(method);
             }
         });
     }
@@ -204,6 +208,19 @@ class Pod
             });
     }
 
+    private List<Method> findInjectionSetters() {
+        return reduce(Lists.<Method>newArrayList(), newArrayList(beanClass.getDeclaredMethods()),
+                new Func<ArrayList<Method>, Method>() {
+                    @Override
+                    public ArrayList<Method> call(final ArrayList<Method> injectionSetters, final Method method) {
+                        if (method.isAnnotationPresent(Inject.class)) {
+                            injectionSetters.add(method);
+                        }
+                        return injectionSetters;
+                    }
+                });
+    }
+
     private String findBeanName()
     {
         final Bean beanAnnotation = beanClass.getAnnotation(Bean.class);
@@ -214,5 +231,12 @@ class Pod
     {
         final Bean beanAnnotation = beanClass.getAnnotation(Bean.class);
         return beanAnnotation.scope();
+    }
+
+    private void assertNoConstructorHoleBefore(final Optional<Hole> hole)
+    {
+        if (hole.isPresent()) {
+            throw new NotUniqueException("Has more than one constructor injection of bean: " + getBeanClass());
+        }
     }
 }
