@@ -18,6 +18,7 @@ import static java.lang.Thread.currentThread;
 
 class Package
 {
+    public static final String CLASS_FILE_SUFFIX = ".class";
     private final String packageName;
     private final Collection<Pod> pods;
 
@@ -56,9 +57,9 @@ class Package
     {
         final List<File> beanFiles = newArrayList();
         for (File file : path.listFiles()) {
-            if (file.isDirectory()) {
+            if (isDirectory(file)) {
                 pathStack.push(file);
-            } else {
+            } else if(isClassFile(file)) {
                 beanFiles.add(file);
             }
         }
@@ -110,6 +111,16 @@ class Package
         return currentThread().getContextClassLoader();
     }
 
+    private boolean isClassFile(final File file)
+    {
+        return file.getAbsolutePath().endsWith(CLASS_FILE_SUFFIX);
+    }
+
+    private boolean isDirectory(final File file)
+    {
+        return file.isDirectory();
+    }
+
     private Class loadClass(final String packageName, final String beanFilePath) throws ClassNotFoundException
     {
         return getClassLoader().loadClass(getBeanClassName(packageName, beanFilePath));
@@ -119,7 +130,7 @@ class Package
     {
         final String restPart = removeThePrefix(toPath(packageName), beanFileName);
         final String beanFullName = toDotSeparate(restPart);
-        return beanFullName.substring(0, beanFullName.length() - ".class".length());
+        return beanFullName.substring(0, beanFullName.length() - CLASS_FILE_SUFFIX.length());
     }
 
     private String toPath(final String packageName)
