@@ -10,20 +10,20 @@ import static com.google.common.collect.Collections2.filter;
 
 class Injector
 {
-    private final Package beanPackage;
     private final Stack<Pod> waitingForConstruction = new Stack<>();
     private final Stack<Pod> waitingForPopulation = new Stack<>();
+    private final Collection<Pod> pods;
 
-    public Injector(final Package beanPackage)
+    public Injector(final Collection<Pod> pods)
     {
-        this.beanPackage = beanPackage;
+        this.pods = pods;
     }
 
     public Collection<Pod> resolve()
     {
-        final Collection<Pod> unreadyPods = findUnreadyPods(beanPackage.getPods());
+        final Collection<Pod> unreadyPods = findUnreadyPods(pods);
         resolveDependencyInjection(unreadyPods);
-        return beanPackage.getPods();
+        return pods;
     }
 
     private void resolveDependencyInjection(Collection<Pod> unreadyPods)
@@ -38,7 +38,7 @@ class Injector
         while (!waitingForConstruction.isEmpty()) {
             final Pod pod = waitingForConstruction.pop();
 
-            pod.tryConstructBean(beanPackage.getPods());
+            pod.tryConstructBean(pods);
             if (pod.isBeanReady()) {
                 preparePodForPopulateFields(pod);
             } else {
@@ -75,7 +75,7 @@ class Injector
     private void populateFieldDependencies(final Pod pod)
     {
         for (final FieldHole hole : pod.getFieldHoles()) {
-            hole.fill(beanPackage.getPods());
+            hole.fill(pods);
         }
         pod.fosterBean();
     }

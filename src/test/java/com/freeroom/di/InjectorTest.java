@@ -30,21 +30,21 @@ public class InjectorTest
     @Test(expected = NoBeanException.class)
     public void should_throw_NoBeanException_given_can_not_find_bean_in_context()
     {
-        Injector injector = new Injector(givenABeanPackage(Car.class));
+        Injector injector = new Injector(givenABeanPackage(Car.class).getPods());
         injector.resolve();
     }
 
     @Test
     public void should_have_all_beans_in_context()
     {
-        Injector injector = new Injector(givenABeanPackage(Car.class, Person.class));
+        Injector injector = new Injector(givenABeanPackage(Car.class, Person.class).getPods());
         injector.resolve();
     }
 
     @Test
     public void should_resolve_bean_field_cycle_dependencies()
     {
-        Injector injector = new Injector(givenABeanPackage(Car.class, Person.class));
+        Injector injector = new Injector(givenABeanPackage(Car.class, Person.class).getPods());
         Collection<Pod> pods = injector.resolve();
 
         assertThat(pods.size(), is(2));
@@ -65,7 +65,7 @@ public class InjectorTest
     @Test
     public void should_resolve_beans_with_constructor_injection()
     {
-        Injector injector = new Injector(givenABeanPackage(Student.class, Teacher.class));
+        Injector injector = new Injector(givenABeanPackage(Student.class, Teacher.class).getPods());
         Collection<Pod> pods = injector.resolve();
 
         assertThat(pods.size(), is(2));
@@ -81,14 +81,14 @@ public class InjectorTest
     @Test(expected = ConstructorCycleDependencyException.class)
     public void should_throw_ConstructorCycleDependencyException()
     {
-        Injector injector = new Injector(givenABeanPackage(Swan.class, Balloonfish.class));
+        Injector injector = new Injector(givenABeanPackage(Swan.class, Balloonfish.class).getPods());
         injector.resolve();
     }
 
     @Test
     public void should_resolve_bean_again_given_part_of_beans_are_cleaned()
     {
-        Injector injector = new Injector(givenABeanPackage(Mustang.class, Jaguar.class, Ostrich.class));
+        Injector injector = new Injector(givenABeanPackage(Mustang.class, Jaguar.class, Ostrich.class).getPods());
         Collection<Pod> readyPods = injector.resolve();
         cleanBeans(readyPods, asList(Mustang.class, Ostrich.class));
 
