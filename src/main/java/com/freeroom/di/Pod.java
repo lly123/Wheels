@@ -229,7 +229,7 @@ class Pod
     {
         final Collection<FieldHole> fieldHoles = getFieldHoles();
         try {
-            for (FieldHole hole : fieldHoles) {
+            for (final FieldHole hole : fieldHoles) {
                 hole.getField().set(getBean(), hole.getBean());
             }
         } catch (Exception ignored) {}
@@ -239,7 +239,7 @@ class Pod
     {
         final Collection<SetterHole> setterHoles = getSetterHoles();
         try {
-            for (SetterHole hole : setterHoles) {
+            for (final SetterHole hole : setterHoles) {
                 hole.getMethod().invoke(getBean(), hole.getBean());
             }
         } catch (Exception ignored) {}

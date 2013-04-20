@@ -90,9 +90,9 @@ public class BeanContext
 
     private Collection<Pod> preparePodsForInjection()
     {
-        List<Pod> pods = newArrayList();
+        final List<Pod> pods = newArrayList();
         if (parentContext.isPresent()) {
-            BeanContext parentContext = this.parentContext.get();
+            final BeanContext parentContext = this.parentContext.get();
             parentContext.makePodsReady();
             pods.addAll(parentContext.getPods());
         }

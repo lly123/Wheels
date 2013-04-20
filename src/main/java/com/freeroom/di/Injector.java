@@ -26,7 +26,7 @@ class Injector
         return pods;
     }
 
-    private void resolveDependencyInjection(Collection<Pod> unreadyPods)
+    private void resolveDependencyInjection(final Collection<Pod> unreadyPods)
     {
         waitingForConstruction.addAll(unreadyPods);
         resolveConstructionInjection();

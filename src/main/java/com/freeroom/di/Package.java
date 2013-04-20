@@ -12,6 +12,7 @@ import java.net.URL;
 import java.util.*;
 
 import static com.freeroom.di.util.FuncUtils.reduce;
+import static com.google.common.base.Optional.absent;
 import static com.google.common.base.Optional.of;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.Thread.currentThread;
@@ -44,24 +45,23 @@ class Package
         }
     }
 
-    private void loadPods(Stack<File> pathStack) {
+    private void loadPods(final Stack<File> pathStack) {
         while (!pathStack.isEmpty()) {
-            File path = pathStack.pop();
-            loadPodsInPath(path, pathStack);
+            loadPodsInPath(pathStack);
         }
     }
 
-    private void loadPodsInPath(final File path, final Stack<File> pathStack)
+    private void loadPodsInPath(final Stack<File> pathStack)
     {
         final List<File> beanFiles = newArrayList();
-        for (File file : path.listFiles()) {
+        for (File file : pathStack.pop().listFiles()) {
             if (isDirectory(file)) {
                 pathStack.push(file);
             } else if(isClassFile(file)) {
                 beanFiles.add(file);
             }
         }
-        Collection<Pod> podsInPath = createPods(beanFiles);
+        final Collection<Pod> podsInPath = createPods(beanFiles);
         savePods(podsInPath);
     }
 
@@ -98,18 +98,16 @@ class Package
 
     private Optional<URL> getPackagePath()
     {
-        Optional<URL> packagePath = Optional.absent();
-
         try {
             Enumeration<URL> resources = getClassLoader().getResources(toPath(packageName));
             if (resources.hasMoreElements()) {
-                packagePath = of(resources.nextElement());
+                return of(resources.nextElement());
             }
         } catch (IOException ex) {
             throw new RuntimeException("Can't get resources from IO.", ex);
         }
 
-        return packagePath;
+        return absent();
     }
 
     private ClassLoader getClassLoader()
