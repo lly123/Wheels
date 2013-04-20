@@ -20,4 +20,11 @@ public class PackageTest
         Package beanPackage = new Package("com.freeroom.test.beans.dummyPackage");
         assertThat(beanPackage.getPods().size(), is(2));
     }
+
+    @Test
+    public void should_load_beans_with_same_name_in_nested_packages()
+    {
+        Package beanPackage = new Package("com.freeroom.test.beans.sameBeanName");
+        assertThat(beanPackage.getPods().size(), is(2));
+    }
 }

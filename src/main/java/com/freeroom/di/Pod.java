@@ -129,6 +129,11 @@ class Pod
         bean = null;
     }
 
+    public boolean hasName(final String name)
+    {
+        return getBeanName().equals(name) || getBeanName().endsWith("." + name);
+    }
+
     private List<Hole> findHoles()
     {
         final List<Hole> holes = newArrayList();
@@ -211,7 +216,7 @@ class Pod
     private String findBeanName()
     {
         final Bean beanAnnotation = beanClass.getAnnotation(Bean.class);
-        return isNullOrEmpty(beanAnnotation.value()) ? beanClass.getSimpleName() : beanAnnotation.value();
+        return isNullOrEmpty(beanAnnotation.value()) ? beanClass.getCanonicalName() : beanAnnotation.value();
     }
 
     private Scope findScope()

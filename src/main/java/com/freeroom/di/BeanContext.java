@@ -55,7 +55,7 @@ public class BeanContext
         return tryFind(beanPackage.getPods(), new Predicate<Pod>() {
             @Override
             public boolean apply(final Pod pod) {
-                return pod.getBeanName().equals(name);
+                return pod.hasName(name);
             }
         }).transform(new Function<Pod, Object>() {
             @Override

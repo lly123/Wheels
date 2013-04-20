@@ -62,16 +62,21 @@ class Package
             }
         }
         Collection<Pod> podsInPath = createPods(beanFiles);
-        assertNoPodsAreSame(podsInPath);
-        pods.addAll(podsInPath);
+        savePods(podsInPath);
     }
 
-    private void assertNoPodsAreSame(final Collection<Pod> podsInPath)
+    private void savePods(final Collection<Pod> podsInPath)
     {
         for (final Pod pod : podsInPath) {
-            if (pods.contains(pod)) {
-                throw new NotUniqueException("Beans with same name: " + pod.getBeanName());
-            }
+            assertNoPodsAreSame(pod);
+            pods.add(pod);
+        }
+    }
+
+    private void assertNoPodsAreSame(final Pod pod)
+    {
+        if (pods.contains(pod)) {
+            throw new NotUniqueException("Beans with same name: " + pod.getBeanName());
         }
     }
 
