@@ -5,16 +5,22 @@ import com.freeroom.di.exceptions.NotUniqueException;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableList;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import static com.google.common.base.Optional.absent;
 import static com.google.common.base.Optional.of;
 import static com.google.common.collect.Collections2.filter;
 import static com.google.common.collect.Collections2.transform;
+import static com.google.common.collect.ImmutableList.copyOf;
+import static com.google.common.collect.Lists.newArrayList;
 
 public class BeanContext
 {
+    private final Optional<BeanContext> parentContext;
     private final Package beanPackage;
 
     public static BeanContext load(final String packageName)
@@ -22,15 +28,28 @@ public class BeanContext
         return new BeanContext(packageName);
     }
 
+    public static BeanContext load(final String packageName, final BeanContext parentContext)
+    {
+        return new BeanContext(packageName, parentContext);
+    }
+
     private BeanContext(final String packageName)
     {
-        beanPackage = new Package(packageName);
-        podsInjection();
+        this.parentContext = absent();
+        this.beanPackage = new Package(packageName);
+        makePodsReady();
+    }
+
+    private BeanContext(final String packageName, final BeanContext parentContext)
+    {
+        this.parentContext = of(parentContext);
+        this.beanPackage = new Package(packageName);
+        makePodsReady();
     }
 
     public Collection<?> getBeans()
     {
-        podsInjection();
+        makePodsReady();
         return transform(beanPackage.getPods(), new Function<Pod, Object>() {
             @Override
             public Object apply(final Pod pod) {
@@ -50,12 +69,35 @@ public class BeanContext
 
     public Optional<?> getBean(final String name)
     {
-        podsInjection();
-        Collection<Pod> pods = getPodsHaveName(name);
+        makePodsReady();
 
+        final Collection<Pod> pods = getPodsHaveName(name);
         assertNotMoreThanOnePod(name, pods);
 
         return ((pods.size() == 1) ? of(((Pod)pods.toArray()[0]).getBean()) : absent());
+    }
+
+    Collection<Pod> getPods()
+    {
+        return beanPackage.getPods();
+    }
+
+    void makePodsReady()
+    {
+        cleanRequiredScopeBeans();
+        new Injector(preparePodsForInjection()).resolve();
+    }
+
+    private Collection<Pod> preparePodsForInjection()
+    {
+        List<Pod> pods = newArrayList();
+        if (parentContext.isPresent()) {
+            BeanContext parentContext = this.parentContext.get();
+            parentContext.makePodsReady();
+            pods.addAll(parentContext.getPods());
+        }
+        pods.addAll(beanPackage.getPods());
+        return copyOf(pods);
     }
 
     private Collection<?> getBeansCanBeAssignedTo(final Class<?> clazz)
@@ -92,15 +134,9 @@ public class BeanContext
         }
     }
 
-    private void podsInjection()
-    {
-        cleanRequiredScopeBeans();
-        new Injector(beanPackage.getPods()).resolve();
-    }
-
     private void cleanRequiredScopeBeans()
     {
-        for (Pod pod : beanPackage.getPods()) {
+        for (final Pod pod : beanPackage.getPods()) {
             if (pod.getScope().equals(Scope.Required)) {
                 pod.removeBean();
             }

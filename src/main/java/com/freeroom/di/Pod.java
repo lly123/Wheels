@@ -258,7 +258,7 @@ class Pod
         });
     }
 
-    private Collection<SetterHole> getSetterHoles()
+    public Collection<SetterHole> getSetterHoles()
     {
         return reduce(Lists.<SetterHole>newArrayList(), holes, new Func<ArrayList<SetterHole>, Hole>() {
             @Override

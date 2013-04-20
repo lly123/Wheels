@@ -3,6 +3,8 @@ package com.freeroom.di;
 import com.freeroom.di.exceptions.NotUniqueException;
 import com.freeroom.test.beans.dummy.Dummy;
 import com.freeroom.test.beans.fieldInjection.Person;
+import com.freeroom.test.beans.parallelPackages.packageOne.Rhinoceros;
+import com.freeroom.test.beans.parallelPackages.packageTwo.Antelope;
 import com.freeroom.test.beans.sameBeanName.subPackage.Trout;
 import com.freeroom.test.beans.sameParent.Shape;
 import com.google.common.base.Optional;
@@ -108,5 +110,16 @@ public class BeanContextTest
         Optional<?> otter2 = context.getBean("Otter");
 
         assertThat(otter1.get(), is(not(sameInstance(otter2.get()))));
+    }
+
+    @Test
+    public void should_resolve_bean_from_parent_context()
+    {
+        BeanContext parentContext = BeanContext.load("com.freeroom.test.beans.parallelPackages.packageOne");
+        BeanContext context = BeanContext.load("com.freeroom.test.beans.parallelPackages.packageTwo", parentContext);
+
+        Optional<?> antelope = context.getBean("Antelope");
+
+        assertThat(((Antelope)antelope.get()).getRhinoceros(), is(instanceOf(Rhinoceros.class)));
     }
 }

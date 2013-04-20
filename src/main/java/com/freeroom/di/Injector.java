@@ -30,7 +30,7 @@ class Injector
     {
         waitingForConstruction.addAll(unreadyPods);
         resolveConstructionInjection();
-        resolveFieldInjection();
+        resolveFieldAndSetterInjection();
     }
 
     private void resolveConstructionInjection()
@@ -40,22 +40,24 @@ class Injector
 
             pod.tryConstructBean(pods);
             if (pod.isBeanReady()) {
-                preparePodForPopulateFields(pod);
+                preparePodForPopulation(pod);
             } else {
                 prepareUnreadyPodsForConstruction(pod);
             }
         }
     }
 
-    private void resolveFieldInjection()
+    private void resolveFieldAndSetterInjection()
     {
         while (!waitingForPopulation.isEmpty()) {
             final Pod pod = waitingForPopulation.pop();
             populateFieldDependencies(pod);
+            populateSetterDependencies(pod);
+            pod.fosterBean();
         }
     }
 
-    private void preparePodForPopulateFields(final Pod pod)
+    private void preparePodForPopulation(final Pod pod)
     {
         waitingForPopulation.push(pod);
     }
@@ -77,7 +79,13 @@ class Injector
         for (final FieldHole hole : pod.getFieldHoles()) {
             hole.fill(pods);
         }
-        pod.fosterBean();
+    }
+
+    private void populateSetterDependencies(final Pod pod)
+    {
+        for (final SetterHole hole : pod.getSetterHoles()) {
+            hole.fill(pods);
+        }
     }
 
     private void assertNoCycleDependency(final Pod pod, final Pod unreadyPod, final Stack<Pod> waitingForConstruction)
