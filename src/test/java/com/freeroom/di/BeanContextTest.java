@@ -1,6 +1,8 @@
 package com.freeroom.di;
 
 import com.freeroom.di.exceptions.NotUniqueException;
+import com.freeroom.test.beans.constructorInjection.subPackage.Caribou;
+import com.freeroom.test.beans.constructorInjection.subPackage.Marmot;
 import com.freeroom.test.beans.dummy.Dummy;
 import com.freeroom.test.beans.fieldInjection.Hedgehog;
 import com.freeroom.test.beans.parallelPackages.packageOne.Rhinoceros;
@@ -99,6 +101,16 @@ public class BeanContextTest
     public void should_throw_NotUniqueException_given_beans_have_same_customized_name()
     {
         BeanContext.load("com.freeroom.test.beans.sameBeanCustomizedName");
+    }
+
+    @Test
+    public void should_resolve_bean_by_constructor_injection()
+    {
+        BeanContext context = BeanContext.load("com.freeroom.test.beans.constructorInjection.subPackage");
+
+        Optional<?> caribou = context.getBean("Caribou");
+
+        assertThat(((Caribou)caribou.get()).getMarmot(), is(instanceOf(Marmot.class)));
     }
 
     @Test
