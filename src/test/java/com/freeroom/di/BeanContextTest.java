@@ -5,10 +5,15 @@ import com.freeroom.test.beans.constructorInjection.subPackage.Caribou;
 import com.freeroom.test.beans.constructorInjection.subPackage.Marmot;
 import com.freeroom.test.beans.dummy.Dummy;
 import com.freeroom.test.beans.fieldInjection.Hedgehog;
+import com.freeroom.test.beans.fieldInjection.Squid;
 import com.freeroom.test.beans.parallelPackages.packageOne.Rhinoceros;
 import com.freeroom.test.beans.parallelPackages.packageTwo.Antelope;
 import com.freeroom.test.beans.sameBeanName.subPackage.Trout;
 import com.freeroom.test.beans.sameParent.Ladybug;
+import com.freeroom.test.beans.setterInjection.Camel;
+import com.freeroom.test.beans.setterInjection.Mackerels;
+import com.freeroom.test.beans.setterInjection.subPackage.Penguin;
+import com.freeroom.test.beans.setterInjection.subPackage.Raccoon;
 import com.google.common.base.Optional;
 import org.junit.Test;
 
@@ -111,6 +116,26 @@ public class BeanContextTest
         Optional<?> caribou = context.getBean("Caribou");
 
         assertThat(((Caribou)caribou.get()).getMarmot(), is(instanceOf(Marmot.class)));
+    }
+
+    @Test
+    public void should_resolve_bean_by_field_injection()
+    {
+        BeanContext context = BeanContext.load("com.freeroom.test.beans.fieldInjection");
+
+        Optional<?> hedgehog = context.getBean("Hedgehog");
+
+        assertThat(((Hedgehog)hedgehog.get()).getSquid(), is(instanceOf(Squid.class)));
+    }
+
+    @Test
+    public void should_resolve_bean_by_setter_injection()
+    {
+        BeanContext context = BeanContext.load("com.freeroom.test.beans.setterInjection.subPackage");
+
+        Optional<?> penguin = context.getBean("Penguin");
+
+        assertThat(((Penguin)penguin.get()).getRaccoon(), is(instanceOf(Raccoon.class)));
     }
 
     @Test
