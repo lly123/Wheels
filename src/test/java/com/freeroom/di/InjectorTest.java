@@ -9,8 +9,8 @@ import com.freeroom.test.beans.constructorInjection.cycleDependency.Swan;
 import com.freeroom.test.beans.dependentBeans.Mustang;
 import com.freeroom.test.beans.dependentBeans.Jaguar;
 import com.freeroom.test.beans.dependentBeans.Ostrich;
-import com.freeroom.test.beans.fieldInjection.Car;
-import com.freeroom.test.beans.fieldInjection.Person;
+import com.freeroom.test.beans.fieldInjection.Squid;
+import com.freeroom.test.beans.fieldInjection.Hedgehog;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -30,31 +30,31 @@ public class InjectorTest
     @Test(expected = NoBeanException.class)
     public void should_throw_NoBeanException_given_can_not_find_bean_in_context()
     {
-        Injector injector = new Injector(givenABeanPackage(Car.class).getPods());
+        Injector injector = new Injector(givenABeanPackage(Squid.class).getPods());
         injector.resolve();
     }
 
     @Test
     public void should_have_all_beans_in_context()
     {
-        Injector injector = new Injector(givenABeanPackage(Car.class, Person.class).getPods());
+        Injector injector = new Injector(givenABeanPackage(Squid.class, Hedgehog.class).getPods());
         injector.resolve();
     }
 
     @Test
     public void should_resolve_bean_field_cycle_dependencies()
     {
-        Injector injector = new Injector(givenABeanPackage(Car.class, Person.class).getPods());
+        Injector injector = new Injector(givenABeanPackage(Squid.class, Hedgehog.class).getPods());
         Collection<Pod> pods = injector.resolve();
 
         assertThat(pods.size(), is(2));
 
         for (Pod pod : pods) {
-            if (pod.getBeanClass().equals(Person.class)) {
-                Person person = (Person) pod.getBean();
-                assertThat(person.getCar(), is(notNullValue()));
-            } else if (pod.getBeanClass().equals(Car.class)) {
-                Car person = (Car) pod.getBean();
+            if (pod.getBeanClass().equals(Hedgehog.class)) {
+                Hedgehog hedgehog = (Hedgehog) pod.getBean();
+                assertThat(hedgehog.getSquid(), is(notNullValue()));
+            } else if (pod.getBeanClass().equals(Squid.class)) {
+                Squid person = (Squid) pod.getBean();
                 assertThat(person.getDriver(), is(notNullValue()));
             } else {
                 fail();

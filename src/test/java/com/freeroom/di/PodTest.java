@@ -3,10 +3,10 @@ package com.freeroom.di;
 import com.freeroom.di.annotations.Scope;
 import com.freeroom.di.exceptions.NoBeanException;
 import com.freeroom.di.exceptions.NotUniqueException;
-import com.freeroom.test.beans.fieldInjection.Car;
+import com.freeroom.test.beans.fieldInjection.Mosquito;
+import com.freeroom.test.beans.fieldInjection.Squid;
 import com.freeroom.test.beans.dummy.EmptyBean;
-import com.freeroom.test.beans.fieldInjection.Home;
-import com.freeroom.test.beans.fieldInjection.Person;
+import com.freeroom.test.beans.fieldInjection.Hedgehog;
 import com.freeroom.test.beans.constructorInjection.*;
 import com.freeroom.test.beans.requiredScope.Otter;
 import com.freeroom.test.beans.setterInjection.Camel;
@@ -44,13 +44,13 @@ public class PodTest
     @Test
     public void should_get_holes_of_field_type()
     {
-        Pod pod = new Pod(Person.class);
+        Pod pod = new Pod(Hedgehog.class);
 
         assertThat(pod.getHoles().size(), is(1));
         assertThat(pod.getHoles().get(0), is(instanceOf(FieldHole.class)));
 
         FieldHole hole = (FieldHole) pod.getHoles().get(0);
-        assertThat(hole.getHoleClass().equals(Car.class), is(true));
+        assertThat(hole.getHoleClass().equals(Squid.class), is(true));
         assertThat(hole.isFilled(), is(false));
         assertThat(hole.getField(), is(notNullValue()));
     }
@@ -102,7 +102,7 @@ public class PodTest
     @Test
     public void should_fill_hole_given_a_field_hole()
     {
-        Pod pod = new Pod(Person.class);
+        Pod pod = new Pod(Hedgehog.class);
 
         Hole fieldHole = pod.getHoles().get(0);
         fieldHole.fill(podsPool);
@@ -144,9 +144,9 @@ public class PodTest
     @Test(expected = NoBeanException.class)
     public void should_throw_NoBeanException_given_filling_bean_type_is_wrong()
     {
-        Pod pod = new Pod(Person.class);
+        Pod pod = new Pod(Hedgehog.class);
 
-        pod.getHoles().get(0).fill(asList(new Pod(Home.class)));
+        pod.getHoles().get(0).fill(asList(new Pod(Mosquito.class)));
     }
 
     @Test
@@ -167,13 +167,13 @@ public class PodTest
     @Test
     public void should_populate_bean_injection_fields()
     {
-        Pod pod = new Pod(Person.class);
+        Pod pod = new Pod(Hedgehog.class);
         pod.getHoles().get(0).fill(podsPool);
         pod.createBeanWithDefaultConstructor();
 
         pod.fosterBean();
 
-        assertThat(((Person)pod.getBean()).getCar(), is(notNullValue()));
+        assertThat(((Hedgehog)pod.getBean()).getSquid(), is(notNullValue()));
     }
 
     @Test
@@ -197,10 +197,10 @@ public class PodTest
 
     private Collection<Pod> generatePods()
     {
-        Pod carPod = new Pod(Car.class);
+        Pod carPod = new Pod(Squid.class);
         carPod.createBeanWithDefaultConstructor();
 
-        Pod homePod = new Pod(Home.class);
+        Pod homePod = new Pod(Mosquito.class);
         homePod.createBeanWithDefaultConstructor();
 
         Pod teacherPod = new Pod(Teacher.class);

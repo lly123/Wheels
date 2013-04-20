@@ -2,7 +2,7 @@ package com.freeroom.di;
 
 import com.freeroom.di.exceptions.NotUniqueException;
 import com.freeroom.test.beans.dummy.Dummy;
-import com.freeroom.test.beans.fieldInjection.Person;
+import com.freeroom.test.beans.fieldInjection.Hedgehog;
 import com.freeroom.test.beans.parallelPackages.packageOne.Rhinoceros;
 import com.freeroom.test.beans.parallelPackages.packageTwo.Antelope;
 import com.freeroom.test.beans.sameBeanName.subPackage.Trout;
@@ -40,7 +40,7 @@ public class BeanContextTest
     public void should_get_bean_given_class_instance()
     {
         BeanContext context = BeanContext.load("com.freeroom.test.beans.fieldInjection");
-        assertThat(context.getBean(Person.class).isPresent(), is(true));
+        assertThat(context.getBean(Hedgehog.class).isPresent(), is(true));
     }
 
     @Test
@@ -61,7 +61,7 @@ public class BeanContextTest
     public void should_get_bean_given_bean_name()
     {
         BeanContext context = BeanContext.load("com.freeroom.test.beans.fieldInjection");
-        assertThat(context.getBean("Person").isPresent(), is(true));
+        assertThat(context.getBean("Hedgehog").isPresent(), is(true));
     }
 
     @Test

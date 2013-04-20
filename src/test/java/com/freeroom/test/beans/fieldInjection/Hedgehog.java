@@ -3,13 +3,15 @@ package com.freeroom.test.beans.fieldInjection;
 import com.freeroom.di.annotations.Bean;
 import com.freeroom.di.annotations.Inject;
 
-@Bean("Monster")
-public class Car
+@Bean
+public class Hedgehog
 {
     @Inject
-    private Person driver;
+    private Squid squid;
 
-    public Person getDriver() {
-        return driver;
+    private Mosquito mosquito;
+
+    public Squid getSquid() {
+        return squid;
     }
 }
