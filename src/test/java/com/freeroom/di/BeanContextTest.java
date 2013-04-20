@@ -6,7 +6,7 @@ import com.freeroom.test.beans.fieldInjection.Hedgehog;
 import com.freeroom.test.beans.parallelPackages.packageOne.Rhinoceros;
 import com.freeroom.test.beans.parallelPackages.packageTwo.Antelope;
 import com.freeroom.test.beans.sameBeanName.subPackage.Trout;
-import com.freeroom.test.beans.sameParent.Shape;
+import com.freeroom.test.beans.sameParent.Ladybug;
 import com.google.common.base.Optional;
 import org.junit.Test;
 
@@ -54,7 +54,7 @@ public class BeanContextTest
     public void should_throw_NotUniqueException_given_beans_have_same_parent()
     {
         BeanContext context = BeanContext.load("com.freeroom.test.beans.sameParent");
-        context.getBean(Shape.class);
+        context.getBean(Ladybug.class);
     }
 
     @Test

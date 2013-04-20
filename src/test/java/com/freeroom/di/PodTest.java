@@ -58,7 +58,7 @@ public class PodTest
     @Test
     public void should_get_holes_of_constructor_type()
     {
-        Pod pod = new Pod(Student.class);
+        Pod pod = new Pod(Pangolin.class);
         assertThat(pod.getHoles().size(), is(1));
 
         Hole constructorHole = pod.getHoles().get(0);
@@ -96,7 +96,7 @@ public class PodTest
     @Test(expected = NotUniqueException.class)
     public void should_throw_NotUniqueException_given_injecting_two_constructors()
     {
-        new Pod(TwoConstructorsInjection.class);
+        new Pod(Jellyfish.class);
     }
 
     @Test
@@ -113,7 +113,7 @@ public class PodTest
     @Test
     public void should_fill_holes_given_a_constructor_hole()
     {
-        Pod pod = new Pod(Student.class);
+        Pod pod = new Pod(Pangolin.class);
 
         Hole constructorHole = pod.getHoles().get(0);
         constructorHole.fill(podsPool);
@@ -135,7 +135,7 @@ public class PodTest
     @Test(expected = NoBeanException.class)
     public void should_throw_NoBeanException_given_no_bean_for_constructor_parameter()
     {
-        Pod pod = new Pod(NoBeanForConstructor.class);
+        Pod pod = new Pod(Flamingo.class);
 
         Hole constructorHole = pod.getHoles().get(0);
         constructorHole.fill(podsPool);
@@ -152,7 +152,7 @@ public class PodTest
     @Test
     public void should_not_fill_constructor_holes_given_beans_not_ready()
     {
-        Pod pod = new Pod(FamilyStudy.class);
+        Pod pod = new Pod(Tarsier.class);
 
         ConstructorHole hole = (ConstructorHole) pod.getHoles().get(0);
         hole.fill(studentPodIsUnready());
@@ -161,7 +161,7 @@ public class PodTest
         assertThat(hole.getUnreadyPods().size(), is(1));
 
         Pod unreadyPod = (Pod) hole.getUnreadyPods().toArray()[0];
-        assertThat(unreadyPod.getBeanClass().equals(Student.class), is(true));
+        assertThat(unreadyPod.getBeanClass().equals(Pangolin.class), is(true));
     }
 
     @Test
@@ -203,7 +203,7 @@ public class PodTest
         Pod homePod = new Pod(Mosquito.class);
         homePod.createBeanWithDefaultConstructor();
 
-        Pod teacherPod = new Pod(Teacher.class);
+        Pod teacherPod = new Pod(Boa.class);
         teacherPod.createBeanWithDefaultConstructor();
 
         Pod mackerelsPod = new Pod(Mackerels.class);
@@ -214,10 +214,10 @@ public class PodTest
 
     private Collection<Pod> studentPodIsUnready()
     {
-        Pod teacherPod = new Pod(Teacher.class);
+        Pod teacherPod = new Pod(Boa.class);
         teacherPod.createBeanWithDefaultConstructor();
 
-        Pod studentPod = new Pod(Student.class);
+        Pod studentPod = new Pod(Pangolin.class);
 
         return asList(teacherPod, studentPod);
     }

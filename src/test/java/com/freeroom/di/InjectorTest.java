@@ -2,8 +2,8 @@ package com.freeroom.di;
 
 import com.freeroom.di.exceptions.ConstructorCycleDependencyException;
 import com.freeroom.di.exceptions.NoBeanException;
-import com.freeroom.test.beans.constructorInjection.Student;
-import com.freeroom.test.beans.constructorInjection.Teacher;
+import com.freeroom.test.beans.constructorInjection.Boa;
+import com.freeroom.test.beans.constructorInjection.Pangolin;
 import com.freeroom.test.beans.constructorInjection.cycleDependency.Balloonfish;
 import com.freeroom.test.beans.constructorInjection.cycleDependency.Swan;
 import com.freeroom.test.beans.dependentBeans.Mustang;
@@ -65,15 +65,15 @@ public class InjectorTest
     @Test
     public void should_resolve_beans_with_constructor_injection()
     {
-        Injector injector = new Injector(givenABeanPackage(Student.class, Teacher.class).getPods());
+        Injector injector = new Injector(givenABeanPackage(Pangolin.class, Boa.class).getPods());
         Collection<Pod> pods = injector.resolve();
 
         assertThat(pods.size(), is(2));
 
         for (Pod pod : pods) {
-            if (pod.getBeanClass().equals(Student.class)) {
-                Student person = (Student) pod.getBean();
-                assertThat(person.getTeacher(), is(notNullValue()));
+            if (pod.getBeanClass().equals(Pangolin.class)) {
+                Pangolin person = (Pangolin) pod.getBean();
+                assertThat(person.getBoa(), is(notNullValue()));
             }
         }
     }

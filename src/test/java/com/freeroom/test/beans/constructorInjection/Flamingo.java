@@ -2,11 +2,13 @@ package com.freeroom.test.beans.constructorInjection;
 
 import com.freeroom.di.annotations.Bean;
 import com.freeroom.di.annotations.Inject;
+import com.freeroom.test.beans.dummy.Dummy;
 
 @Bean
-public class FamilyStudy
+public class Flamingo
 {
     @Inject
-    public FamilyStudy(Teacher teacher, Student student) {
+    public Flamingo(Dummy dummy)
+    {
     }
 }

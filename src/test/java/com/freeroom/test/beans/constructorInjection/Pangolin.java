@@ -4,15 +4,16 @@ import com.freeroom.di.annotations.Bean;
 import com.freeroom.di.annotations.Inject;
 
 @Bean
-public class TwoConstructorsInjection
+public class Pangolin
 {
-    @Inject
-    public TwoConstructorsInjection()
-    {
-    }
+    private Boa boa;
 
     @Inject
-    public TwoConstructorsInjection(Student student)
-    {
+    public Pangolin(Boa boa) {
+        this.boa = boa;
+    }
+
+    public Boa getBoa() {
+        return boa;
     }
 }
