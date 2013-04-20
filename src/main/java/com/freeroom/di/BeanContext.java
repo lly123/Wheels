@@ -12,7 +12,6 @@ import static com.google.common.base.Optional.absent;
 import static com.google.common.base.Optional.of;
 import static com.google.common.collect.Collections2.filter;
 import static com.google.common.collect.Collections2.transform;
-import static com.google.common.collect.Iterables.tryFind;
 
 public class BeanContext
 {
@@ -42,7 +41,7 @@ public class BeanContext
 
     public Optional<?> getBean(final Class<?> clazz)
     {
-        final Collection<?> beans = getBeanCanBeAssignedTo(clazz);
+        final Collection<?> beans = getBeansCanBeAssignedTo(clazz);
 
         assertNotMoreThanOneBean(clazz, beans);
 
@@ -52,20 +51,14 @@ public class BeanContext
     public Optional<?> getBean(final String name)
     {
         podsInjection();
-        return tryFind(beanPackage.getPods(), new Predicate<Pod>() {
-            @Override
-            public boolean apply(final Pod pod) {
-                return pod.hasName(name);
-            }
-        }).transform(new Function<Pod, Object>() {
-            @Override
-            public Object apply(final Pod pod) {
-                return pod.getBean();
-            }
-        });
+        Collection<Pod> pods = getPodsHaveName(name);
+
+        assertNotMoreThanOnePod(name, pods);
+
+        return ((pods.size() == 1) ? of(((Pod)pods.toArray()[0]).getBean()) : absent());
     }
 
-    private Collection<?> getBeanCanBeAssignedTo(final Class<?> clazz)
+    private Collection<?> getBeansCanBeAssignedTo(final Class<?> clazz)
     {
         return filter(getBeans(), new Predicate<Object>() {
             @Override
@@ -75,10 +68,27 @@ public class BeanContext
         });
     }
 
+    private Collection<Pod> getPodsHaveName(final String name)
+    {
+        return filter(beanPackage.getPods(), new Predicate<Pod>() {
+            @Override
+            public boolean apply(final Pod pod) {
+                return pod.hasName(name);
+            }
+        });
+    }
+
     private void assertNotMoreThanOneBean(final Class<?> clazz, final Collection<?> beans)
     {
         if (beans.size() > 1) {
             throw new NotUniqueException("More than one bean can be assigned to: " + clazz);
+        }
+    }
+
+    private void assertNotMoreThanOnePod(final String name, final Collection<Pod> pods)
+    {
+        if (pods.size() > 1) {
+            throw new NotUniqueException("More than one bean have name: " + name);
         }
     }
 

@@ -3,14 +3,13 @@ package com.freeroom.di;
 import com.freeroom.di.exceptions.NotUniqueException;
 import com.freeroom.test.beans.dummy.Dummy;
 import com.freeroom.test.beans.fieldInjection.Person;
+import com.freeroom.test.beans.sameBeanName.subPackage.Trout;
 import com.freeroom.test.beans.sameParent.Shape;
 import com.google.common.base.Optional;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.sameInstance;
+import static org.hamcrest.Matchers.*;
 
 public class BeanContextTest
 {
@@ -75,6 +74,23 @@ public class BeanContextTest
     {
         BeanContext context = BeanContext.load("com.freeroom.test.beans.fieldInjection");
         assertThat(context.getBean("Monster").isPresent(), is(true));
+    }
+
+    @Test(expected = NotUniqueException.class)
+    public void should_throw_NotUniqueException_given_beans_have_same_simple_name()
+    {
+        BeanContext context = BeanContext.load("com.freeroom.test.beans.sameBeanName");
+        context.getBean("Trout");
+    }
+
+    @Test
+    public void should_get_bean_by_canonical_name()
+    {
+        BeanContext context = BeanContext.load("com.freeroom.test.beans.sameBeanName");
+
+        Optional<?> bean = context.getBean("com.freeroom.test.beans.sameBeanName.subPackage.Trout");
+
+        assertThat(bean.get(), is(instanceOf(Trout.class)));
     }
 
     @Test(expected = NotUniqueException.class)
