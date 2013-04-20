@@ -7,6 +7,7 @@ import com.freeroom.test.beans.dummy.Dummy;
 import com.freeroom.test.beans.fieldInjection.Hedgehog;
 import com.freeroom.test.beans.fieldInjection.Squid;
 import com.freeroom.test.beans.parallelPackages.packageOne.Rhinoceros;
+import com.freeroom.test.beans.parallelPackages.packageThree.Beetle;
 import com.freeroom.test.beans.parallelPackages.packageTwo.Antelope;
 import com.freeroom.test.beans.sameBeanName.subPackage.Trout;
 import com.freeroom.test.beans.sameParent.Ladybug;
@@ -158,5 +159,19 @@ public class BeanContextTest
         Optional<?> antelope = context.getBean("Antelope");
 
         assertThat(((Antelope)antelope.get()).getRhinoceros(), is(instanceOf(Rhinoceros.class)));
+    }
+
+    @Test
+    public void should_get_same_bean_from_parent_context()
+    {
+        BeanContext parentContext = BeanContext.load("com.freeroom.test.beans.parallelPackages.packageOne");
+        BeanContext childContext1 = BeanContext.load("com.freeroom.test.beans.parallelPackages.packageTwo", parentContext);
+        BeanContext childContext2 = BeanContext.load("com.freeroom.test.beans.parallelPackages.packageThree", parentContext);
+
+        Optional<?> antelope = childContext1.getBean("Antelope");
+        Optional<?> beetle = childContext2.getBean("Beetle");
+
+        Rhinoceros rhinoceros = ((Antelope)antelope.get()).getRhinoceros();
+        assertThat(((Beetle)beetle.get()).getRhinoceros(), is(sameInstance(rhinoceros)));
     }
 }
