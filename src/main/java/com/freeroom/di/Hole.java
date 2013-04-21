@@ -8,6 +8,7 @@ import java.util.Collection;
 abstract class Hole
 {
     abstract boolean isFilled();
+
     abstract void fill(final Collection<Pod> pods);
 
     protected void assertPodExists(final Class paramClass, final Optional<Pod> pod)

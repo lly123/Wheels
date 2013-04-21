@@ -52,6 +52,22 @@ public class PeaPodTest
         assertThat(peaPod.getScope(), is(Scope.Required));
     }
 
+    @Test
+    public void should_use_canonical_class_name_as_default_name()
+    {
+        PeaPod peaPod = new PeaPod(getBeanConstructor("pheasant"));
+
+        assertThat(peaPod.hasName("com.freeroom.test.beans.beanFactory.Pheasant"), is(true));
+    }
+
+    @Test
+    public void should_check_by_simple_name()
+    {
+        PeaPod peaPod = new PeaPod(getBeanConstructor("pheasant"));
+
+        assertThat(peaPod.hasName("Pheasant"), is(true));
+    }
+
     private Method getBeanConstructor(String beanConstructorName)
     {
         try {

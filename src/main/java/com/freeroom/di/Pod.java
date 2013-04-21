@@ -2,19 +2,22 @@ package com.freeroom.di;
 
 import com.freeroom.di.annotations.Scope;
 
-interface Pod
+abstract class Pod
 {
-    String getBeanName();
+    abstract String getBeanName();
 
-    Object getBean();
+    abstract Object getBean();
 
-    Class<?> getBeanClass();
+    abstract Class<?> getBeanClass();
 
-    Scope getScope();
+    abstract Scope getScope();
 
-    boolean hasName(final String name);
+    abstract boolean isBeanReady();
 
-    boolean isBeanReady();
+    abstract void removeBean();
 
-    void removeBean();
+    public boolean hasName(String name)
+    {
+        return getBeanName().equals(name) || getBeanName().endsWith("." + name);
+    }
 }

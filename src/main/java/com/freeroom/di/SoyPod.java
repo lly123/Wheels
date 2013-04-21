@@ -22,7 +22,7 @@ import static com.google.common.collect.Iterables.tryFind;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Lists.transform;
 
-class SoyPod implements Pod
+class SoyPod extends Pod
 {
     private final Class<?> beanClass;
     private final String beanName;

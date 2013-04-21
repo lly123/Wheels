@@ -7,7 +7,7 @@ import java.lang.reflect.Method;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 
-class PeaPod implements Pod
+class PeaPod extends Pod
 {
     private final Method beanConstructor;
 
@@ -40,12 +40,6 @@ class PeaPod implements Pod
     {
         final Bean beanAnnotation = beanConstructor.getAnnotation(Bean.class);
         return beanAnnotation.scope();
-    }
-
-    @Override
-    public boolean hasName(String name)
-    {
-        return false;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
     @Override
