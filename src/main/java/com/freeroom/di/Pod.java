@@ -68,15 +68,6 @@ class Pod
         return scope;
     }
 
-    public void createBeanWithDefaultConstructor()
-    {
-        try {
-            bean = beanClass.getConstructor().newInstance();
-        } catch (Exception e) {
-            throw new RuntimeException("Can't create bean with default constructor.", e);
-        }
-    }
-
     public void fosterBean()
     {
         populateBeanFields();
@@ -91,21 +82,6 @@ class Pod
                 return hole instanceof ConstructorHole;
             }
         });
-    }
-
-    @Override
-    public boolean equals(final Object o)
-    {
-        if (o == null || !(o instanceof Pod)) {
-            return false;
-        }
-
-        return getBeanName().equals(((Pod) o).getBeanName());
-    }
-
-    public void createBean(ConstructorHole constructorHole)
-    {
-        bean = constructorHole.create();
     }
 
     public void tryConstructBean(final Collection<Pod> pods)
@@ -123,6 +99,20 @@ class Pod
         }
     }
 
+    private void createBean(ConstructorHole constructorHole)
+    {
+        bean = constructorHole.create();
+    }
+
+    private void createBeanWithDefaultConstructor()
+    {
+        try {
+            bean = beanClass.getConstructor().newInstance();
+        } catch (Exception e) {
+            throw new RuntimeException("Can't create bean with default constructor.", e);
+        }
+    }
+
     public void removeBean()
     {
         bean = null;
@@ -131,6 +121,16 @@ class Pod
     public boolean hasName(final String name)
     {
         return getBeanName().equals(name) || getBeanName().endsWith("." + name);
+    }
+
+    @Override
+    public boolean equals(final Object o)
+    {
+        if (o == null || !(o instanceof Pod)) {
+            return false;
+        }
+
+        return getBeanName().equals(((Pod) o).getBeanName());
     }
 
     private List<Hole> findHoles()

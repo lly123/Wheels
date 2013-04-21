@@ -12,12 +12,16 @@ import com.freeroom.test.beans.requiredScope.Otter;
 import com.freeroom.test.beans.setterInjection.Camel;
 import com.freeroom.test.beans.setterInjection.Leopard;
 import com.freeroom.test.beans.setterInjection.Mackerels;
+import com.google.common.collect.ImmutableList;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 
 import static java.util.Arrays.asList;
+import static java.util.Collections.EMPTY_LIST;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
@@ -36,7 +40,7 @@ public class PodTest
     {
         final Pod pod = new Pod(EmptyBean.class);
 
-        pod.createBeanWithDefaultConstructor();
+        pod.tryConstructBean(EMPTY_LIST);
 
         assertThat(pod.getBean(), is(instanceOf(EmptyBean.class)));
     }
@@ -169,7 +173,7 @@ public class PodTest
     {
         final Pod pod = new Pod(Hedgehog.class);
         pod.getHoles().get(0).fill(podsPool);
-        pod.createBeanWithDefaultConstructor();
+        pod.tryConstructBean(EMPTY_LIST);
 
         pod.fosterBean();
 
@@ -181,7 +185,7 @@ public class PodTest
     {
         final Pod pod = new Pod(Camel.class);
         pod.getHoles().get(0).fill(podsPool);
-        pod.createBeanWithDefaultConstructor();
+        pod.tryConstructBean(EMPTY_LIST);
 
         pod.fosterBean();
 
@@ -198,16 +202,16 @@ public class PodTest
     private Collection<Pod> generatePods()
     {
         final Pod carPod = new Pod(Squid.class);
-        carPod.createBeanWithDefaultConstructor();
+        carPod.tryConstructBean(EMPTY_LIST);
 
         final Pod homePod = new Pod(Mosquito.class);
-        homePod.createBeanWithDefaultConstructor();
+        homePod.tryConstructBean(EMPTY_LIST);
 
         final Pod teacherPod = new Pod(Boa.class);
-        teacherPod.createBeanWithDefaultConstructor();
+        teacherPod.tryConstructBean(EMPTY_LIST);
 
         final Pod mackerelsPod = new Pod(Mackerels.class);
-        mackerelsPod.createBeanWithDefaultConstructor();
+        mackerelsPod.tryConstructBean(EMPTY_LIST);
 
         return asList(carPod, homePod, teacherPod, mackerelsPod);
     }
@@ -215,7 +219,7 @@ public class PodTest
     private Collection<Pod> studentPodIsUnready()
     {
         final Pod teacherPod = new Pod(Boa.class);
-        teacherPod.createBeanWithDefaultConstructor();
+        teacherPod.tryConstructBean(EMPTY_LIST);
 
         final Pod studentPod = new Pod(Pangolin.class);
 
