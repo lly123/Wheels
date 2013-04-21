@@ -41,14 +41,12 @@ public class BeanContext
     {
         this.parentContext = absent();
         this.beanPackage = new Package(packageName);
-        makePodsReady();
     }
 
     private BeanContext(final String packageName, final BeanContext parentContext)
     {
         this.parentContext = of(parentContext);
         this.beanPackage = new Package(packageName);
-        makePodsReady();
     }
 
     public Collection<?> getBeans()
