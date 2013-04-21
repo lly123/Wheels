@@ -99,20 +99,6 @@ class Pod
         }
     }
 
-    private void createBean(ConstructorHole constructorHole)
-    {
-        bean = constructorHole.create();
-    }
-
-    private void createBeanWithDefaultConstructor()
-    {
-        try {
-            bean = beanClass.getConstructor().newInstance();
-        } catch (Exception e) {
-            throw new RuntimeException("Can't create bean with default constructor.", e);
-        }
-    }
-
     public void removeBean()
     {
         bean = null;
@@ -131,6 +117,20 @@ class Pod
         }
 
         return getBeanName().equals(((Pod) o).getBeanName());
+    }
+
+    private void createBean(ConstructorHole constructorHole)
+    {
+        bean = constructorHole.create();
+    }
+
+    private void createBeanWithDefaultConstructor()
+    {
+        try {
+            bean = beanClass.getConstructor().newInstance();
+        } catch (Exception e) {
+            throw new RuntimeException("Can't create bean with default constructor.", e);
+        }
     }
 
     private List<Hole> findHoles()
