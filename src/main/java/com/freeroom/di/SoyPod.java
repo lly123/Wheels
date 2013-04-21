@@ -1,6 +1,5 @@
 package com.freeroom.di;
 
-import com.freeroom.di.annotations.Bean;
 import com.freeroom.di.annotations.Inject;
 import com.freeroom.di.annotations.Scope;
 import com.freeroom.di.exceptions.NotUniqueException;
@@ -17,60 +16,41 @@ import java.util.Collection;
 import java.util.List;
 
 import static com.freeroom.di.util.FuncUtils.reduce;
-import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Iterables.tryFind;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Lists.transform;
 
 class SoyPod extends Pod
 {
-    private final Class<?> beanClass;
-    private final String beanName;
     private final List<Hole> holes;
-    private final Scope scope;
-    private Object bean;
 
     public SoyPod(final Class<?> beanClass)
     {
-        this.beanClass = beanClass;
-        this.beanName = findBeanName();
+        super(beanClass);
         this.holes = findHoles();
-        this.scope = findScope();
-    }
-
-    @Override
-    public String getBeanName()
-    {
-        return beanName;
-    }
-
-    @Override
-    public Class<?> getBeanClass()
-    {
-        return beanClass;
-    }
-
-    @Override
-    public Object getBean()
-    {
-        return bean;
-    }
-
-    @Override
-    public boolean isBeanReady()
-    {
-        return bean != null;
-    }
-
-    public List<Hole> getHoles()
-    {
-        return holes;
     }
 
     @Override
     public Scope getScope()
     {
-        return scope;
+        return getScope(getBeanClass());
+    }
+
+    @Override
+    public String getBeanName()
+    {
+        return getBeanName(getBeanClass());
+    }
+
+    @Override
+    public boolean isBeanReady()
+    {
+        return getBean() != null;
+    }
+
+    public List<Hole> getHoles()
+    {
+        return holes;
     }
 
     public void fosterBean()
@@ -105,18 +85,6 @@ class SoyPod extends Pod
     }
 
     @Override
-    public void removeBean()
-    {
-        bean = null;
-    }
-
-    @Override
-    public boolean hasName(final String name)
-    {
-        return getBeanName().equals(name) || getBeanName().endsWith("." + name);
-    }
-
-    @Override
     public boolean equals(final Object o)
     {
         if (o == null || !(o instanceof Pod)) {
@@ -128,13 +96,13 @@ class SoyPod extends Pod
 
     private void createBean(ConstructorHole constructorHole)
     {
-        bean = constructorHole.create();
+        setBean(constructorHole.create());
     }
 
     private void createBeanWithDefaultConstructor()
     {
         try {
-            bean = beanClass.getConstructor().newInstance();
+            setBean(beanClass.getConstructor().newInstance());
         } catch (Exception e) {
             throw new RuntimeException("Can't create bean with default constructor.", e);
         }
@@ -217,18 +185,6 @@ class SoyPod extends Pod
                         return injectionSetters;
                     }
                 });
-    }
-
-    private String findBeanName()
-    {
-        final Bean beanAnnotation = beanClass.getAnnotation(Bean.class);
-        return isNullOrEmpty(beanAnnotation.value()) ? beanClass.getCanonicalName() : beanAnnotation.value();
-    }
-
-    private Scope findScope()
-    {
-        final Bean beanAnnotation = beanClass.getAnnotation(Bean.class);
-        return beanAnnotation.scope();
     }
 
     private void populateBeanFields()
