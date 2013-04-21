@@ -10,21 +10,21 @@ public class PackageTest
     @Test
     public void should_load_beans_in_a_package()
     {
-        Package beanPackage = new Package("com.freeroom.test.beans.fieldInjection");
+        final Package beanPackage = new Package("com.freeroom.test.beans.fieldInjection");
         assertThat(beanPackage.getPods().size(), is(3));
     }
 
     @Test
     public void should_load_beans_in_nested_packages()
     {
-        Package beanPackage = new Package("com.freeroom.test.beans.dummyPackage");
+        final Package beanPackage = new Package("com.freeroom.test.beans.dummyPackage");
         assertThat(beanPackage.getPods().size(), is(2));
     }
 
     @Test
     public void should_load_beans_with_same_name_in_nested_packages()
     {
-        Package beanPackage = new Package("com.freeroom.test.beans.sameBeanName");
+        final Package beanPackage = new Package("com.freeroom.test.beans.sameBeanName");
         assertThat(beanPackage.getPods().size(), is(2));
     }
 }

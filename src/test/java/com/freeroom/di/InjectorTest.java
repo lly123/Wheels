@@ -30,32 +30,32 @@ public class InjectorTest
     @Test(expected = NoBeanException.class)
     public void should_throw_NoBeanException_given_can_not_find_bean_in_context()
     {
-        Injector injector = new Injector(givenABeanPackage(Squid.class).getPods());
+        final Injector injector = new Injector(givenABeanPackage(Squid.class).getPods());
         injector.resolve();
     }
 
     @Test
     public void should_have_all_beans_in_context()
     {
-        Injector injector = new Injector(givenABeanPackage(Squid.class, Hedgehog.class).getPods());
+        final Injector injector = new Injector(givenABeanPackage(Squid.class, Hedgehog.class).getPods());
         injector.resolve();
     }
 
     @Test
     public void should_resolve_bean_field_cycle_dependencies()
     {
-        Injector injector = new Injector(givenABeanPackage(Squid.class, Hedgehog.class).getPods());
-        Collection<Pod> pods = injector.resolve();
+        final Injector injector = new Injector(givenABeanPackage(Squid.class, Hedgehog.class).getPods());
+        final Collection<Pod> pods = injector.resolve();
 
         assertThat(pods.size(), is(2));
 
-        for (Pod pod : pods) {
+        for (final Pod pod : pods) {
             if (pod.getBeanClass().equals(Hedgehog.class)) {
                 Hedgehog hedgehog = (Hedgehog) pod.getBean();
                 assertThat(hedgehog.getSquid(), is(notNullValue()));
             } else if (pod.getBeanClass().equals(Squid.class)) {
-                Squid person = (Squid) pod.getBean();
-                assertThat(person.getDriver(), is(notNullValue()));
+                Squid squid = (Squid) pod.getBean();
+                assertThat(squid.getDriver(), is(notNullValue()));
             } else {
                 fail();
             }
@@ -65,15 +65,15 @@ public class InjectorTest
     @Test
     public void should_resolve_beans_with_constructor_injection()
     {
-        Injector injector = new Injector(givenABeanPackage(Pangolin.class, Boa.class).getPods());
-        Collection<Pod> pods = injector.resolve();
+        final Injector injector = new Injector(givenABeanPackage(Pangolin.class, Boa.class).getPods());
+        final Collection<Pod> pods = injector.resolve();
 
         assertThat(pods.size(), is(2));
 
-        for (Pod pod : pods) {
+        for (final Pod pod : pods) {
             if (pod.getBeanClass().equals(Pangolin.class)) {
-                Pangolin person = (Pangolin) pod.getBean();
-                assertThat(person.getBoa(), is(notNullValue()));
+                final Pangolin pangolin = (Pangolin) pod.getBean();
+                assertThat(pangolin.getBoa(), is(notNullValue()));
             }
         }
     }
@@ -81,21 +81,21 @@ public class InjectorTest
     @Test(expected = ConstructorCycleDependencyException.class)
     public void should_throw_ConstructorCycleDependencyException()
     {
-        Injector injector = new Injector(givenABeanPackage(Swan.class, Balloonfish.class).getPods());
+        final Injector injector = new Injector(givenABeanPackage(Swan.class, Balloonfish.class).getPods());
         injector.resolve();
     }
 
     @Test
     public void should_resolve_bean_again_given_part_of_beans_are_cleaned()
     {
-        Injector injector = new Injector(givenABeanPackage(Mustang.class, Jaguar.class, Ostrich.class).getPods());
-        Collection<Pod> readyPods = injector.resolve();
+        final Injector injector = new Injector(givenABeanPackage(Mustang.class, Jaguar.class, Ostrich.class).getPods());
+        final Collection<Pod> readyPods = injector.resolve();
         cleanBeans(readyPods, asList(Mustang.class, Ostrich.class));
 
         injector.resolve();
 
         assertThat(readyPods.size(), is(3));
-        for (Pod pod : readyPods) {
+        for (final Pod pod : readyPods) {
             if (pod.getBean() instanceof Mustang) {
                 assert_ClassC_is_ready((Mustang) pod.getBean());
             } else if (pod.getBean() instanceof Jaguar) {
@@ -110,8 +110,8 @@ public class InjectorTest
 
     private void cleanBeans(Collection<Pod> readyPods, Collection<Class<?>> beanClasses)
     {
-        for (Pod readyPod : readyPods) {
-            for (Class<?> beanClass : beanClasses) {
+        for (final Pod readyPod : readyPods) {
+            for (final Class<?> beanClass : beanClasses) {
                 if (readyPod.getBeanClass().equals(beanClass)) {
                     readyPod.removeBean();
                 }
@@ -138,13 +138,13 @@ public class InjectorTest
 
     private Package givenABeanPackage(Class<?>... classes)
     {
-        List<Pod> pods = newArrayList();
+        final List<Pod> pods = newArrayList();
 
-        for (Class<?> clazz : classes) {
+        for (final Class<?> clazz : classes) {
             pods.add(new Pod(clazz));
         }
 
-        Package beanPackage = Mockito.mock(Package.class);
+        final Package beanPackage = Mockito.mock(Package.class);
         given(beanPackage.getPods()).willReturn(pods);
         return beanPackage;
     }

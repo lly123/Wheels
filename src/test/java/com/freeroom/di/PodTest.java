@@ -34,7 +34,7 @@ public class PodTest
     @Test
     public void should_create_bean_by_default_constructor()
     {
-        Pod pod = new Pod(EmptyBean.class);
+        final Pod pod = new Pod(EmptyBean.class);
 
         pod.createBeanWithDefaultConstructor();
 
@@ -44,12 +44,12 @@ public class PodTest
     @Test
     public void should_get_holes_of_field_type()
     {
-        Pod pod = new Pod(Hedgehog.class);
+        final Pod pod = new Pod(Hedgehog.class);
 
         assertThat(pod.getHoles().size(), is(1));
         assertThat(pod.getHoles().get(0), is(instanceOf(FieldHole.class)));
 
-        FieldHole hole = (FieldHole) pod.getHoles().get(0);
+        final FieldHole hole = (FieldHole) pod.getHoles().get(0);
         assertThat(hole.getHoleClass().equals(Squid.class), is(true));
         assertThat(hole.isFilled(), is(false));
         assertThat(hole.getField(), is(notNullValue()));
@@ -58,10 +58,10 @@ public class PodTest
     @Test
     public void should_get_holes_of_constructor_type()
     {
-        Pod pod = new Pod(Pangolin.class);
+        final Pod pod = new Pod(Pangolin.class);
         assertThat(pod.getHoles().size(), is(1));
 
-        Hole constructorHole = pod.getHoles().get(0);
+        final Hole constructorHole = pod.getHoles().get(0);
         assertThat(constructorHole, is(instanceOf(ConstructorHole.class)));
         assertThat(constructorHole.isFilled(), is(false));
     }
@@ -69,10 +69,10 @@ public class PodTest
     @Test
     public void should_get_holes_of_setter_type()
     {
-        Pod pod = new Pod(Camel.class);
+        final Pod pod = new Pod(Camel.class);
         assertThat(pod.getHoles().size(), is(1));
 
-        Hole setterHole = pod.getHoles().get(0);
+        final Hole setterHole = pod.getHoles().get(0);
         assertThat(setterHole, is(instanceOf(SetterHole.class)));
         assertThat(setterHole.isFilled(), is(false));
     }
@@ -80,10 +80,10 @@ public class PodTest
     @Test
     public void should_get_setter_hole_given_injection_method_begins_with_SET_prefix()
     {
-        Pod pod = new Pod(Mackerels.class);
+        final Pod pod = new Pod(Mackerels.class);
         assertThat(pod.getHoles().size(), is(1));
 
-        SetterHole setterHole = (SetterHole) pod.getHoles().get(0);
+        final SetterHole setterHole = (SetterHole) pod.getHoles().get(0);
         assertThat(setterHole.getMethod().getName(), is(startsWith("set")));
     }
 
@@ -102,9 +102,9 @@ public class PodTest
     @Test
     public void should_fill_hole_given_a_field_hole()
     {
-        Pod pod = new Pod(Hedgehog.class);
+        final Pod pod = new Pod(Hedgehog.class);
 
-        Hole fieldHole = pod.getHoles().get(0);
+        final Hole fieldHole = pod.getHoles().get(0);
         fieldHole.fill(podsPool);
 
         assertThat(fieldHole.isFilled(), is(true));
@@ -113,9 +113,9 @@ public class PodTest
     @Test
     public void should_fill_holes_given_a_constructor_hole()
     {
-        Pod pod = new Pod(Pangolin.class);
+        final Pod pod = new Pod(Pangolin.class);
 
-        Hole constructorHole = pod.getHoles().get(0);
+        final Hole constructorHole = pod.getHoles().get(0);
         constructorHole.fill(podsPool);
 
         assertThat(constructorHole.isFilled(), is(true));
@@ -124,9 +124,9 @@ public class PodTest
     @Test
     public void should_fill_hole_given_a_setter_hole()
     {
-        Pod pod = new Pod(Camel.class);
+        final Pod pod = new Pod(Camel.class);
 
-        Hole setterHole = pod.getHoles().get(0);
+        final Hole setterHole = pod.getHoles().get(0);
         setterHole.fill(podsPool);
 
         assertThat(setterHole.isFilled(), is(true));
@@ -135,16 +135,16 @@ public class PodTest
     @Test(expected = NoBeanException.class)
     public void should_throw_NoBeanException_given_no_bean_for_constructor_parameter()
     {
-        Pod pod = new Pod(Flamingo.class);
+        final Pod pod = new Pod(Flamingo.class);
 
-        Hole constructorHole = pod.getHoles().get(0);
+        final Hole constructorHole = pod.getHoles().get(0);
         constructorHole.fill(podsPool);
     }
 
     @Test(expected = NoBeanException.class)
     public void should_throw_NoBeanException_given_filling_bean_type_is_wrong()
     {
-        Pod pod = new Pod(Hedgehog.class);
+        final Pod pod = new Pod(Hedgehog.class);
 
         pod.getHoles().get(0).fill(asList(new Pod(Mosquito.class)));
     }
@@ -152,22 +152,22 @@ public class PodTest
     @Test
     public void should_not_fill_constructor_holes_given_beans_not_ready()
     {
-        Pod pod = new Pod(Tarsier.class);
+        final Pod pod = new Pod(Tarsier.class);
 
-        ConstructorHole hole = (ConstructorHole) pod.getHoles().get(0);
+        final ConstructorHole hole = (ConstructorHole) pod.getHoles().get(0);
         hole.fill(studentPodIsUnready());
 
         assertThat(hole.isFilled(), is(false));
         assertThat(hole.getUnreadyPods().size(), is(1));
 
-        Pod unreadyPod = (Pod) hole.getUnreadyPods().toArray()[0];
+        final Pod unreadyPod = (Pod) hole.getUnreadyPods().toArray()[0];
         assertThat(unreadyPod.getBeanClass().equals(Pangolin.class), is(true));
     }
 
     @Test
     public void should_populate_bean_injection_fields()
     {
-        Pod pod = new Pod(Hedgehog.class);
+        final Pod pod = new Pod(Hedgehog.class);
         pod.getHoles().get(0).fill(podsPool);
         pod.createBeanWithDefaultConstructor();
 
@@ -179,7 +179,7 @@ public class PodTest
     @Test
     public void should_inject_bean_by_setters()
     {
-        Pod pod = new Pod(Camel.class);
+        final Pod pod = new Pod(Camel.class);
         pod.getHoles().get(0).fill(podsPool);
         pod.createBeanWithDefaultConstructor();
 
@@ -191,22 +191,22 @@ public class PodTest
     @Test
     public void should_get_required_scope()
     {
-        Pod pod = new Pod(Otter.class);
+        final Pod pod = new Pod(Otter.class);
         assertThat(pod.getScope(), is(Scope.Required));
     }
 
     private Collection<Pod> generatePods()
     {
-        Pod carPod = new Pod(Squid.class);
+        final Pod carPod = new Pod(Squid.class);
         carPod.createBeanWithDefaultConstructor();
 
-        Pod homePod = new Pod(Mosquito.class);
+        final Pod homePod = new Pod(Mosquito.class);
         homePod.createBeanWithDefaultConstructor();
 
-        Pod teacherPod = new Pod(Boa.class);
+        final Pod teacherPod = new Pod(Boa.class);
         teacherPod.createBeanWithDefaultConstructor();
 
-        Pod mackerelsPod = new Pod(Mackerels.class);
+        final Pod mackerelsPod = new Pod(Mackerels.class);
         mackerelsPod.createBeanWithDefaultConstructor();
 
         return asList(carPod, homePod, teacherPod, mackerelsPod);
@@ -214,10 +214,10 @@ public class PodTest
 
     private Collection<Pod> studentPodIsUnready()
     {
-        Pod teacherPod = new Pod(Boa.class);
+        final Pod teacherPod = new Pod(Boa.class);
         teacherPod.createBeanWithDefaultConstructor();
 
-        Pod studentPod = new Pod(Pangolin.class);
+        final Pod studentPod = new Pod(Pangolin.class);
 
         return asList(teacherPod, studentPod);
     }
