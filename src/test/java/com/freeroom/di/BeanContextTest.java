@@ -6,14 +6,13 @@ import com.freeroom.test.beans.constructorInjection.subPackage.Marmot;
 import com.freeroom.test.beans.dummy.Dummy;
 import com.freeroom.test.beans.fieldInjection.Hedgehog;
 import com.freeroom.test.beans.fieldInjection.Squid;
+import com.freeroom.test.beans.parallelPackages.packageFour.Falcon;
 import com.freeroom.test.beans.parallelPackages.packageOne.Rhinoceros;
-import com.freeroom.test.beans.parallelPackages.packageOne.subPackage.Hamster;
 import com.freeroom.test.beans.parallelPackages.packageThree.Beetle;
+import com.freeroom.test.beans.parallelPackages.packageFour.subPackage.Owl;
 import com.freeroom.test.beans.parallelPackages.packageTwo.Antelope;
 import com.freeroom.test.beans.sameBeanName.subPackage.Trout;
 import com.freeroom.test.beans.sameParent.Ladybug;
-import com.freeroom.test.beans.setterInjection.Camel;
-import com.freeroom.test.beans.setterInjection.Mackerels;
 import com.freeroom.test.beans.setterInjection.subPackage.Penguin;
 import com.freeroom.test.beans.setterInjection.subPackage.Raccoon;
 import com.google.common.base.Optional;
@@ -187,5 +186,17 @@ public class BeanContextTest
 
         assertThat(hamster1.get(), is(not(sameInstance(hamster2.get()))));
         assertThat(((Rhinoceros)context.getBean("Rhinoceros").get()).getHamster(), is(sameInstance(hamster2.get())));
+    }
+
+    @Test
+    public void should_get_new_bean_given_bean_is_REQUIRED_scope_in_parent_context()
+    {
+        BeanContext parentContext = BeanContext.load("com.freeroom.test.beans.parallelPackages.packageFour.subPackage");
+        BeanContext context = BeanContext.load("com.freeroom.test.beans.parallelPackages.packageFour", parentContext);
+
+        final Owl owl1 = ((Falcon)context.getBean("Falcon").get()).getOwl();
+        final Owl owl2 = ((Falcon)context.getBean("Falcon").get()).getOwl();
+
+        assertThat(owl1, is(not(sameInstance(owl2))));
     }
 }
