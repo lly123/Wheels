@@ -174,9 +174,9 @@ class Pod
     }
 
     private List<Hole> findSetterHoles() {
-        return reduce(Lists.<Hole>newArrayList(), findInjectionSetters(), new Func<ArrayList<Hole>, Method>() {
+        return reduce(Lists.<Hole>newArrayList(), findInjectionSetters(), new Func<List<Hole>, Method>() {
             @Override
-            public ArrayList<Hole> call(final ArrayList<Hole> holes, final Method method) {
+            public List<Hole> call(final List<Hole> holes, final Method method) {
                 if (startsWithSetPrefix(method)) {
                     assertHasOnlyOneParameter(method);
                     holes.add(new SetterHole(method));
@@ -189,9 +189,9 @@ class Pod
     private List<Field> findInjectionFields()
     {
         return reduce(Lists.<Field>newArrayList(), newArrayList(beanClass.getDeclaredFields()),
-            new Func<ArrayList<Field>, Field>() {
+            new Func<List<Field>, Field>() {
                 @Override
-                public ArrayList<Field> call(final ArrayList<Field> injectionFields, final Field field) {
+                public List<Field> call(final List<Field> injectionFields, final Field field) {
                     if (field.isAnnotationPresent(Inject.class)) {
                         injectionFields.add(field);
                     }
@@ -202,9 +202,9 @@ class Pod
 
     private List<Method> findInjectionSetters() {
         return reduce(Lists.<Method>newArrayList(), newArrayList(beanClass.getDeclaredMethods()),
-                new Func<ArrayList<Method>, Method>() {
+                new Func<List<Method>, Method>() {
                     @Override
-                    public ArrayList<Method> call(final ArrayList<Method> injectionSetters, final Method method) {
+                    public List<Method> call(final List<Method> injectionSetters, final Method method) {
                         if (method.isAnnotationPresent(Inject.class)) {
                             injectionSetters.add(method);
                         }
@@ -247,9 +247,9 @@ class Pod
 
     public Collection<FieldHole> getFieldHoles()
     {
-        return reduce(Lists.<FieldHole>newArrayList(), holes, new Func<ArrayList<FieldHole>, Hole>() {
+        return reduce(Lists.<FieldHole>newArrayList(), holes, new Func<List<FieldHole>, Hole>() {
             @Override
-            public ArrayList<FieldHole> call(final ArrayList<FieldHole> fieldHoles, final Hole hole) {
+            public List<FieldHole> call(final List<FieldHole> fieldHoles, final Hole hole) {
                 if (hole instanceof FieldHole) {
                     fieldHoles.add((FieldHole) hole);
                 }
@@ -260,9 +260,9 @@ class Pod
 
     public Collection<SetterHole> getSetterHoles()
     {
-        return reduce(Lists.<SetterHole>newArrayList(), holes, new Func<ArrayList<SetterHole>, Hole>() {
+        return reduce(Lists.<SetterHole>newArrayList(), holes, new Func<List<SetterHole>, Hole>() {
             @Override
-            public ArrayList<SetterHole> call(final ArrayList<SetterHole> setterHoles, final Hole hole) {
+            public List<SetterHole> call(final List<SetterHole> setterHoles, final Hole hole) {
                 if (hole instanceof SetterHole) {
                     setterHoles.add((SetterHole) hole);
                 }
