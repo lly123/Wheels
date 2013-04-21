@@ -14,7 +14,7 @@ public class PeaPodTest
     @Test
     public void pea_pod_must_be_always_ready()
     {
-        PeaPod peaPod = new PeaPod(givenABeanConstructor());
+        PeaPod peaPod = new PeaPod(getBeanConstructor("dove"));
 
         assertThat(peaPod.isBeanReady(), is(true));
     }
@@ -22,16 +22,31 @@ public class PeaPodTest
     @Test
     public void should_get_correct_bean_class()
     {
-        PeaPod peaPod = new PeaPod(givenABeanConstructor());
+        PeaPod peaPod = new PeaPod(getBeanConstructor("dove"));
 
         assertThat(peaPod.getBeanClass().equals(Dove.class), is(true));
     }
 
-    private Method givenABeanConstructor()
+    @Test
+    public void should_get_correct_default_bean_name()
+    {
+        PeaPod peaPod = new PeaPod(getBeanConstructor("dove"));
+
+        assertThat(peaPod.getBeanName(), is("com.freeroom.test.beans.beanFactory.Dove"));
+    }
+
+    @Test
+    public void should_get_correct_customized_bean_name()
+    {
+        PeaPod peaPod = new PeaPod(getBeanConstructor("toad"));
+
+        assertThat(peaPod.getBeanName(), is("toad"));
+    }
+
+    private Method getBeanConstructor(String beanConstructorName)
     {
         try {
-            Method dove = Hippopotamus.class.getMethod("dove");
-            return dove;
+            return Hippopotamus.class.getMethod(beanConstructorName);
         } catch (NoSuchMethodException ignored) {
             throw new RuntimeException("Unexpected exception.", ignored);
         }

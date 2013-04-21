@@ -1,8 +1,11 @@
 package com.freeroom.di;
 
+import com.freeroom.di.annotations.Bean;
 import com.freeroom.di.annotations.Scope;
 
 import java.lang.reflect.Method;
+
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 class PeaPod implements Pod
 {
@@ -16,7 +19,8 @@ class PeaPod implements Pod
     @Override
     public String getBeanName()
     {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        final Bean beanAnnotation = beanConstructor.getAnnotation(Bean.class);
+        return isNullOrEmpty(beanAnnotation.value()) ? getBeanClass().getCanonicalName() : beanAnnotation.value();
     }
 
     @Override

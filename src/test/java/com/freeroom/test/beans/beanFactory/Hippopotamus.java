@@ -11,4 +11,10 @@ public class Hippopotamus
     {
         return new Dove();
     }
+
+    @Bean("toad")
+    public Toad toad()
+    {
+        return new Toad();
+    }
 }
