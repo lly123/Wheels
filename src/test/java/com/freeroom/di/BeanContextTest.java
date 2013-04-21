@@ -6,6 +6,7 @@ import com.freeroom.test.beans.constructorInjection.subPackage.Marmot;
 import com.freeroom.test.beans.dummy.Dummy;
 import com.freeroom.test.beans.fieldInjection.Hedgehog;
 import com.freeroom.test.beans.fieldInjection.Squid;
+import com.freeroom.test.beans.parallelPackages.packageFive.Gecko;
 import com.freeroom.test.beans.parallelPackages.packageFour.Falcon;
 import com.freeroom.test.beans.parallelPackages.packageOne.Rhinoceros;
 import com.freeroom.test.beans.parallelPackages.packageThree.Beetle;
@@ -159,6 +160,18 @@ public class BeanContextTest
         final Optional<?> antelope = context.getBean("Antelope");
 
         assertThat(((Antelope)antelope.get()).getRhinoceros(), is(instanceOf(Rhinoceros.class)));
+    }
+
+    @Test
+    public void should_resolve_bean_from_grandpa_context()
+    {
+        final BeanContext grandpaContext = BeanContext.load("com.freeroom.test.beans.parallelPackages.packageOne");
+        final BeanContext parentContext = BeanContext.load("com.freeroom.test.beans.parallelPackages.packageTwo", grandpaContext);
+        final BeanContext context = BeanContext.load("com.freeroom.test.beans.parallelPackages.packageFive", parentContext);
+
+        final Optional<?> gecko = context.getBean("Gecko");
+
+        assertThat(((Gecko)gecko.get()).getAntelope().getRhinoceros(), is(instanceOf(Rhinoceros.class)));
     }
 
     @Test
