@@ -2,15 +2,19 @@ package com.freeroom.di;
 
 import com.freeroom.di.annotations.Scope;
 import com.freeroom.di.exceptions.NotUniqueException;
+import com.freeroom.di.util.Func;
+import com.freeroom.di.util.FuncUtils;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import static com.freeroom.di.util.FuncUtils.reduce;
 import static com.google.common.base.Optional.absent;
 import static com.google.common.base.Optional.of;
 import static com.google.common.collect.Collections2.filter;
@@ -91,13 +95,26 @@ public class BeanContext
     private Collection<Pod> preparePodsForInjection()
     {
         final List<Pod> pods = newArrayList();
+        pods.addAll(beanPackage.getPods());
         if (parentContext.isPresent()) {
             final BeanContext parentContext = this.parentContext.get();
             parentContext.makePodsReady();
-            pods.addAll(parentContext.getPods());
+            pods.addAll(excludeDuplicatedPods(pods, parentContext.getPods()));
         }
-        pods.addAll(beanPackage.getPods());
         return copyOf(pods);
+    }
+
+    private Collection<Pod> excludeDuplicatedPods(final Collection<Pod> pods, final Collection<Pod> parentContextPods)
+    {
+        return reduce(copyOf(pods), parentContextPods, new Func<List<Pod>, Pod>() {
+            @Override
+            public List<Pod> call(final List<Pod> selectedPods, final Pod pod) {
+                if (!selectedPods.contains(pod)) {
+                    selectedPods.add(pod);
+                }
+                return selectedPods;
+            }
+        });
     }
 
     private Collection<?> getBeansCanBeAssignedTo(final Class<?> clazz)

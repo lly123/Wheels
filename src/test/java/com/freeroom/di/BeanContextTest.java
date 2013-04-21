@@ -7,6 +7,7 @@ import com.freeroom.test.beans.dummy.Dummy;
 import com.freeroom.test.beans.fieldInjection.Hedgehog;
 import com.freeroom.test.beans.fieldInjection.Squid;
 import com.freeroom.test.beans.parallelPackages.packageOne.Rhinoceros;
+import com.freeroom.test.beans.parallelPackages.packageOne.subPackage.Hamster;
 import com.freeroom.test.beans.parallelPackages.packageThree.Beetle;
 import com.freeroom.test.beans.parallelPackages.packageTwo.Antelope;
 import com.freeroom.test.beans.sameBeanName.subPackage.Trout;
@@ -173,5 +174,18 @@ public class BeanContextTest
 
         Rhinoceros rhinoceros = ((Antelope)antelope.get()).getRhinoceros();
         assertThat(((Beetle)beetle.get()).getRhinoceros(), is(sameInstance(rhinoceros)));
+    }
+
+    @Test
+    public void should_use_self_contained_bean_when_contexts_overlapped()
+    {
+        BeanContext parentContext = BeanContext.load("com.freeroom.test.beans.parallelPackages.packageOne.subPackage");
+        Optional<?> hamster1 = parentContext.getBean("Hamster");
+
+        BeanContext context = BeanContext.load("com.freeroom.test.beans.parallelPackages.packageOne", parentContext);
+        Optional<?> hamster2 = context.getBean("Hamster");
+
+        assertThat(hamster1.get(), is(not(sameInstance(hamster2.get()))));
+        assertThat(((Rhinoceros)context.getBean("Rhinoceros").get()).getHamster(), is(sameInstance(hamster2.get())));
     }
 }
