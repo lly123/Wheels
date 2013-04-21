@@ -2,7 +2,7 @@ package com.freeroom.di.exceptions;
 
 public class ConstructorCycleDependencyException extends RuntimeException
 {
-    public ConstructorCycleDependencyException(String message) {
+    public ConstructorCycleDependencyException(final String message) {
         super(message);
     }
 }
