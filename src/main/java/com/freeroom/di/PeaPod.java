@@ -38,7 +38,8 @@ class PeaPod implements Pod
     @Override
     public Scope getScope()
     {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        final Bean beanAnnotation = beanConstructor.getAnnotation(Bean.class);
+        return beanAnnotation.scope();
     }
 
     @Override

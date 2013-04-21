@@ -1,5 +1,6 @@
 package com.freeroom.di;
 
+import com.freeroom.di.annotations.Scope;
 import com.freeroom.test.beans.beanFactory.Dove;
 import com.freeroom.test.beans.beanFactory.Hippopotamus;
 import org.junit.Test;
@@ -20,7 +21,7 @@ public class PeaPodTest
     }
 
     @Test
-    public void should_get_correct_bean_class()
+    public void should_get_bean_class()
     {
         PeaPod peaPod = new PeaPod(getBeanConstructor("dove"));
 
@@ -28,7 +29,7 @@ public class PeaPodTest
     }
 
     @Test
-    public void should_get_correct_default_bean_name()
+    public void should_get_default_bean_name()
     {
         PeaPod peaPod = new PeaPod(getBeanConstructor("dove"));
 
@@ -36,11 +37,19 @@ public class PeaPodTest
     }
 
     @Test
-    public void should_get_correct_customized_bean_name()
+    public void should_get_customized_bean_name()
     {
         PeaPod peaPod = new PeaPod(getBeanConstructor("toad"));
 
         assertThat(peaPod.getBeanName(), is("toad"));
+    }
+
+    @Test
+    public void should_get_bean_scope()
+    {
+        PeaPod peaPod = new PeaPod(getBeanConstructor("pheasant"));
+
+        assertThat(peaPod.getScope(), is(Scope.Required));
     }
 
     private Method getBeanConstructor(String beanConstructorName)

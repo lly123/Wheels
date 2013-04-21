@@ -2,6 +2,7 @@ package com.freeroom.test.beans.beanFactory;
 
 import com.freeroom.di.annotations.Bean;
 import com.freeroom.di.annotations.BeanFactory;
+import com.freeroom.di.annotations.Scope;
 
 @BeanFactory
 public class Hippopotamus
@@ -16,5 +17,11 @@ public class Hippopotamus
     public Toad toad()
     {
         return new Toad();
+    }
+
+    @Bean(scope = Scope.Required)
+    public Pheasant pheasant()
+    {
+        return new Pheasant();
     }
 }
