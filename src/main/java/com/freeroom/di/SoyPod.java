@@ -38,21 +38,25 @@ class SoyPod implements Pod
         this.scope = findScope();
     }
 
+    @Override
     public String getBeanName()
     {
         return beanName;
     }
 
+    @Override
     public Class<?> getBeanClass()
     {
         return beanClass;
     }
 
+    @Override
     public Object getBean()
     {
         return bean;
     }
 
+    @Override
     public boolean isBeanReady()
     {
         return bean != null;
@@ -63,6 +67,7 @@ class SoyPod implements Pod
         return holes;
     }
 
+    @Override
     public Scope getScope()
     {
         return scope;
@@ -99,11 +104,13 @@ class SoyPod implements Pod
         }
     }
 
+    @Override
     public void removeBean()
     {
         bean = null;
     }
 
+    @Override
     public boolean hasName(final String name)
     {
         return getBeanName().equals(name) || getBeanName().endsWith("." + name);
