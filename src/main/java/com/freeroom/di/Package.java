@@ -88,7 +88,7 @@ class Package
                 try {
                     final Class beanClass = loadClass(packageName, file.getAbsolutePath());
                     if (beanClass.isAnnotationPresent(Bean.class)) {
-                        pods.add(new Pod(beanClass));
+                        pods.add(new SoyPod(beanClass));
                     }
                 } catch (ClassNotFoundException ignored) {}
                 return pods;

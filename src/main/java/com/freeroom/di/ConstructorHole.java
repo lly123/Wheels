@@ -14,7 +14,7 @@ class ConstructorHole extends Hole
 {
     private final Constructor constructor;
     private final List<Object> readyBeans = newArrayList();
-    private final Collection<Pod> unreadyPods = newArrayList();
+    private final Collection<SoyPod> unreadyPods = newArrayList();
 
     public ConstructorHole(final Constructor constructor)
     {
@@ -38,12 +38,12 @@ class ConstructorHole extends Hole
             if (pod.get().isBeanReady()) {
                 readyBeans.add(pod.get().getBean());
             } else {
-                unreadyPods.add(pod.get());
+                unreadyPods.add((SoyPod)pod.get());
             }
         }
     }
 
-    public Collection<Pod> getUnreadyPods()
+    public Collection<SoyPod> getUnreadyPods()
     {
         return unreadyPods;
     }

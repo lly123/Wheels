@@ -141,7 +141,7 @@ public class InjectorTest
         final List<Pod> pods = newArrayList();
 
         for (final Class<?> clazz : classes) {
-            pods.add(new Pod(clazz));
+            pods.add(new SoyPod(clazz));
         }
 
         final Package beanPackage = Mockito.mock(Package.class);
