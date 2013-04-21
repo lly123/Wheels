@@ -3,14 +3,10 @@ package com.freeroom.di;
 import com.freeroom.di.annotations.Scope;
 import com.freeroom.di.exceptions.NotUniqueException;
 import com.freeroom.di.util.Func;
-import com.freeroom.di.util.FuncUtils;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
