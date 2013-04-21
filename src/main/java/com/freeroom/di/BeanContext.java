@@ -94,19 +94,26 @@ public class BeanContext
     {
         final List<Pod> pods = newArrayList();
         pods.addAll(beanPackage.getPods());
-        if (parentContext.isPresent()) {
-            final BeanContext parentContext = this.parentContext.get();
-            parentContext.makePodsReady();
-            pods.addAll(excludeDuplicatedPods(pods, parentContext.getPods()));
-        }
+        pods.addAll(collectPodsFromParentContexts(pods));
         return copyOf(pods);
     }
 
-    private Collection<Pod> excludeDuplicatedPods(final Collection<Pod> pods, final Collection<Pod> parentContextPods)
+    private Collection<Pod> collectPodsFromParentContexts(final List<Pod> pods)
     {
-        return reduce(pods, parentContextPods, new Func<Collection<Pod>, Pod>() {
+        List<Pod> parentPods = pods;
+        Optional<BeanContext> parentContext = this.parentContext;
+        while (parentContext.isPresent()) {
+            parentPods = excludeDuplicatedPods(parentPods, parentContext.get().getPods());
+            parentContext = parentContext.get().parentContext;
+        }
+        return parentPods;
+    }
+
+    private List<Pod> excludeDuplicatedPods(final List<Pod> pods, final Collection<Pod> parentContextPods)
+    {
+        return reduce(pods, parentContextPods, new Func<List<Pod>, Pod>() {
             @Override
-            public Collection<Pod> call(final Collection<Pod> selectedPods, final Pod pod) {
+            public List<Pod> call(final List<Pod> selectedPods, final Pod pod) {
                 if (!selectedPods.contains(pod)) {
                     selectedPods.add(pod);
                 }
