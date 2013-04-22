@@ -13,14 +13,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class PeaPodTest
 {
     @Test
-    public void pea_pod_must_be_always_ready()
-    {
-        final PeaPod peaPod = new PeaPod(getBeanConstructor("dove"));
-
-        assertThat(peaPod.isBeanReady(), is(true));
-    }
-
-    @Test
     public void should_get_bean_class()
     {
         final PeaPod peaPod = new PeaPod(getBeanConstructor("dove"));
@@ -66,6 +58,14 @@ public class PeaPodTest
         final PeaPod peaPod = new PeaPod(getBeanConstructor("pheasant"));
 
         assertThat(peaPod.hasName("Pheasant"), is(true));
+    }
+
+    @Test
+    public void should_be_unready_given_default_status()
+    {
+        final PeaPod peaPod = new PeaPod(getBeanConstructor("dove"));
+
+        assertThat(peaPod.isBeanReady(), is(false));
     }
 
     private Method getBeanConstructor(String beanConstructorName)

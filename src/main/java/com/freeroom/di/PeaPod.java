@@ -25,10 +25,4 @@ class PeaPod extends Pod
     {
         return getBeanName(beanConstructor);
     }
-
-    @Override
-    public boolean isBeanReady()
-    {
-        return true;
-    }
 }

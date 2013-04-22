@@ -39,6 +39,11 @@ abstract class Pod
         return getBeanName().equals(name) || getBeanName().endsWith("." + name);
     }
 
+    public boolean isBeanReady()
+    {
+        return getBean().isPresent();
+    }
+
     protected void setBean(final Object bean)
     {
         this.bean = bean;
@@ -59,6 +64,4 @@ abstract class Pod
     abstract Scope getScope();
 
     abstract String getBeanName();
-
-    abstract boolean isBeanReady();
 }

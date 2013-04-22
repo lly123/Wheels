@@ -42,12 +42,6 @@ class SoyPod extends Pod
         return getBeanName(getBeanClass());
     }
 
-    @Override
-    public boolean isBeanReady()
-    {
-        return getBean().isPresent();
-    }
-
     public List<Hole> getHoles()
     {
         return holes;
