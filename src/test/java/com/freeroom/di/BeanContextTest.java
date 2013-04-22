@@ -4,6 +4,7 @@ import com.freeroom.di.exceptions.NotUniqueException;
 import com.freeroom.test.beans.beanFactory.Dove;
 import com.freeroom.test.beans.beanFactory.Pheasant;
 import com.freeroom.test.beans.beanFactory.Toad;
+import com.freeroom.test.beans.beanFactory.Tuna;
 import com.freeroom.test.beans.constructorInjection.subPackage.Caribou;
 import com.freeroom.test.beans.constructorInjection.subPackage.Marmot;
 import com.freeroom.test.beans.dependOnFactory.Skunk;
@@ -226,5 +227,17 @@ public class BeanContextTest
         assertThat(((Skunk)context.getBean("Skunk").get()).getDove(), is(instanceOf(Dove.class)));
         assertThat(((Skunk)context.getBean("Skunk").get()).getPheasant(), is(instanceOf(Pheasant.class)));
         assertThat(((Skunk)context.getBean("Skunk").get()).getToad(), is(instanceOf(Toad.class)));
+    }
+
+    @Test
+    public void should_get_new_beans_given_beans_are_REQUIRED_scope()
+    {
+        final BeanContext context = BeanContext.load("com.freeroom.test.beans.beanFactory");
+
+        final Tuna tuna1 = (Tuna) context.getBean("Tuna").get();
+        final Tuna tuna2 = (Tuna) context.getBean("Tuna").get();
+
+        assertThat(tuna1, is(not(sameInstance(tuna2))));
+        assertThat(tuna1.getPheasant(), is(not(sameInstance(tuna2.getPheasant()))));
     }
 }

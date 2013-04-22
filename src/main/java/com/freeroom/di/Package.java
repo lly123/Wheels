@@ -103,8 +103,7 @@ class Package
     private Collection<PeaPod> createPodsFromFactory(final Class beanFactoryClass)
     {
         final List<PeaPod> peaPods = newArrayList();
-        for (final Method beanConstructor : beanFactoryClass.getDeclaredMethods())
-        {
+        for (final Method beanConstructor : beanFactoryClass.getDeclaredMethods()) {
             peaPods.add(new PeaPod(beanFactoryClass, beanConstructor));
         }
         return peaPods;
@@ -117,8 +116,8 @@ class Package
             if (resources.hasMoreElements()) {
                 return of(resources.nextElement());
             }
-        } catch (IOException ex) {
-            throw new RuntimeException("Can't get resources from IO.", ex);
+        } catch (IOException e) {
+            throw new RuntimeException("Can't get resources from IO.", e);
         }
 
         return absent();

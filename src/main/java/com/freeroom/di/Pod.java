@@ -49,13 +49,13 @@ abstract class Pod
         this.bean = bean;
     }
 
-    protected Scope getScope(AnnotatedElement element)
+    protected Scope getScope(final AnnotatedElement element)
     {
         final Bean beanAnnotation = element.getAnnotation(Bean.class);
         return beanAnnotation.scope();
     }
 
-    protected String getBeanName(AnnotatedElement element)
+    protected String getBeanName(final AnnotatedElement element)
     {
         final Bean beanAnnotation = element.getAnnotation(Bean.class);
         return isNullOrEmpty(beanAnnotation.value()) ? getBeanClass().getCanonicalName() : beanAnnotation.value();

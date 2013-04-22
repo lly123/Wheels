@@ -7,7 +7,6 @@ import java.lang.reflect.Type;
 import java.util.Collection;
 
 import static com.google.common.base.Optional.absent;
-import static com.google.common.base.Optional.of;
 import static com.google.common.collect.Iterables.tryFind;
 
 class Wormhole extends Hole
