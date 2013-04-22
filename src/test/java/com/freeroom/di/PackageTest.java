@@ -27,4 +27,11 @@ public class PackageTest
         final Package beanPackage = new Package("com.freeroom.test.beans.sameBeanName");
         assertThat(beanPackage.getPods().size(), is(2));
     }
+
+    @Test
+    public void should_load_beans_from_bean_factory()
+    {
+        final Package beanPackage = new Package("com.freeroom.test.beans.beanFactory");
+        assertThat(beanPackage.getPods().size(), is(3));
+    }
 }

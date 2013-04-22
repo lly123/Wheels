@@ -1,6 +1,7 @@
 package com.freeroom.di;
 
 import com.freeroom.di.annotations.Bean;
+import com.freeroom.di.annotations.BeanFactory;
 import com.freeroom.di.exceptions.NotUniqueException;
 import com.freeroom.di.util.Func;
 import com.google.common.base.Optional;
@@ -8,6 +9,7 @@ import com.google.common.collect.Lists;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.*;
 
@@ -89,11 +91,23 @@ class Package
                     final Class beanClass = loadClass(packageName, file.getAbsolutePath());
                     if (beanClass.isAnnotationPresent(Bean.class)) {
                         pods.add(new SoyPod(beanClass));
+                    } else if (beanClass.isAnnotationPresent(BeanFactory.class)) {
+                        pods.addAll(createPodsFromFactory(beanClass));
                     }
                 } catch (ClassNotFoundException ignored) {}
                 return pods;
             }
         });
+    }
+
+    private Collection<PeaPod> createPodsFromFactory(final Class beanFactoryClass)
+    {
+        final List<PeaPod> peaPods = newArrayList();
+        for (final Method beanConstructor : beanFactoryClass.getDeclaredMethods())
+        {
+            peaPods.add(new PeaPod(beanFactoryClass, beanConstructor));
+        }
+        return peaPods;
     }
 
     private Optional<URL> getPackagePath()
