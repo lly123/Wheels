@@ -51,7 +51,7 @@ public class BeanContext
         return transform(beanPackage.getPods(), new Function<Pod, Object>() {
             @Override
             public Object apply(final Pod pod) {
-                return pod.getBean();
+                return pod.getBean().get();
             }
         });
     }
@@ -72,7 +72,7 @@ public class BeanContext
         final Collection<Pod> pods = getPodsHaveName(name);
         assertNotMoreThanOnePod(name, pods);
 
-        return ((pods.size() == 1) ? of(((Pod)pods.toArray()[0]).getBean()) : absent());
+        return ((pods.size() == 1) ? ((Pod)pods.toArray()[0]).getBean() : absent());
     }
 
     Collection<Pod> getPods()

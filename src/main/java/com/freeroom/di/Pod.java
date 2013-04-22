@@ -2,9 +2,11 @@ package com.freeroom.di;
 
 import com.freeroom.di.annotations.Bean;
 import com.freeroom.di.annotations.Scope;
+import com.google.common.base.Optional;
 
 import java.lang.reflect.AnnotatedElement;
 
+import static com.google.common.base.Optional.fromNullable;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 abstract class Pod
@@ -17,21 +19,15 @@ abstract class Pod
         this.beanClass = beanClass;
     }
 
-    public Object getBean()
+    public Optional<Object> getBean()
     {
-        return bean;
+        return fromNullable(bean);
     }
 
     public Class<?> getBeanClass()
     {
         return beanClass;
     }
-
-    abstract Scope getScope();
-
-    abstract String getBeanName();
-
-    abstract boolean isBeanReady();
 
     public void removeBean()
     {
@@ -59,4 +55,10 @@ abstract class Pod
         final Bean beanAnnotation = element.getAnnotation(Bean.class);
         return isNullOrEmpty(beanAnnotation.value()) ? getBeanClass().getCanonicalName() : beanAnnotation.value();
     }
+
+    abstract Scope getScope();
+
+    abstract String getBeanName();
+
+    abstract boolean isBeanReady();
 }

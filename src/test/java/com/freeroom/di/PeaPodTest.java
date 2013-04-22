@@ -15,7 +15,7 @@ public class PeaPodTest
     @Test
     public void pea_pod_must_be_always_ready()
     {
-        PeaPod peaPod = new PeaPod(getBeanConstructor("dove"));
+        final PeaPod peaPod = new PeaPod(getBeanConstructor("dove"));
 
         assertThat(peaPod.isBeanReady(), is(true));
     }
@@ -23,7 +23,7 @@ public class PeaPodTest
     @Test
     public void should_get_bean_class()
     {
-        PeaPod peaPod = new PeaPod(getBeanConstructor("dove"));
+        final PeaPod peaPod = new PeaPod(getBeanConstructor("dove"));
 
         assertThat(peaPod.getBeanClass().equals(Dove.class), is(true));
     }
@@ -31,7 +31,7 @@ public class PeaPodTest
     @Test
     public void should_get_default_bean_name()
     {
-        PeaPod peaPod = new PeaPod(getBeanConstructor("dove"));
+        final PeaPod peaPod = new PeaPod(getBeanConstructor("dove"));
 
         assertThat(peaPod.getBeanName(), is("com.freeroom.test.beans.beanFactory.Dove"));
     }
@@ -39,7 +39,7 @@ public class PeaPodTest
     @Test
     public void should_get_customized_bean_name()
     {
-        PeaPod peaPod = new PeaPod(getBeanConstructor("toad"));
+        final PeaPod peaPod = new PeaPod(getBeanConstructor("toad"));
 
         assertThat(peaPod.getBeanName(), is("toad"));
     }
@@ -47,7 +47,7 @@ public class PeaPodTest
     @Test
     public void should_get_bean_scope()
     {
-        PeaPod peaPod = new PeaPod(getBeanConstructor("pheasant"));
+        final PeaPod peaPod = new PeaPod(getBeanConstructor("pheasant"));
 
         assertThat(peaPod.getScope(), is(Scope.Required));
     }
@@ -55,7 +55,7 @@ public class PeaPodTest
     @Test
     public void should_use_canonical_class_name_as_default_name()
     {
-        PeaPod peaPod = new PeaPod(getBeanConstructor("pheasant"));
+        final PeaPod peaPod = new PeaPod(getBeanConstructor("pheasant"));
 
         assertThat(peaPod.hasName("com.freeroom.test.beans.beanFactory.Pheasant"), is(true));
     }
@@ -63,7 +63,7 @@ public class PeaPodTest
     @Test
     public void should_check_by_simple_name()
     {
-        PeaPod peaPod = new PeaPod(getBeanConstructor("pheasant"));
+        final PeaPod peaPod = new PeaPod(getBeanConstructor("pheasant"));
 
         assertThat(peaPod.hasName("Pheasant"), is(true));
     }

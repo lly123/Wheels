@@ -51,10 +51,10 @@ public class InjectorTest
 
         for (final Pod pod : pods) {
             if (pod.getBeanClass().equals(Hedgehog.class)) {
-                Hedgehog hedgehog = (Hedgehog) pod.getBean();
+                Hedgehog hedgehog = (Hedgehog) pod.getBean().get();
                 assertThat(hedgehog.getSquid(), is(notNullValue()));
             } else if (pod.getBeanClass().equals(Squid.class)) {
-                Squid squid = (Squid) pod.getBean();
+                Squid squid = (Squid) pod.getBean().get();
                 assertThat(squid.getDriver(), is(notNullValue()));
             } else {
                 fail();
@@ -72,7 +72,7 @@ public class InjectorTest
 
         for (final Pod pod : pods) {
             if (pod.getBeanClass().equals(Pangolin.class)) {
-                final Pangolin pangolin = (Pangolin) pod.getBean();
+                final Pangolin pangolin = (Pangolin) pod.getBean().get();
                 assertThat(pangolin.getBoa(), is(notNullValue()));
             }
         }
@@ -96,12 +96,12 @@ public class InjectorTest
 
         assertThat(readyPods.size(), is(3));
         for (final Pod pod : readyPods) {
-            if (pod.getBean() instanceof Mustang) {
-                assert_ClassC_is_ready((Mustang) pod.getBean());
-            } else if (pod.getBean() instanceof Jaguar) {
-                assert_ClassD_is_ready((Jaguar) pod.getBean());
-            } else if (pod.getBean() instanceof Ostrich) {
-                assert_ClassE_is_ready((Ostrich) pod.getBean());
+            if (pod.getBean().get() instanceof Mustang) {
+                assert_ClassC_is_ready((Mustang) pod.getBean().get());
+            } else if (pod.getBean().get() instanceof Jaguar) {
+                assert_ClassD_is_ready((Jaguar) pod.getBean().get());
+            } else if (pod.getBean().get() instanceof Ostrich) {
+                assert_ClassE_is_ready((Ostrich) pod.getBean().get());
             } else {
                 fail();
             }

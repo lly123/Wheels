@@ -45,7 +45,7 @@ class SoyPod extends Pod
     @Override
     public boolean isBeanReady()
     {
-        return getBean() != null;
+        return getBean().isPresent();
     }
 
     public List<Hole> getHoles()
@@ -192,7 +192,7 @@ class SoyPod extends Pod
         final Collection<FieldHole> fieldHoles = getFieldHoles();
         try {
             for (final FieldHole hole : fieldHoles) {
-                hole.getField().set(getBean(), hole.getBean());
+                hole.getField().set(getBean().get(), hole.getBean());
             }
         } catch (Exception ignored) {}
     }
@@ -202,7 +202,7 @@ class SoyPod extends Pod
         final Collection<SetterHole> setterHoles = getSetterHoles();
         try {
             for (final SetterHole hole : setterHoles) {
-                hole.getMethod().invoke(getBean(), hole.getBean());
+                hole.getMethod().invoke(getBean().get(), hole.getBean());
             }
         } catch (Exception ignored) {}
     }

@@ -48,6 +48,6 @@ class Wormhole extends Hole
 
         assertPodExists(clazz, pod);
 
-        bean = of(pod.get().getBean());
+        bean = pod.get().getBean();
     }
 }

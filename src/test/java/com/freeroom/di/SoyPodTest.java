@@ -41,7 +41,7 @@ public class SoyPodTest
 
         pod.tryConstructBean(EMPTY_LIST);
 
-        assertThat(pod.getBean(), is(instanceOf(EmptyBean.class)));
+        assertThat(pod.getBean().get(), is(instanceOf(EmptyBean.class)));
     }
 
     @Test
@@ -176,7 +176,7 @@ public class SoyPodTest
 
         pod.fosterBean();
 
-        assertThat(((Hedgehog)pod.getBean()).getSquid(), is(notNullValue()));
+        assertThat(((Hedgehog)pod.getBean().get()).getSquid(), is(notNullValue()));
     }
 
     @Test
@@ -188,7 +188,7 @@ public class SoyPodTest
 
         pod.fosterBean();
 
-        assertThat(((Camel)pod.getBean()).getMackerels(), is(notNullValue()));
+        assertThat(((Camel)pod.getBean().get()).getMackerels(), is(notNullValue()));
     }
 
     @Test
