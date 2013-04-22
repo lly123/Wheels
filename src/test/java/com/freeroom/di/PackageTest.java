@@ -32,6 +32,6 @@ public class PackageTest
     public void should_load_beans_from_bean_factory()
     {
         final Package beanPackage = new Package("com.freeroom.test.beans.beanFactory");
-        assertThat(beanPackage.getPods().size(), is(3));
+        assertThat(beanPackage.getPods().size(), is(4));
     }
 }
