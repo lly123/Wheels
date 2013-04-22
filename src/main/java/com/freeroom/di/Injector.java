@@ -2,19 +2,15 @@ package com.freeroom.di;
 
 import com.freeroom.di.exceptions.ConstructorCycleDependencyException;
 import com.google.common.base.Predicate;
-import com.google.common.collect.Lists;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Stack;
 
 import static com.google.common.collect.Collections2.filter;
-import static com.google.common.collect.Lists.newArrayList;
 
 class Injector
 {
-    private final Stack<SoyPod> waitingForConstruction = new Stack<>();
+    private final Stack<Pod> waitingForConstruction = new Stack<>();
     private final Stack<SoyPod> waitingForPopulation = new Stack<>();
     private final Collection<Pod> pods;
 
@@ -25,12 +21,12 @@ class Injector
 
     public Collection<Pod> resolve()
     {
-        final Collection<SoyPod> unreadyPods = findUnreadySoyPods(pods);
+        final Collection<Pod> unreadyPods = findUnreadyPods(pods);
         resolveDependencyInjection(unreadyPods);
         return pods;
     }
 
-    private void resolveDependencyInjection(final Collection<SoyPod> unreadyPods)
+    private void resolveDependencyInjection(final Collection<Pod> unreadyPods)
     {
         waitingForConstruction.addAll(unreadyPods);
         resolveConstructionInjection();
@@ -40,13 +36,18 @@ class Injector
     private void resolveConstructionInjection()
     {
         while (!waitingForConstruction.isEmpty()) {
-            final SoyPod pod = waitingForConstruction.pop();
+            final Pod pod = waitingForConstruction.pop();
 
-            pod.tryConstructBean(pods);
-            if (pod.isBeanReady()) {
-                preparePodForPopulation(pod);
+            if (pod instanceof PeaPod) {
+                ((PeaPod)pod).constructBean();
             } else {
-                prepareUnreadyPodsForConstruction(pod);
+                ((SoyPod)pod).tryConstructBean(pods);
+
+                if (pod.isBeanReady()) {
+                    preparePodForPopulation((SoyPod)pod);
+                } else {
+                    prepareUnreadyPodsForConstruction((SoyPod)pod);
+                }
             }
         }
     }
@@ -92,7 +93,7 @@ class Injector
         }
     }
 
-    private void assertNoCycleDependency(final SoyPod pod, final SoyPod unreadyPod, final Stack<SoyPod> waitingForConstruction)
+    private void assertNoCycleDependency(final SoyPod pod, final SoyPod unreadyPod, final Stack<Pod> waitingForConstruction)
     {
         if (waitingForConstruction.indexOf(unreadyPod) > -1) {
             throw new ConstructorCycleDependencyException(
@@ -102,24 +103,13 @@ class Injector
         }
     }
 
-    private Collection<SoyPod> findUnreadySoyPods(final Collection<Pod> pods)
+    private Collection<Pod> findUnreadyPods(final Collection<Pod> pods)
     {
-        return filter(findSoyPods(pods), new Predicate<Pod>() {
+        return filter(pods, new Predicate<Pod>() {
             @Override
             public boolean apply(final Pod pod) {
                 return !pod.isBeanReady();
             }
         });
-    }
-
-    private Collection<SoyPod> findSoyPods(final Collection<Pod> pods)
-    {
-        final List<SoyPod> soyPods = newArrayList();
-        for (final Pod pod : pods) {
-            if (pod instanceof SoyPod) {
-                soyPods.add((SoyPod) pod);
-            }
-        }
-        return soyPods;
     }
 }
