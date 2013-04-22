@@ -1,8 +1,12 @@
 package com.freeroom.di;
 
 import com.freeroom.di.exceptions.NotUniqueException;
+import com.freeroom.test.beans.beanFactory.Dove;
+import com.freeroom.test.beans.beanFactory.Pheasant;
+import com.freeroom.test.beans.beanFactory.Toad;
 import com.freeroom.test.beans.constructorInjection.subPackage.Caribou;
 import com.freeroom.test.beans.constructorInjection.subPackage.Marmot;
+import com.freeroom.test.beans.dependOnFactory.Skunk;
 import com.freeroom.test.beans.dummy.Dummy;
 import com.freeroom.test.beans.fieldInjection.Hedgehog;
 import com.freeroom.test.beans.fieldInjection.Squid;
@@ -211,5 +215,16 @@ public class BeanContextTest
         final Owl owl2 = ((Falcon)context.getBean("Falcon").get()).getOwl();
 
         assertThat(owl1, is(not(sameInstance(owl2))));
+    }
+
+    @Test
+    public void should_resolve_beans_with_factory()
+    {
+        final BeanContext parentContext = BeanContext.load("com.freeroom.test.beans.beanFactory");
+        final BeanContext context = BeanContext.load("com.freeroom.test.beans.dependOnFactory", parentContext);
+
+        assertThat(((Skunk)context.getBean("Skunk").get()).getDove(), is(instanceOf(Dove.class)));
+        assertThat(((Skunk)context.getBean("Skunk").get()).getPheasant(), is(instanceOf(Pheasant.class)));
+        assertThat(((Skunk)context.getBean("Skunk").get()).getToad(), is(instanceOf(Toad.class)));
     }
 }
