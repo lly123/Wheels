@@ -10,7 +10,6 @@ import com.freeroom.test.beans.constructorInjection.subPackage.Marmot;
 import com.freeroom.test.beans.dependOnFactory.Skunk;
 import com.freeroom.test.beans.dummy.Dummy;
 import com.freeroom.test.beans.dynamicScope.Dingo;
-import com.freeroom.test.beans.dynamicScope.Tapir;
 import com.freeroom.test.beans.fieldInjection.Hedgehog;
 import com.freeroom.test.beans.fieldInjection.Squid;
 import com.freeroom.test.beans.parallelPackages.packageFive.Gecko;
@@ -24,6 +23,7 @@ import com.freeroom.test.beans.sameParent.Ladybug;
 import com.freeroom.test.beans.setterInjection.subPackage.Penguin;
 import com.freeroom.test.beans.setterInjection.subPackage.Raccoon;
 import com.google.common.base.Optional;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -31,6 +31,15 @@ import static org.hamcrest.Matchers.*;
 
 public class BeanContextTest
 {
+    private static Dingo dingo;
+
+    @BeforeClass
+    public static void beforeClass()
+    {
+        final BeanContext context = BeanContext.load("com.freeroom.test.beans.dynamicScope");
+        dingo = (Dingo) context.getBean("Dingo").get();
+    }
+
     @Test
     public void should_load_bean_given_bean_with_Bean_annotation()
     {
@@ -244,10 +253,18 @@ public class BeanContextTest
     }
 
     @Test
-    public void should_resolve_dependency_given_dynamic_scope()
+    public void should_use_same_backend_instance_given_in_method_ONE()
     {
-        final BeanContext context = BeanContext.load("com.freeroom.test.beans.dynamicScope");
+        dingo.getTapir().add(10);
+        dingo.getTapir().add(20);
+        assertThat(dingo.getTapir().getSum(), is(30));
+    }
 
-        assertThat(((Dingo)context.getBean("Dingo").get()).getTapir(), is(instanceOf(Tapir.class)));
+    @Test
+    public void should_use_same_backend_instance_given_in_method_TWO()
+    {
+        dingo.getTapir().add(100);
+        dingo.getTapir().add(200);
+        assertThat(dingo.getTapir().getSum(), is(300));
     }
 }

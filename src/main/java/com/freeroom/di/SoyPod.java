@@ -96,7 +96,7 @@ class SoyPod extends Pod
     {
         final Enhancer enhancer = new Enhancer();
         enhancer.setSuperclass(getBeanClass());
-        enhancer.setCallback(new MagicBean(constructorHole));
+        enhancer.setCallback(new DynamicBean(constructorHole));
         setBean(enhancer.create());
     }
 
