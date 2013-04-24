@@ -24,7 +24,7 @@ class ConstructorHole extends Hole
     @Override
     public boolean isFilled()
     {
-        return !readyBeans.isEmpty() && unreadyPods.isEmpty();
+        return isNoParameters() || (!readyBeans.isEmpty() && unreadyPods.isEmpty());
     }
 
     @Override
@@ -65,5 +65,10 @@ class ConstructorHole extends Hole
                 return paramClass.isAssignableFrom(pod.getBeanClass());
             }
         });
+    }
+
+    private boolean isNoParameters()
+    {
+        return constructor.getParameterTypes().length == 0;
     }
 }

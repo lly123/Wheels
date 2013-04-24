@@ -49,10 +49,9 @@ public class SoyPodTest
     {
         final SoyPod pod = new SoyPod(Hedgehog.class);
 
-        assertThat(pod.getHoles().size(), is(1));
-        assertThat(pod.getHoles().get(0), is(instanceOf(FieldHole.class)));
+        assertThat(pod.getFieldHoles().size(), is(1));
 
-        final FieldHole hole = (FieldHole) pod.getHoles().get(0);
+        final FieldHole hole = pod.getFieldHoles().get(0);
         assertThat(hole.getHoleClass().equals(Squid.class), is(true));
         assertThat(hole.isFilled(), is(false));
         assertThat(hole.getField(), is(notNullValue()));
@@ -73,9 +72,9 @@ public class SoyPodTest
     public void should_get_holes_of_setter_type()
     {
         final SoyPod pod = new SoyPod(Camel.class);
-        assertThat(pod.getHoles().size(), is(1));
+        assertThat(pod.getSetterHoles().size(), is(1));
 
-        final Hole setterHole = pod.getHoles().get(0);
+        final Hole setterHole = pod.getSetterHoles().get(0);
         assertThat(setterHole, is(instanceOf(SetterHole.class)));
         assertThat(setterHole.isFilled(), is(false));
     }
@@ -84,9 +83,9 @@ public class SoyPodTest
     public void should_get_setter_hole_given_injection_method_begins_with_SET_prefix()
     {
         final SoyPod pod = new SoyPod(Mackerels.class);
-        assertThat(pod.getHoles().size(), is(1));
+        assertThat(pod.getSetterHoles().size(), is(1));
 
-        final SetterHole setterHole = (SetterHole) pod.getHoles().get(0);
+        final SetterHole setterHole = pod.getSetterHoles().get(0);
         assertThat(setterHole.getMethod().getName(), is(startsWith("set")));
     }
 
@@ -149,7 +148,7 @@ public class SoyPodTest
     {
         final SoyPod pod = new SoyPod(Hedgehog.class);
 
-        pod.getHoles().get(0).fill(Arrays.<Pod>asList(new SoyPod(Mosquito.class)));
+        pod.getFieldHoles().get(0).fill(Arrays.<Pod>asList(new SoyPod(Mosquito.class)));
     }
 
     @Test
@@ -171,7 +170,7 @@ public class SoyPodTest
     public void should_populate_bean_injection_fields()
     {
         final SoyPod pod = new SoyPod(Hedgehog.class);
-        pod.getHoles().get(0).fill(podsPool);
+        pod.getFieldHoles().get(0).fill(podsPool);
         pod.tryConstructBean(EMPTY_LIST);
 
         pod.fosterBean();
@@ -183,7 +182,7 @@ public class SoyPodTest
     public void should_inject_bean_by_setters()
     {
         final SoyPod pod = new SoyPod(Camel.class);
-        pod.getHoles().get(0).fill(podsPool);
+        pod.getSetterHoles().get(0).fill(podsPool);
         pod.tryConstructBean(EMPTY_LIST);
 
         pod.fosterBean();

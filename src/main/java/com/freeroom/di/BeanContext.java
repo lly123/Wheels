@@ -96,10 +96,10 @@ public class BeanContext
 
     private Collection<Pod> collectPodsFromParentContexts(final List<Pod> pods)
     {
-        List<Pod> parentPods = pods;
+        List<Pod> parentPods = newArrayList();
         Optional<BeanContext> parentContext = this.parentContext;
         while (parentContext.isPresent()) {
-            parentPods = excludeDuplicatedPods(parentPods, parentContext.get().getPods());
+            parentPods = excludeDuplicatedPods(pods, parentContext.get().getPods());
             parentContext = parentContext.get().parentContext;
         }
         return parentPods;

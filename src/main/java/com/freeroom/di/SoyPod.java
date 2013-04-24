@@ -8,6 +8,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
+import net.sf.cglib.proxy.Enhancer;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -16,7 +17,7 @@ import java.util.Collection;
 import java.util.List;
 
 import static com.freeroom.di.util.FuncUtils.reduce;
-import static com.google.common.collect.Iterables.tryFind;
+import static com.google.common.collect.Iterables.find;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Lists.transform;
 
@@ -53,9 +54,9 @@ class SoyPod extends Pod
         callBeanSetters();
     }
 
-    public Optional<Hole> getConstructorHole()
+    public Hole getConstructorHole()
     {
-        return tryFind(holes, new Predicate<Hole>() {
+        return find(holes, new Predicate<Hole>() {
             @Override
             public boolean apply(final Hole hole) {
                 return hole instanceof ConstructorHole;
@@ -65,16 +66,10 @@ class SoyPod extends Pod
 
     public void tryConstructBean(final Collection<Pod> pods)
     {
-        final Optional<Hole> constructorHole = getConstructorHole();
-
-        if (constructorHole.isPresent()) {
-            final ConstructorHole hole = (ConstructorHole) constructorHole.get();
-            hole.fill(pods);
-            if (hole.isFilled()) {
-                createBean(hole);
-            }
-        } else {
-            createBeanWithDefaultConstructor();
+        final ConstructorHole hole = (ConstructorHole) getConstructorHole();
+        hole.fill(pods);
+        if (hole.isFilled()) {
+            createBean(hole);
         }
     }
 
@@ -88,37 +83,37 @@ class SoyPod extends Pod
         return getBeanName().equals(((Pod) o).getBeanName());
     }
 
-    private void createBean(ConstructorHole constructorHole)
+    private void createBean(final ConstructorHole constructorHole)
     {
-        setBean(constructorHole.create());
+        if (getScope().equals(Scope.Dynamic)) {
+            createDynamicBean(constructorHole);
+        } else {
+            setBean(constructorHole.create());
+        }
     }
 
-    private void createBeanWithDefaultConstructor()
+    private void createDynamicBean(final ConstructorHole constructorHole)
     {
-        try {
-            setBean(beanClass.getConstructor().newInstance());
-        } catch (Exception e) {
-            throw new RuntimeException("Can't create bean with default constructor.", e);
-        }
+        final Enhancer enhancer = new Enhancer();
+        enhancer.setSuperclass(getBeanClass());
+        enhancer.setCallback(new MagicBean(constructorHole));
+        setBean(enhancer.create());
     }
 
     private List<Hole> findHoles()
     {
         final List<Hole> holes = newArrayList();
-        final Optional<Hole> hole = findConstructorHole();
-
-        if (hole.isPresent()) {
-            holes.add(hole.get());
-        }
+        holes.add(findConstructorHole());
         holes.addAll(findFieldHoles());
         holes.addAll(findSetterHoles());
 
         return holes;
     }
 
-    private Optional<Hole> findConstructorHole()
+    private Hole findConstructorHole()
     {
-        return reduce(Optional.<Hole>absent(), Lists.<Constructor>newArrayList(beanClass.getConstructors()),
+         final Optional<Hole> constructorHole = reduce(Optional.<Hole>absent(),
+                Lists.<Constructor>newArrayList(beanClass.getConstructors()),
                 new Func<Optional<Hole>, Constructor>() {
                     @Override
                     public Optional<Hole> call(Optional<Hole> hole, final Constructor constructor) {
@@ -129,6 +124,8 @@ class SoyPod extends Pod
                         return hole;
                     }
                 });
+
+         return constructorHole.isPresent() ? constructorHole.get() : new ConstructorHole(getDefaultConstructor());
     }
 
     private List<Hole> findFieldHoles()
@@ -201,7 +198,7 @@ class SoyPod extends Pod
         } catch (Exception ignored) {}
     }
 
-    public Collection<FieldHole> getFieldHoles()
+    public List<FieldHole> getFieldHoles()
     {
         return reduce(Lists.<FieldHole>newArrayList(), holes, new Func<List<FieldHole>, Hole>() {
             @Override
@@ -214,7 +211,7 @@ class SoyPod extends Pod
         });
     }
 
-    public Collection<SetterHole> getSetterHoles()
+    public List<SetterHole> getSetterHoles()
     {
         return reduce(Lists.<SetterHole>newArrayList(), holes, new Func<List<SetterHole>, Hole>() {
             @Override
@@ -244,6 +241,15 @@ class SoyPod extends Pod
         if (method.getParameterTypes().length != 1) {
             throw new NotUniqueException("Method " + method.getName() + " of bean " + getBeanClass() +
                     " must have one parameter.");
+        }
+    }
+
+    private Constructor<?> getDefaultConstructor()
+    {
+        try {
+            return beanClass.getConstructor();
+        } catch (Exception e) {
+            throw new RuntimeException("Can't create bean with default constructor.", e);
         }
     }
 }

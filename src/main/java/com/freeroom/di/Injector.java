@@ -69,7 +69,7 @@ class Injector
 
     private void prepareUnreadyPodsForConstruction(final SoyPod pod)
     {
-        final ConstructorHole constructorHole = (ConstructorHole) pod.getConstructorHole().get();
+        final ConstructorHole constructorHole = (ConstructorHole) pod.getConstructorHole();
         final Collection<SoyPod> unreadyPods = constructorHole.getUnreadyPods();
 
         waitingForConstruction.push(pod);

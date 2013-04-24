@@ -9,13 +9,15 @@ import com.freeroom.test.beans.constructorInjection.subPackage.Caribou;
 import com.freeroom.test.beans.constructorInjection.subPackage.Marmot;
 import com.freeroom.test.beans.dependOnFactory.Skunk;
 import com.freeroom.test.beans.dummy.Dummy;
+import com.freeroom.test.beans.dynamicScope.Dingo;
+import com.freeroom.test.beans.dynamicScope.Tapir;
 import com.freeroom.test.beans.fieldInjection.Hedgehog;
 import com.freeroom.test.beans.fieldInjection.Squid;
 import com.freeroom.test.beans.parallelPackages.packageFive.Gecko;
 import com.freeroom.test.beans.parallelPackages.packageFour.Falcon;
+import com.freeroom.test.beans.parallelPackages.packageFour.subPackage.Owl;
 import com.freeroom.test.beans.parallelPackages.packageOne.Rhinoceros;
 import com.freeroom.test.beans.parallelPackages.packageThree.Beetle;
-import com.freeroom.test.beans.parallelPackages.packageFour.subPackage.Owl;
 import com.freeroom.test.beans.parallelPackages.packageTwo.Antelope;
 import com.freeroom.test.beans.sameBeanName.subPackage.Trout;
 import com.freeroom.test.beans.sameParent.Ladybug;
@@ -239,5 +241,13 @@ public class BeanContextTest
 
         assertThat(tuna1, is(not(sameInstance(tuna2))));
         assertThat(tuna1.getPheasant(), is(not(sameInstance(tuna2.getPheasant()))));
+    }
+
+    @Test
+    public void should_resolve_dependency_given_dynamic_scope()
+    {
+        final BeanContext context = BeanContext.load("com.freeroom.test.beans.dynamicScope");
+
+        assertThat(((Dingo)context.getBean("Dingo").get()).getTapir(), is(instanceOf(Tapir.class)));
     }
 }
