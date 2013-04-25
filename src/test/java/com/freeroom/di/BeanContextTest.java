@@ -25,6 +25,7 @@ import com.freeroom.test.beans.sameParent.Ladybug;
 import com.freeroom.test.beans.sameParent.Termite;
 import com.freeroom.test.beans.setterInjection.subPackage.Penguin;
 import com.freeroom.test.beans.setterInjection.subPackage.Raccoon;
+import com.freeroom.test.beans.setterInjectionByName.Alpaca;
 import com.google.common.base.Optional;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -149,6 +150,17 @@ public class BeanContextTest
         assertThat(((Hedgehog)hedgehog.get()).getSquid(), is(instanceOf(Squid.class)));
     }
 
+    @Test
+    public void should_resolve_field_injection_by_name()
+    {
+        final BeanContext parentContext = BeanContext.load("com.freeroom.test.beans.sameParent");
+        final BeanContext context = BeanContext.load("com.freeroom.test.beans.fieldInjectionByName.withName", parentContext);
+
+        final Optional<?> boar = context.getBean("Boar");
+
+        assertThat(((Boar)boar.get()).getLadybug(), is(instanceOf(Termite.class)));
+    }
+
     @Test(expected = NotUniqueException.class)
     public void should_throw_exception_given_more_than_one_class_can_be_assigned()
     {
@@ -168,14 +180,14 @@ public class BeanContextTest
     }
 
     @Test
-    public void should_resolve_field_injection_by_name()
+    public void should_resolve_setter_injection_by_name()
     {
         final BeanContext parentContext = BeanContext.load("com.freeroom.test.beans.sameParent");
-        final BeanContext context = BeanContext.load("com.freeroom.test.beans.fieldInjectionByName.withName", parentContext);
+        final BeanContext context = BeanContext.load("com.freeroom.test.beans.setterInjectionByName", parentContext);
 
-        final Optional<?> boar = context.getBean("Boar");
+        final Optional<?> alpaca = context.getBean("Alpaca");
 
-        assertThat(((Boar)boar.get()).getLadybug(), is(instanceOf(Termite.class)));
+        assertThat(((Alpaca)alpaca.get()).getLadybug(), is(instanceOf(Ladybug.class)));
     }
 
     @Test

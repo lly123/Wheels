@@ -8,7 +8,7 @@ class SetterHole extends Wormhole
 
     public SetterHole(final Method method)
     {
-        super(getFirstParamClass(method));
+        super(getFirstParamClass(method), getInjectBeanName(method));
         this.method = method;
     }
 

@@ -142,18 +142,18 @@ class SoyPod extends Pod
          return constructorHole.isPresent() ? constructorHole.get() : new ConstructorHole(getDefaultConstructor());
     }
 
-    private List<Hole> findSetterHoles() {
-        return reduce(Lists.<Hole>newArrayList(), findInjectionSetters(), new Func<List<Hole>, Method>() {
-            @Override
-            public List<Hole> call(final List<Hole> holes, final Method method) {
-                if (startsWithSetPrefix(method)) {
-                    assertHasOnlyOneParameter(method);
-                    holes.add(new SetterHole(method));
-                }
-                return holes;
-            }
-        });
-    }
+//    private List<Hole> findSetterHoles() {
+//        return reduce(Lists.<Hole>newArrayList(), findInjectionSetters(), new Func<List<Hole>, Method>() {
+//            @Override
+//            public List<Hole> call(final List<Hole> holes, final Method method) {
+//                if (startsWithSetPrefix(method)) {
+//                    assertHasOnlyOneParameter(method);
+//                    holes.add(new SetterHole(method));
+//                }
+//                return holes;
+//            }
+//        });
+//    }
 
     private List<Hole> findFieldHoles()
     {
@@ -169,13 +169,14 @@ class SoyPod extends Pod
                 });
     }
 
-    private List<Method> findInjectionSetters() {
-        return reduce(Lists.<Method>newArrayList(), newArrayList(beanClass.getDeclaredMethods()),
-                new Func<List<Method>, Method>() {
+    private List<Hole> findSetterHoles() {
+        return reduce(Lists.<Hole>newArrayList(), newArrayList(beanClass.getDeclaredMethods()),
+                new Func<List<Hole>, Method>() {
                     @Override
-                    public List<Method> call(final List<Method> injectionSetters, final Method method) {
-                        if (method.isAnnotationPresent(Inject.class)) {
-                            injectionSetters.add(method);
+                    public List<Hole> call(final List<Hole> injectionSetters, final Method method) {
+                        if (method.isAnnotationPresent(Inject.class) && startsWithSetPrefix(method)) {
+                            assertHasOnlyOneParameter(method);
+                            injectionSetters.add(new SetterHole(method));
                         }
                         return injectionSetters;
                     }

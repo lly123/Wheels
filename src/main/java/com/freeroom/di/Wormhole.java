@@ -1,12 +1,16 @@
 package com.freeroom.di;
 
+import com.freeroom.di.annotations.Inject;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 
+import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Type;
 import java.util.Collection;
 
 import static com.google.common.base.Optional.absent;
+import static com.google.common.base.Optional.of;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Collections2.filter;
 import static com.google.common.collect.Lists.newArrayList;
 
@@ -15,12 +19,6 @@ class Wormhole extends Hole
     protected Optional<?> bean = absent();
     protected final Class<?> clazz;
     protected final Optional<String> beanName;
-
-    public Wormhole(Class<?> clazz)
-    {
-        this.clazz = clazz;
-        this.beanName = absent();
-    }
 
     public Wormhole(Class<?> clazz, Optional<String> beanName)
     {
@@ -61,5 +59,11 @@ class Wormhole extends Hole
         assertNotMoreThanOnePod(clazz, filteredPods);
 
         bean = newArrayList(filteredPods).get(0).getBean();
+    }
+
+    protected static Optional<String> getInjectBeanName(AnnotatedElement element)
+    {
+        final Inject annotation = element.getAnnotation(Inject.class);
+        return isNullOrEmpty(annotation.value()) ? Optional.<String>absent() : of(annotation.value());
     }
 }
