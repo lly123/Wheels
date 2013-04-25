@@ -22,7 +22,6 @@ import com.freeroom.test.beans.parallelPackages.packageFour.subPackage.Owl;
 import com.freeroom.test.beans.parallelPackages.packageOne.Rhinoceros;
 import com.freeroom.test.beans.parallelPackages.packageThree.Beetle;
 import com.freeroom.test.beans.parallelPackages.packageTwo.Antelope;
-import com.freeroom.test.beans.requiredScope.Otter;
 import com.freeroom.test.beans.sameBeanName.subPackage.Trout;
 import com.freeroom.test.beans.sameParent.Ladybug;
 import com.freeroom.test.beans.sameParent.Termite;
@@ -175,6 +174,15 @@ public class BeanContextTest
         final Optional<?> turbot = context.getBean("Turbot");
 
         assertThat(((Turbot)turbot.get()).getLadybug(), is(instanceOf(Termite.class)));
+    }
+
+    @Test(expected = NotUniqueException.class)
+    public void should_throw_Exception_given_constructor_parameter_injection_with_many_choices()
+    {
+        final BeanContext parentContext = BeanContext.load("com.freeroom.test.beans.sameParent");
+        final BeanContext context = BeanContext.load("com.freeroom.test.beans.constructionParameterInjection.manyChoices", parentContext);
+
+        context.getBean("Mantis");
     }
 
     @Test

@@ -2,13 +2,9 @@ package com.freeroom.di;
 
 import com.freeroom.di.annotations.Inject;
 import com.freeroom.di.util.Func2;
-import com.freeroom.di.util.FuncUtils;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.sun.tools.javac.util.Pair;
 
 import java.lang.annotation.Annotation;
@@ -21,8 +17,7 @@ import static com.google.common.base.Optional.absent;
 import static com.google.common.base.Optional.of;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.ImmutableList.copyOf;
-import static com.google.common.collect.Iterables.*;
-import static com.google.common.collect.Lists.asList;
+import static com.google.common.collect.Iterables.filter;
 import static com.google.common.collect.Lists.newArrayList;
 
 class ConstructorHole extends Hole
@@ -89,7 +84,7 @@ class ConstructorHole extends Hole
     private Optional<Pod> getPodForFill(final Pair<Class, Pair<Boolean, Optional<String>>> param, final Collection<Pod> pods)
     {
         if (param.snd.fst) {
-            final Optional<Pod> pod = tryFind(pods, new Predicate<Pod>() {
+            final List<Pod> eligiblePods = copyOf(filter(pods, new Predicate<Pod>() {
                 @Override
                 public boolean apply(final Pod pod) {
                     if (param.snd.snd.isPresent()) {
@@ -98,9 +93,10 @@ class ConstructorHole extends Hole
                         return param.fst.isAssignableFrom(pod.getBeanClass());
                     }
                 }
-            });
-            assertPodExists(param.fst, pod);
-            return pod;
+            }));
+            assertPodExists(param.fst, eligiblePods);
+            assertNotMoreThanOnePod(param.fst, eligiblePods);
+            return of(eligiblePods.get(0));
         } else {
             return absent();
         }
