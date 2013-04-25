@@ -5,7 +5,6 @@ import com.freeroom.di.annotations.Scope;
 import com.freeroom.di.exceptions.DependencyException;
 import com.freeroom.di.exceptions.NotUniqueException;
 import com.freeroom.di.util.Func;
-import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
@@ -20,7 +19,6 @@ import java.util.List;
 import static com.freeroom.di.util.FuncUtils.reduce;
 import static com.google.common.collect.Iterables.find;
 import static com.google.common.collect.Lists.newArrayList;
-import static com.google.common.collect.Lists.transform;
 
 class SoyPod extends Pod
 {
@@ -141,19 +139,6 @@ class SoyPod extends Pod
 
          return constructorHole.isPresent() ? constructorHole.get() : new ConstructorHole(getDefaultConstructor());
     }
-
-//    private List<Hole> findSetterHoles() {
-//        return reduce(Lists.<Hole>newArrayList(), findInjectionSetters(), new Func<List<Hole>, Method>() {
-//            @Override
-//            public List<Hole> call(final List<Hole> holes, final Method method) {
-//                if (startsWithSetPrefix(method)) {
-//                    assertHasOnlyOneParameter(method);
-//                    holes.add(new SetterHole(method));
-//                }
-//                return holes;
-//            }
-//        });
-//    }
 
     private List<Hole> findFieldHoles()
     {
