@@ -10,6 +10,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 import net.sf.cglib.proxy.Enhancer;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -17,6 +18,8 @@ import java.util.Collection;
 import java.util.List;
 
 import static com.freeroom.di.util.FuncUtils.reduce;
+import static com.google.common.collect.ImmutableList.copyOf;
+import static com.google.common.collect.Iterables.any;
 import static com.google.common.collect.Iterables.find;
 import static com.google.common.collect.Lists.newArrayList;
 
@@ -129,7 +132,7 @@ class SoyPod extends Pod
                 new Func<Optional<Hole>, Constructor>() {
                     @Override
                     public Optional<Hole> call(Optional<Hole> hole, final Constructor constructor) {
-                        if (constructor.isAnnotationPresent(Inject.class)) {
+                        if (isConstructorForInjection(constructor)) {
                             assertNoConstructorHoleBefore(hole);
                             hole = Optional.<Hole>of(new ConstructorHole(constructor));
                         }
@@ -138,6 +141,26 @@ class SoyPod extends Pod
                 });
 
          return constructorHole.isPresent() ? constructorHole.get() : new ConstructorHole(getDefaultConstructor());
+    }
+
+    private boolean isConstructorForInjection(final Constructor constructor)
+    {
+        return any(copyOf(constructor.getParameterAnnotations()), new Predicate<Annotation[]>() {
+            @Override
+            public boolean apply(final Annotation[] annotations) {
+                return containsInjectAnnotation(annotations);
+            }
+        }) || constructor.isAnnotationPresent(Inject.class);
+    }
+
+    private boolean containsInjectAnnotation(final Annotation[] annotations)
+    {
+        return any(copyOf(annotations), new Predicate<Annotation>() {
+            @Override
+            public boolean apply(final Annotation annotation) {
+                return annotation.annotationType().equals(Inject.class);
+            }
+        });
     }
 
     private List<Hole> findFieldHoles()
@@ -239,7 +262,7 @@ class SoyPod extends Pod
         try {
             return beanClass.getConstructor();
         } catch (Exception e) {
-            throw new RuntimeException("Can't create bean with default constructor.", e);
+            throw new RuntimeException("Can't find default constructor of bean: " + getBeanClass(), e);
         }
     }
 

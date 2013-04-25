@@ -6,6 +6,7 @@ import com.freeroom.test.beans.beanFactory.Dove;
 import com.freeroom.test.beans.beanFactory.Pheasant;
 import com.freeroom.test.beans.beanFactory.Toad;
 import com.freeroom.test.beans.beanFactory.Tuna;
+import com.freeroom.test.beans.constructionParameterInjection.Eel;
 import com.freeroom.test.beans.constructorInjection.subPackage.Caribou;
 import com.freeroom.test.beans.constructorInjection.subPackage.Marmot;
 import com.freeroom.test.beans.dependOnFactory.Skunk;
@@ -138,6 +139,17 @@ public class BeanContextTest
         final Optional<?> caribou = context.getBean("Caribou");
 
         assertThat(((Caribou)caribou.get()).getMarmot(), is(instanceOf(Marmot.class)));
+    }
+
+    @Test
+    public void should_resolve_bean_by_constructor_parameter_injection()
+    {
+        final BeanContext parentContext = BeanContext.load("com.freeroom.test.beans.sameBeanName");
+        final BeanContext context = BeanContext.load("com.freeroom.test.beans.constructionParameterInjection", parentContext);
+
+        final Optional<?> eel = context.getBean("Eel");
+
+        assertThat(((Eel)eel.get()).getTrout(), is(instanceOf(com.freeroom.test.beans.sameBeanName.Trout.class)));
     }
 
     @Test
