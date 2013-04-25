@@ -7,7 +7,8 @@ import java.lang.reflect.Type;
 import java.util.Collection;
 
 import static com.google.common.base.Optional.absent;
-import static com.google.common.collect.Iterables.tryFind;
+import static com.google.common.collect.Collections2.filter;
+import static com.google.common.collect.Lists.newArrayList;
 
 class Wormhole extends Hole
 {
@@ -38,15 +39,16 @@ class Wormhole extends Hole
     @Override
     public void fill(final Collection<Pod> pods)
     {
-        final Optional<Pod> pod = tryFind(pods, new Predicate<Pod>() {
+        final Collection<Pod> filteredPods = filter(pods, new Predicate<Pod>() {
             @Override
             public boolean apply(final Pod pod) {
                 return clazz.isAssignableFrom(pod.getBeanClass()) && pod.isBeanReady();
             }
         });
 
-        assertPodExists(clazz, pod);
+        assertPodExists(clazz, filteredPods);
+        assertNotMoreThanOnePod(clazz, filteredPods);
 
-        bean = pod.get().getBean();
+        bean = newArrayList(filteredPods).get(0).getBean();
     }
 }

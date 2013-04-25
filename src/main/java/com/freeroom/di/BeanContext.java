@@ -88,19 +88,11 @@ public class BeanContext
 
     private Collection<Pod> preparePodsForInjection()
     {
-        final List<Pod> pods = newArrayList();
-        pods.addAll(beanPackage.getPods());
-        pods.addAll(collectPodsFromParentContexts(pods));
-        return copyOf(pods);
-    }
-
-    private Collection<Pod> collectPodsFromParentContexts(final List<Pod> pods)
-    {
-        List<Pod> parentPods = newArrayList();
-        Optional<BeanContext> parentContext = this.parentContext;
-        while (parentContext.isPresent()) {
-            parentPods = excludeDuplicatedPods(pods, parentContext.get().getPods());
-            parentContext = parentContext.get().parentContext;
+        List<Pod> parentPods = newArrayList(beanPackage.getPods());
+        Optional<BeanContext> context = this.parentContext;
+        while (context.isPresent()) {
+            parentPods = excludeDuplicatedPods(parentPods, context.get().getPods());
+            context = context.get().parentContext;
         }
         return parentPods;
     }

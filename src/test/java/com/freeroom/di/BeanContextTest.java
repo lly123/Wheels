@@ -147,6 +147,14 @@ public class BeanContextTest
         assertThat(((Hedgehog)hedgehog.get()).getSquid(), is(instanceOf(Squid.class)));
     }
 
+    @Test(expected = NotUniqueException.class)
+    public void should_throw_exception_given_more_than_one_class_can_be_assigned()
+    {
+        final BeanContext parentContext = BeanContext.load("com.freeroom.test.beans.sameParent");
+        final BeanContext context = BeanContext.load("com.freeroom.test.beans.fieldInjectionByName", parentContext);
+        context.getBean("Yak");
+    }
+
     @Test
     public void should_resolve_bean_by_setter_injection()
     {
