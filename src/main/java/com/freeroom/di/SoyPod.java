@@ -2,6 +2,7 @@ package com.freeroom.di;
 
 import com.freeroom.di.annotations.Inject;
 import com.freeroom.di.annotations.Scope;
+import com.freeroom.di.exceptions.DependencyException;
 import com.freeroom.di.exceptions.NotUniqueException;
 import com.freeroom.di.util.Func;
 import com.google.common.base.Function;
@@ -85,7 +86,7 @@ class SoyPod extends Pod
 
     private void createBean(final ConstructorHole constructorHole)
     {
-        if (getScope().equals(Scope.Dynamic)) {
+        if (isDynamicBean()) {
             createDynamicBean(constructorHole);
         } else {
             setBean(constructorHole.create());
@@ -104,10 +105,23 @@ class SoyPod extends Pod
     {
         final List<Hole> holes = newArrayList();
         holes.add(findConstructorHole());
-        holes.addAll(findFieldHoles());
-        holes.addAll(findSetterHoles());
+
+        final List<Hole> fieldHoles = findFieldHoles();
+        assertNoWormHolesForDynamicBean(fieldHoles, "Bean " + getBeanClass() + " can't have field dependencies.");
+        holes.addAll(fieldHoles);
+
+        final List<Hole> setterHoles = findSetterHoles();
+        assertNoWormHolesForDynamicBean(setterHoles, "Bean " + getBeanClass() + " can't have setter dependencies.");
+        holes.addAll(setterHoles);
 
         return holes;
+    }
+
+    private void assertNoWormHolesForDynamicBean(final List<Hole> wormHoles, final String message)
+    {
+        if (isDynamicBean() && wormHoles.size() > 0) {
+            throw new DependencyException(message);
+        }
     }
 
     private Hole findConstructorHole()
@@ -251,5 +265,10 @@ class SoyPod extends Pod
         } catch (Exception e) {
             throw new RuntimeException("Can't create bean with default constructor.", e);
         }
+    }
+
+    private boolean isDynamicBean()
+    {
+        return getScope().equals(Scope.Dynamic);
     }
 }

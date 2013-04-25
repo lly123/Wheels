@@ -1,5 +1,6 @@
 package com.freeroom.di;
 
+import com.freeroom.di.exceptions.DependencyException;
 import com.freeroom.di.exceptions.NotUniqueException;
 import com.freeroom.test.beans.beanFactory.Dove;
 import com.freeroom.test.beans.beanFactory.Pheasant;
@@ -250,6 +251,18 @@ public class BeanContextTest
 
         assertThat(tuna1, is(not(sameInstance(tuna2))));
         assertThat(tuna1.getPheasant(), is(not(sameInstance(tuna2.getPheasant()))));
+    }
+
+    @Test(expected = DependencyException.class)
+    public void should_have_no_field_holes_given_dynamic_bean()
+    {
+        BeanContext.load("com.freeroom.test.beans.dynamicBeanWithWormHoles.withFieldHoles");
+    }
+
+    @Test(expected = DependencyException.class)
+    public void should_have_no_setter_holes_given_dynamic_bean()
+    {
+        BeanContext.load("com.freeroom.test.beans.dynamicBeanWithWormHoles.withSetterHoles");
     }
 
     @Test
