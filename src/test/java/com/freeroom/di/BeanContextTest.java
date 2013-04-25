@@ -21,6 +21,7 @@ import com.freeroom.test.beans.parallelPackages.packageFour.subPackage.Owl;
 import com.freeroom.test.beans.parallelPackages.packageOne.Rhinoceros;
 import com.freeroom.test.beans.parallelPackages.packageThree.Beetle;
 import com.freeroom.test.beans.parallelPackages.packageTwo.Antelope;
+import com.freeroom.test.beans.requiredScope.Otter;
 import com.freeroom.test.beans.sameBeanName.subPackage.Trout;
 import com.freeroom.test.beans.sameParent.Ladybug;
 import com.freeroom.test.beans.sameParent.Termite;
@@ -150,6 +151,18 @@ public class BeanContextTest
         final Optional<?> eel = context.getBean("Eel");
 
         assertThat(((Eel)eel.get()).getTrout(), is(instanceOf(com.freeroom.test.beans.sameBeanName.Trout.class)));
+    }
+
+    @Test
+    public void should_NOT_resolve_bean_by_constructor_parameter_injection()
+    {
+        final BeanContext grandpaContext = BeanContext.load("com.freeroom.test.beans.requiredScope");
+        final BeanContext parentContext = BeanContext.load("com.freeroom.test.beans.sameBeanName", grandpaContext);
+        final BeanContext context = BeanContext.load("com.freeroom.test.beans.constructionParameterInjection", parentContext);
+
+        final Optional<?> eel = context.getBean("Eel");
+
+        assertThat(((Eel)eel.get()).getOtter(), is(nullValue()));
     }
 
     @Test

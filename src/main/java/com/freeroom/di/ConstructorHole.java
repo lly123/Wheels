@@ -1,13 +1,20 @@
 package com.freeroom.di;
 
+import com.freeroom.di.annotations.Inject;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
+import com.sun.tools.javac.util.Pair;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.util.Collection;
 import java.util.List;
 
+import static com.google.common.base.Optional.absent;
+import static com.google.common.collect.ImmutableList.copyOf;
+import static com.google.common.collect.Iterables.any;
 import static com.google.common.collect.Iterables.tryFind;
+import static com.google.common.collect.Lists.asList;
 import static com.google.common.collect.Lists.newArrayList;
 
 class ConstructorHole extends Hole
@@ -31,16 +38,29 @@ class ConstructorHole extends Hole
     public void fill(final Collection<Pod> pods)
     {
         readyBeans.clear();
-        for (final Class paramClass : constructor.getParameterTypes()) {
-            final Optional<Pod> pod = getPodForFill(paramClass, pods);
-            assertPodExists(paramClass, pod);
+        for (final Pair<Class, Boolean> param : getParameters()) {
+            final Optional<Pod> pod = getPodForFill(param, pods);
 
-            if (pod.get().isBeanReady()) {
-                readyBeans.add(pod.get().getBean().get());
+            if (pod.isPresent()) {
+                if (pod.get().isBeanReady()) {
+                    readyBeans.add(pod.get().getBean().get());
+                } else {
+                    unreadyPods.add((SoyPod)pod.get());
+                }
             } else {
-                unreadyPods.add((SoyPod)pod.get());
+                readyBeans.add(null);
             }
         }
+    }
+
+    private List<Pair<Class, Boolean>> getParameters()
+    {
+        final List<Pair<Class, Boolean>> parameters = newArrayList();
+        final Annotation[][] annotations = constructor.getParameterAnnotations();
+        for (int i = 0; i < annotations.length; i++) {
+            parameters.add(Pair.of(constructor.getParameterTypes()[i], hasInjectAnnotation(annotations[i])));
+        }
+        return parameters;
     }
 
     public Collection<SoyPod> getUnreadyPods()
@@ -57,18 +77,34 @@ class ConstructorHole extends Hole
         }
     }
 
-    private Optional<Pod> getPodForFill(final Class paramClass, final Collection<Pod> pods)
+    private Optional<Pod> getPodForFill(final Pair<Class, Boolean> param, final Collection<Pod> pods)
     {
-        return tryFind(pods, new Predicate<Pod>() {
-            @Override
-            public boolean apply(final Pod pod) {
-                return paramClass.isAssignableFrom(pod.getBeanClass());
-            }
-        });
+        if (param.snd) {
+            final Optional<Pod> pod = tryFind(pods, new Predicate<Pod>() {
+                @Override
+                public boolean apply(final Pod pod) {
+                    return param.fst.isAssignableFrom(pod.getBeanClass());
+                }
+            });
+            assertPodExists(param.fst, pod);
+            return pod;
+        } else {
+            return absent();
+        }
     }
 
     private boolean isNoParameters()
     {
         return constructor.getParameterTypes().length == 0;
+    }
+
+    private boolean hasInjectAnnotation(final Annotation[] annotations)
+    {
+        return any(copyOf(annotations), new Predicate<Annotation>() {
+            @Override
+            public boolean apply(final Annotation annotation) {
+                return annotation.annotationType().equals(Inject.class);
+            }
+        });
     }
 }
