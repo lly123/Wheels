@@ -1,8 +1,14 @@
 package com.freeroom.di;
 
 import com.freeroom.di.annotations.Inject;
+import com.freeroom.di.util.Func2;
+import com.freeroom.di.util.FuncUtils;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.sun.tools.javac.util.Pair;
 
 import java.lang.annotation.Annotation;
@@ -10,10 +16,12 @@ import java.lang.reflect.Constructor;
 import java.util.Collection;
 import java.util.List;
 
+import static com.freeroom.di.util.FuncUtils.mapWithIndex;
 import static com.google.common.base.Optional.absent;
+import static com.google.common.base.Optional.of;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.ImmutableList.copyOf;
-import static com.google.common.collect.Iterables.any;
-import static com.google.common.collect.Iterables.tryFind;
+import static com.google.common.collect.Iterables.*;
 import static com.google.common.collect.Lists.asList;
 import static com.google.common.collect.Lists.newArrayList;
 
@@ -38,7 +46,7 @@ class ConstructorHole extends Hole
     public void fill(final Collection<Pod> pods)
     {
         readyBeans.clear();
-        for (final Pair<Class, Boolean> param : getParameters()) {
+        for (final Pair<Class, Pair<Boolean, Optional<String>>> param : getParameters()) {
             final Optional<Pod> pod = getPodForFill(param, pods);
 
             if (pod.isPresent()) {
@@ -53,14 +61,15 @@ class ConstructorHole extends Hole
         }
     }
 
-    private List<Pair<Class, Boolean>> getParameters()
+    private List<Pair<Class, Pair<Boolean, Optional<String>>>> getParameters()
     {
-        final List<Pair<Class, Boolean>> parameters = newArrayList();
-        final Annotation[][] annotations = constructor.getParameterAnnotations();
-        for (int i = 0; i < annotations.length; i++) {
-            parameters.add(Pair.of(constructor.getParameterTypes()[i], hasInjectAnnotation(annotations[i])));
-        }
-        return parameters;
+        return mapWithIndex(ImmutableList.<Annotation[]>copyOf(constructor.getParameterAnnotations()),
+                new Func2<Integer, Annotation[], Pair<Class, Pair<Boolean, Optional<String>>>>() {
+                    @Override
+                    public Pair<Class, Pair<Boolean, Optional<String>>> call(Integer i, Annotation[] annotations) {
+                        return Pair.of(constructor.getParameterTypes()[i], getInjectInfo(annotations));
+                    }
+                });
     }
 
     public Collection<SoyPod> getUnreadyPods()
@@ -77,13 +86,17 @@ class ConstructorHole extends Hole
         }
     }
 
-    private Optional<Pod> getPodForFill(final Pair<Class, Boolean> param, final Collection<Pod> pods)
+    private Optional<Pod> getPodForFill(final Pair<Class, Pair<Boolean, Optional<String>>> param, final Collection<Pod> pods)
     {
-        if (param.snd) {
+        if (param.snd.fst) {
             final Optional<Pod> pod = tryFind(pods, new Predicate<Pod>() {
                 @Override
                 public boolean apply(final Pod pod) {
-                    return param.fst.isAssignableFrom(pod.getBeanClass());
+                    if (param.snd.snd.isPresent()) {
+                        return pod.hasName(param.snd.snd.get());
+                    } else {
+                        return param.fst.isAssignableFrom(pod.getBeanClass());
+                    }
                 }
             });
             assertPodExists(param.fst, pod);
@@ -98,13 +111,25 @@ class ConstructorHole extends Hole
         return constructor.getParameterTypes().length == 0;
     }
 
-    private boolean hasInjectAnnotation(final Annotation[] annotations)
+    private Pair<Boolean, Optional<String>> getInjectInfo(final Annotation[] annotations)
     {
-        return any(copyOf(annotations), new Predicate<Annotation>() {
+        final List<Annotation> injectAnnotations = copyOf(filter(copyOf(annotations), new Predicate<Annotation>() {
             @Override
             public boolean apply(final Annotation annotation) {
                 return annotation.annotationType().equals(Inject.class);
             }
-        });
+        }));
+
+        if (injectAnnotations.size() > 0) {
+            return Pair.of(true, getInjectBeanName(injectAnnotations.get(0)));
+        }
+
+        return Pair.of(false, Optional.<String>absent());
+    }
+
+    private Optional<String> getInjectBeanName(final Annotation annotation)
+    {
+        return isNullOrEmpty(((Inject)annotation).value()) ?
+                Optional.<String>absent() : of(((Inject) annotation).value());
     }
 }
