@@ -14,10 +14,18 @@ class Wormhole extends Hole
 {
     protected Optional<?> bean = absent();
     protected final Class<?> clazz;
+    protected final Optional<String> beanName;
 
     public Wormhole(Class<?> clazz)
     {
         this.clazz = clazz;
+        this.beanName = absent();
+    }
+
+    public Wormhole(Class<?> clazz, Optional<String> beanName)
+    {
+        this.clazz = clazz;
+        this.beanName = beanName;
     }
 
     public Type getHoleClass()
@@ -42,7 +50,10 @@ class Wormhole extends Hole
         final Collection<Pod> filteredPods = filter(pods, new Predicate<Pod>() {
             @Override
             public boolean apply(final Pod pod) {
-                return clazz.isAssignableFrom(pod.getBeanClass()) && pod.isBeanReady();
+                return pod.isBeanReady() &&
+                        (beanName.isPresent() ?
+                                pod.hasName(beanName.get()) :
+                                clazz.isAssignableFrom(pod.getBeanClass()));
             }
         });
 

@@ -13,6 +13,7 @@ import com.freeroom.test.beans.dummy.Dummy;
 import com.freeroom.test.beans.dynamicScope.Dingo;
 import com.freeroom.test.beans.fieldInjection.Hedgehog;
 import com.freeroom.test.beans.fieldInjection.Squid;
+import com.freeroom.test.beans.fieldInjectionByName.withName.Boar;
 import com.freeroom.test.beans.parallelPackages.packageFive.Gecko;
 import com.freeroom.test.beans.parallelPackages.packageFour.Falcon;
 import com.freeroom.test.beans.parallelPackages.packageFour.subPackage.Owl;
@@ -21,6 +22,7 @@ import com.freeroom.test.beans.parallelPackages.packageThree.Beetle;
 import com.freeroom.test.beans.parallelPackages.packageTwo.Antelope;
 import com.freeroom.test.beans.sameBeanName.subPackage.Trout;
 import com.freeroom.test.beans.sameParent.Ladybug;
+import com.freeroom.test.beans.sameParent.Termite;
 import com.freeroom.test.beans.setterInjection.subPackage.Penguin;
 import com.freeroom.test.beans.setterInjection.subPackage.Raccoon;
 import com.google.common.base.Optional;
@@ -163,6 +165,17 @@ public class BeanContextTest
         final Optional<?> penguin = context.getBean("Penguin");
 
         assertThat(((Penguin)penguin.get()).getRaccoon(), is(instanceOf(Raccoon.class)));
+    }
+
+    @Test
+    public void should_resolve_field_injection_by_name()
+    {
+        final BeanContext parentContext = BeanContext.load("com.freeroom.test.beans.sameParent");
+        final BeanContext context = BeanContext.load("com.freeroom.test.beans.fieldInjectionByName.withName", parentContext);
+
+        final Optional<?> boar = context.getBean("Boar");
+
+        assertThat(((Boar)boar.get()).getLadybug(), is(instanceOf(Termite.class)));
     }
 
     @Test

@@ -142,16 +142,6 @@ class SoyPod extends Pod
          return constructorHole.isPresent() ? constructorHole.get() : new ConstructorHole(getDefaultConstructor());
     }
 
-    private List<Hole> findFieldHoles()
-    {
-        return transform(findInjectionFields(), new Function<Field, Hole>() {
-            @Override
-            public Hole apply(final Field field) {
-                return new FieldHole(field);
-            }
-        });
-    }
-
     private List<Hole> findSetterHoles() {
         return reduce(Lists.<Hole>newArrayList(), findInjectionSetters(), new Func<List<Hole>, Method>() {
             @Override
@@ -165,14 +155,14 @@ class SoyPod extends Pod
         });
     }
 
-    private List<Field> findInjectionFields()
+    private List<Hole> findFieldHoles()
     {
-        return reduce(Lists.<Field>newArrayList(), newArrayList(beanClass.getDeclaredFields()),
-                new Func<List<Field>, Field>() {
+        return reduce(Lists.<Hole>newArrayList(), newArrayList(beanClass.getDeclaredFields()),
+                new Func<List<Hole>, Field>() {
                     @Override
-                    public List<Field> call(final List<Field> injectionFields, final Field field) {
+                    public List<Hole> call(final List<Hole> injectionFields, final Field field) {
                         if (field.isAnnotationPresent(Inject.class)) {
-                            injectionFields.add(field);
+                            injectionFields.add(new FieldHole(field));
                         }
                         return injectionFields;
                     }
