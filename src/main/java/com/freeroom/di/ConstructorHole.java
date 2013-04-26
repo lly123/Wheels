@@ -83,19 +83,23 @@ class ConstructorHole extends Hole
 
     private Optional<Pod> getPodForFill(final Pair<Class, Pair<Boolean, Optional<String>>> param, final Collection<Pod> pods)
     {
-        if (param.snd.fst) {
+        final Class paramClass = param.fst;
+        final Boolean hasInjectAnnotationOnParam = param.snd.fst;
+        final Optional<String> beanNameForInject = param.snd.snd;
+
+        if (hasInjectAnnotationOnParam) {
             final List<Pod> eligiblePods = copyOf(filter(pods, new Predicate<Pod>() {
                 @Override
                 public boolean apply(final Pod pod) {
-                    if (param.snd.snd.isPresent()) {
-                        return pod.hasName(param.snd.snd.get());
+                    if (beanNameForInject.isPresent()) {
+                        return pod.hasName(beanNameForInject.get());
                     } else {
-                        return param.fst.isAssignableFrom(pod.getBeanClass());
+                        return paramClass.isAssignableFrom(pod.getBeanClass());
                     }
                 }
             }));
-            assertPodExists(param.fst, eligiblePods);
-            assertNotMoreThanOnePod(param.fst, eligiblePods);
+            assertPodExists(paramClass, eligiblePods);
+            assertNotMoreThanOnePod(paramClass, eligiblePods);
             return of(eligiblePods.get(0));
         } else {
             return absent();

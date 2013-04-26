@@ -80,7 +80,7 @@ public class BeanContext
         return beanPackage.getPods();
     }
 
-    void makePodsReady()
+    private void makePodsReady()
     {
         cleanRequiredScopeBeans();
         new Injector(preparePodsForInjection()).resolve();

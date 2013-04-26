@@ -20,7 +20,7 @@ class Wormhole extends Hole
     protected final Class<?> clazz;
     protected final Optional<String> beanName;
 
-    public Wormhole(Class<?> clazz, Optional<String> beanName)
+    public Wormhole(final Class<?> clazz, final Optional<String> beanName)
     {
         this.clazz = clazz;
         this.beanName = beanName;

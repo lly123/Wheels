@@ -56,7 +56,7 @@ class Package
     private void loadPodsInPath(final Stack<File> pathStack)
     {
         final List<File> beanFiles = newArrayList();
-        for (File file : pathStack.pop().listFiles()) {
+        for (final File file : pathStack.pop().listFiles()) {
             if (isDirectory(file)) {
                 pathStack.push(file);
             } else if(isClassFile(file)) {
@@ -72,13 +72,6 @@ class Package
         for (final Pod pod : podsInPath) {
             assertNoPodsAreSame(pod);
             pods.add(pod);
-        }
-    }
-
-    private void assertNoPodsAreSame(final Pod pod)
-    {
-        if (pods.contains(pod)) {
-            throw new NotUniqueException("Beans with same name: " + pod.getBeanName());
         }
     }
 
@@ -112,7 +105,7 @@ class Package
     private Optional<URL> getPackagePath()
     {
         try {
-            Enumeration<URL> resources = getClassLoader().getResources(toPath(packageName));
+            final Enumeration<URL> resources = getClassLoader().getResources(toPath(packageName));
             if (resources.hasMoreElements()) {
                 return of(resources.nextElement());
             }
@@ -161,5 +154,12 @@ class Package
 
     private String removeThePrefix(final String packageName, final String beanFileName) {
         return beanFileName.substring(beanFileName.indexOf(packageName));
+    }
+
+    private void assertNoPodsAreSame(final Pod pod)
+    {
+        if (pods.contains(pod)) {
+            throw new NotUniqueException("Beans with same name: " + pod.getBeanName());
+        }
     }
 }
