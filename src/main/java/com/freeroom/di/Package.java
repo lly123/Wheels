@@ -3,7 +3,6 @@ package com.freeroom.di;
 import com.freeroom.di.annotations.Bean;
 import com.freeroom.di.annotations.BeanFactory;
 import com.freeroom.di.exceptions.NotUniqueException;
-import com.freeroom.di.util.Func;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 
@@ -11,7 +10,10 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.URL;
-import java.util.*;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.Stack;
 
 import static com.freeroom.di.util.FuncUtils.reduce;
 import static com.google.common.base.Optional.absent;
@@ -23,7 +25,7 @@ class Package
 {
     public static final String CLASS_FILE_SUFFIX = ".class";
     private final String packageName;
-    private final Collection<Pod> pods = new ArrayList<>();
+    private final Collection<Pod> pods = newArrayList();
 
     public Package(final String packageName)
     {
@@ -77,7 +79,7 @@ class Package
 
     private Collection<Pod> createPods(final List<File> beanFiles)
     {
-        return reduce(Lists.<Pod>newArrayList(), beanFiles, (pods, file) -> {
+        return reduce(newArrayList(), beanFiles, (pods, file) -> {
             try {
                 final Class beanClass = loadClass(packageName, file.getAbsolutePath());
                 if (beanClass.isAnnotationPresent(Bean.class)) {

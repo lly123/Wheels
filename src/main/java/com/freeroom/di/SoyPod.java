@@ -18,6 +18,7 @@ import java.util.Collection;
 import java.util.List;
 
 import static com.freeroom.di.util.FuncUtils.reduce;
+import static com.google.common.base.Optional.absent;
 import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Iterables.any;
 import static com.google.common.collect.Iterables.find;
@@ -58,12 +59,7 @@ class SoyPod extends Pod
 
     public Hole getConstructorHole()
     {
-        return find(holes, new Predicate<Hole>() {
-            @Override
-            public boolean apply(final Hole hole) {
-                return hole instanceof ConstructorHole;
-            }
-        });
+        return find(holes, hole -> hole instanceof ConstructorHole);
     }
 
     public void tryConstructBean(final Collection<Pod> pods)
@@ -127,8 +123,7 @@ class SoyPod extends Pod
 
     private Hole findConstructorHole()
     {
-         final Optional<Hole> constructorHole = reduce(Optional.<Hole>absent(),
-                Lists.<Constructor>newArrayList(beanClass.getConstructors()),
+         final Optional<Hole> constructorHole = reduce(absent(), copyOf(beanClass.getConstructors()),
                 (hole, constructor) -> {
                     if (isConstructorForInjection(constructor)) {
                         assertNoConstructorHoleBefore(hole);
@@ -142,12 +137,8 @@ class SoyPod extends Pod
 
     private boolean isConstructorForInjection(final Constructor constructor)
     {
-        return any(copyOf(constructor.getParameterAnnotations()), new Predicate<Annotation[]>() {
-            @Override
-            public boolean apply(final Annotation[] annotations) {
-                return containsInjectAnnotation(annotations);
-            }
-        }) || constructor.isAnnotationPresent(Inject.class);
+        return any(copyOf(constructor.getParameterAnnotations()), annotations -> containsInjectAnnotation(annotations))
+                || constructor.isAnnotationPresent(Inject.class);
     }
 
     private boolean containsInjectAnnotation(final Annotation[] annotations)
@@ -162,7 +153,7 @@ class SoyPod extends Pod
 
     private List<Hole> findFieldHoles()
     {
-        return reduce(Lists.<Hole>newArrayList(), newArrayList(beanClass.getDeclaredFields()),
+        return reduce(newArrayList(), copyOf(beanClass.getDeclaredFields()),
                 (injectionFields, field) -> {
                     if (field.isAnnotationPresent(Inject.class)) {
                         injectionFields.add(new FieldHole(field));
@@ -172,7 +163,7 @@ class SoyPod extends Pod
     }
 
     private List<Hole> findSetterHoles() {
-        return reduce(Lists.<Hole>newArrayList(), newArrayList(beanClass.getDeclaredMethods()),
+        return reduce(newArrayList(), copyOf(beanClass.getDeclaredMethods()),
                 (injectionSetters, method) -> {
                     if (method.isAnnotationPresent(Inject.class) && startsWithSetPrefix(method)) {
                         assertHasOnlyOneParameter(method);
@@ -204,7 +195,7 @@ class SoyPod extends Pod
 
     public List<FieldHole> getFieldHoles()
     {
-        return reduce(Lists.<FieldHole>newArrayList(), holes, (fieldHoles, hole) -> {
+        return reduce(newArrayList(), holes, (fieldHoles, hole) -> {
             if (hole instanceof FieldHole) {
                 fieldHoles.add((FieldHole) hole);
             }
@@ -214,7 +205,7 @@ class SoyPod extends Pod
 
     public List<SetterHole> getSetterHoles()
     {
-        return reduce(Lists.<SetterHole>newArrayList(), holes, (setterHoles, hole) -> {
+        return reduce(newArrayList(), holes, (setterHoles, hole) -> {
             if (hole instanceof SetterHole) {
                 setterHoles.add((SetterHole) hole);
             }

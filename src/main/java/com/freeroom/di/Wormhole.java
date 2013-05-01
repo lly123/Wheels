@@ -2,7 +2,6 @@ package com.freeroom.di;
 
 import com.freeroom.di.annotations.Inject;
 import com.google.common.base.Optional;
-import com.google.common.base.Predicate;
 
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Type;
@@ -45,15 +44,10 @@ class Wormhole extends Hole
     @Override
     public void fill(final Collection<Pod> pods)
     {
-        final Collection<Pod> filteredPods = filter(pods, new Predicate<Pod>() {
-            @Override
-            public boolean apply(final Pod pod) {
-                return pod.isBeanReady() &&
-                        (beanName.isPresent() ?
-                                pod.hasName(beanName.get()) :
-                                clazz.isAssignableFrom(pod.getBeanClass()));
-            }
-        });
+        final Collection<Pod> filteredPods = filter(pods,
+                pod -> pod.isBeanReady() && (beanName.isPresent() ?
+                        pod.hasName(beanName.get()) :
+                        clazz.isAssignableFrom(pod.getBeanClass())));
 
         assertPodExists(clazz, filteredPods);
         assertNotMoreThanOnePod(clazz, filteredPods);
@@ -64,6 +58,6 @@ class Wormhole extends Hole
     protected static Optional<String> getInjectBeanName(AnnotatedElement element)
     {
         final Inject annotation = element.getAnnotation(Inject.class);
-        return isNullOrEmpty(annotation.value()) ? Optional.<String>absent() : of(annotation.value());
+        return isNullOrEmpty(annotation.value()) ? absent() : of(annotation.value());
     }
 }
