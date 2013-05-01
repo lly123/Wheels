@@ -1,7 +1,6 @@
 package com.freeroom.di;
 
 import com.freeroom.di.annotations.Inject;
-import com.freeroom.di.util.Func2;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
@@ -12,7 +11,7 @@ import java.lang.reflect.Constructor;
 import java.util.Collection;
 import java.util.List;
 
-import static com.freeroom.di.util.FuncUtils.mapWithIndex;
+import static com.freeroom.di.util.FuncUtils.map;
 import static com.google.common.base.Optional.absent;
 import static com.google.common.base.Optional.of;
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -58,14 +57,11 @@ class ConstructorHole extends Hole
 
     private List<Pair<Class, Pair<Boolean, Optional<String>>>> getParameters()
     {
-        return mapWithIndex(ImmutableList.<Annotation[]>copyOf(constructor.getParameterAnnotations()),
-                new Func2<Integer, Annotation[], Pair<Class, Pair<Boolean, Optional<String>>>>() {
-                    @Override
-                    public Pair<Class, Pair<Boolean, Optional<String>>> call(Integer i, Annotation[] annotations) {
-                        return Pair.of(constructor.getParameterTypes()[i],
-                                getInjectInfo(annotations, constructor.isAnnotationPresent(Inject.class)));
-                    }
-                });
+        return map(copyOf(constructor.getParameterAnnotations()),
+                (i, annotations) -> Pair.of(constructor.getParameterTypes()[i],
+                        constructor.isAnnotationPresent(Inject.class) ?
+                                Pair.of(true, Optional.<String>absent()) :
+                                getInjectInfo(annotations)));
     }
 
     public Collection<SoyPod> getUnreadyPods()
@@ -112,12 +108,8 @@ class ConstructorHole extends Hole
         return constructor.getParameterTypes().length == 0;
     }
 
-    private Pair<Boolean, Optional<String>> getInjectInfo(final Annotation[] annotations, boolean injectOnConstructor)
+    private Pair<Boolean, Optional<String>> getInjectInfo(final Annotation[] annotations)
     {
-        if (injectOnConstructor) {
-            return Pair.of(true, Optional.<String>absent());
-        }
-
         final List<Annotation> injectAnnotations = copyOf(filter(copyOf(annotations), new Predicate<Annotation>() {
             @Override
             public boolean apply(final Annotation annotation) {

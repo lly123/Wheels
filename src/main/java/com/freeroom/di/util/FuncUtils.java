@@ -15,7 +15,7 @@ public class FuncUtils
         return retVal;
     }
 
-    public static <T, K> List<K> mapWithIndex(List<T> values, Func2<Integer, T, K> func)
+    public static <T, K> List<K> map(List<T> values, Func2<Integer, T, K> func)
     {
         List<K> retVal = newArrayList();
         for (int i = 0; i < values.size(); i++) {
