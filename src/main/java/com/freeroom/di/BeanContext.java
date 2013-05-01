@@ -48,12 +48,7 @@ public class BeanContext
     public Collection<?> getBeans()
     {
         makePodsReady();
-        return transform(beanPackage.getPods(), new Function<Pod, Object>() {
-            @Override
-            public Object apply(final Pod pod) {
-                return pod.getBean().get();
-            }
-        });
+        return transform(beanPackage.getPods(), pod -> pod.getBean().get());
     }
 
     public Optional<?> getBean(final Class<?> clazz)
@@ -109,22 +104,12 @@ public class BeanContext
 
     private Collection<?> getBeansCanBeAssignedTo(final Class<?> clazz)
     {
-        return filter(getBeans(), new Predicate<Object>() {
-            @Override
-            public boolean apply(final Object bean) {
-                return clazz.isAssignableFrom(bean.getClass());
-            }
-        });
+        return filter(getBeans(), bean -> clazz.isAssignableFrom(bean.getClass()));
     }
 
     private Collection<Pod> getPodsHaveName(final String name)
     {
-        return filter(beanPackage.getPods(), new Predicate<Pod>() {
-            @Override
-            public boolean apply(final Pod pod) {
-                return pod.hasName(name);
-            }
-        });
+        return filter(beanPackage.getPods(), pod -> pod.hasName(name));
     }
 
     private void assertNotMoreThanOneBean(final Class<?> clazz, final Collection<?> beans)
