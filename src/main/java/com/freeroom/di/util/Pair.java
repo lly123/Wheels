@@ -16,12 +16,12 @@ public class Pair<A, B>
         this.snd = snd;
     }
 
-    private static boolean equals(Object x, Object y)
+    private static boolean equals(final Object x, final Object y)
     {
         return (x == null && y == null) || (x != null && x.equals(y));
     }
 
-    public boolean equals(Object other)
+    public boolean equals(final Object other)
     {
         return other instanceof Pair<?,?> &&
             equals(fst, ((Pair<?,?>)other).fst) &&

@@ -1,10 +1,8 @@
 package com.freeroom.di;
 
 import com.freeroom.di.annotations.Inject;
-import com.google.common.base.Optional;
-import com.google.common.base.Predicate;
-import com.google.common.collect.ImmutableList;
 import com.freeroom.di.util.Pair;
+import com.google.common.base.Optional;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
@@ -60,7 +58,7 @@ class ConstructorHole extends Hole
         return map(copyOf(constructor.getParameterAnnotations()),
                 (i, annotations) -> Pair.of(constructor.getParameterTypes()[i],
                         constructor.isAnnotationPresent(Inject.class) ?
-                                Pair.of(true, Optional.<String>absent()) :
+                                Pair.of(true, absent()) :
                                 getInjectInfo(annotations)));
     }
 
@@ -85,16 +83,10 @@ class ConstructorHole extends Hole
         final Optional<String> beanNameForInject = param.snd.snd;
 
         if (hasInjectAnnotationOnParam) {
-            final List<Pod> eligiblePods = copyOf(filter(pods, new Predicate<Pod>() {
-                @Override
-                public boolean apply(final Pod pod) {
-                    if (beanNameForInject.isPresent()) {
-                        return pod.hasName(beanNameForInject.get());
-                    } else {
-                        return paramClass.isAssignableFrom(pod.getBeanClass());
-                    }
-                }
-            }));
+            final List<Pod> eligiblePods = copyOf(filter(pods, pod ->
+                    beanNameForInject.isPresent() ? pod.hasName(beanNameForInject.get()) :
+                            paramClass.isAssignableFrom(pod.getBeanClass())));
+
             assertPodExists(paramClass, eligiblePods);
             assertNotMoreThanOnePod(paramClass, eligiblePods);
             return of(eligiblePods.get(0));
@@ -110,23 +102,17 @@ class ConstructorHole extends Hole
 
     private Pair<Boolean, Optional<String>> getInjectInfo(final Annotation[] annotations)
     {
-        final List<Annotation> injectAnnotations = copyOf(filter(copyOf(annotations), new Predicate<Annotation>() {
-            @Override
-            public boolean apply(final Annotation annotation) {
-                return annotation.annotationType().equals(Inject.class);
-            }
-        }));
+        final List<Annotation> injectAnnotations = copyOf(filter(copyOf(annotations),
+                annotation -> annotation.annotationType().equals(Inject.class)));
 
-        if (injectAnnotations.size() > 0) {
-            return Pair.of(true, getInjectBeanName(injectAnnotations.get(0)));
-        }
-
-        return Pair.of(false, Optional.<String>absent());
+        return injectAnnotations.size() > 0 ?
+                Pair.of(true, getInjectBeanName((Inject) injectAnnotations.get(0))) :
+                Pair.of(false, absent());
     }
 
-    private Optional<String> getInjectBeanName(final Annotation annotation)
+    private Optional<String> getInjectBeanName(final Inject annotation)
     {
-        return isNullOrEmpty(((Inject)annotation).value()) ?
-                Optional.<String>absent() : of(((Inject) annotation).value());
+        return isNullOrEmpty(annotation.value()) ?
+                absent() : of(annotation.value());
     }
 }
