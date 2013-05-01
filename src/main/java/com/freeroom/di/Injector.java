@@ -6,6 +6,7 @@ import com.google.common.base.Predicate;
 import java.util.Collection;
 import java.util.Stack;
 
+import static com.freeroom.di.util.FuncUtils.each;
 import static com.google.common.collect.Collections2.filter;
 
 class Injector
@@ -81,16 +82,12 @@ class Injector
 
     private void populateFieldDependencies(final SoyPod pod)
     {
-        for (final FieldHole hole : pod.getFieldHoles()) {
-            hole.fill(pods);
-        }
+        each(pod.getFieldHoles(), hole -> hole.fill(pods));
     }
 
     private void populateSetterDependencies(final SoyPod pod)
     {
-        for (final SetterHole hole : pod.getSetterHoles()) {
-            hole.fill(pods);
-        }
+        each(pod.getSetterHoles(), hole -> hole.fill(pods));
     }
 
     private void assertNoCycleDependency(final SoyPod pod, final SoyPod unreadyPod, final Stack<Pod> waitingForConstruction)
@@ -105,11 +102,6 @@ class Injector
 
     private Collection<Pod> findUnreadyPods(final Collection<Pod> pods)
     {
-        return filter(pods, new Predicate<Pod>() {
-            @Override
-            public boolean apply(final Pod pod) {
-                return !pod.isBeanReady();
-            }
-        });
+        return filter(pods, pod -> !pod.isBeanReady());
     }
 }

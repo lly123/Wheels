@@ -23,4 +23,11 @@ public class FuncUtils
         }
         return retVal;
     }
+
+    public static <T> void each(Iterable<T> values, Func0<T> func)
+    {
+        for (T value : values) {
+            func.call(value);
+        }
+    }
 }
