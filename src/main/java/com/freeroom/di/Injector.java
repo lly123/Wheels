@@ -74,10 +74,10 @@ class Injector
         final Collection<SoyPod> unreadyPods = constructorHole.getUnreadyPods();
 
         waitingForConstruction.push(pod);
-        for (final SoyPod unreadyPod : unreadyPods) {
+        each(unreadyPods, unreadyPod -> {
             waitingForConstruction.push(unreadyPod);
             assertNoCycleDependency(pod, unreadyPod, waitingForConstruction);
-        }
+        });
     }
 
     private void populateFieldDependencies(final SoyPod pod)

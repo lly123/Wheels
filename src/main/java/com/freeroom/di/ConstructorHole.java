@@ -9,6 +9,7 @@ import java.lang.reflect.Constructor;
 import java.util.Collection;
 import java.util.List;
 
+import static com.freeroom.di.util.FuncUtils.each;
 import static com.freeroom.di.util.FuncUtils.map;
 import static com.google.common.base.Optional.absent;
 import static com.google.common.base.Optional.of;
@@ -38,7 +39,7 @@ class ConstructorHole extends Hole
     public void fill(final Collection<Pod> pods)
     {
         readyBeans.clear();
-        for (final Pair<Class, Pair<Boolean, Optional<String>>> param : getParameters()) {
+        each(getParameters(), param -> {
             final Optional<Pod> pod = getPodForFill(param, pods);
 
             if (pod.isPresent()) {
@@ -50,7 +51,7 @@ class ConstructorHole extends Hole
             } else {
                 readyBeans.add(null);
             }
-        }
+        });
     }
 
     private List<Pair<Class, Pair<Boolean, Optional<String>>>> getParameters()
@@ -82,17 +83,18 @@ class ConstructorHole extends Hole
         final Boolean hasInjectAnnotationOnParam = param.snd.fst;
         final Optional<String> beanNameForInject = param.snd.snd;
 
+        Optional<Pod> eligiblePod = absent();
         if (hasInjectAnnotationOnParam) {
             final List<Pod> eligiblePods = copyOf(filter(pods, pod ->
-                    beanNameForInject.isPresent() ? pod.hasName(beanNameForInject.get()) :
+                    beanNameForInject.isPresent() ?
+                            pod.hasName(beanNameForInject.get()) :
                             paramClass.isAssignableFrom(pod.getBeanClass())));
 
             assertPodExists(paramClass, eligiblePods);
             assertNotMoreThanOnePod(paramClass, eligiblePods);
-            return of(eligiblePods.get(0));
-        } else {
-            return absent();
+            eligiblePod = of(eligiblePods.get(0));
         }
+        return eligiblePod;
     }
 
     private boolean isNoParameters()

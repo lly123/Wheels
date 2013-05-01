@@ -2,20 +2,18 @@ package com.freeroom.di;
 
 import com.freeroom.di.annotations.Scope;
 import com.freeroom.di.exceptions.NotUniqueException;
-import com.freeroom.di.util.Func;
-import com.google.common.base.Function;
 import com.google.common.base.Optional;
-import com.google.common.base.Predicate;
 
 import java.util.Collection;
 import java.util.List;
 
+import static com.freeroom.di.util.FuncUtils.each;
 import static com.freeroom.di.util.FuncUtils.reduce;
 import static com.google.common.base.Optional.absent;
 import static com.google.common.base.Optional.of;
 import static com.google.common.collect.Collections2.filter;
 import static com.google.common.collect.Collections2.transform;
-import static com.google.common.collect.ImmutableList.copyOf;
+import static com.google.common.collect.Iterables.toArray;
 import static com.google.common.collect.Lists.newArrayList;
 
 public class BeanContext
@@ -57,7 +55,7 @@ public class BeanContext
 
         assertNotMoreThanOneBean(clazz, beans);
 
-        return ((beans.size() == 1) ? of(beans.toArray()[0]) : absent());
+        return beans.size() == 1 ? of(toArray(beans, Object.class)[0]) : absent();
     }
 
     public Optional<?> getBean(final String name)
@@ -67,12 +65,7 @@ public class BeanContext
         final Collection<Pod> pods = getPodsHaveName(name);
         assertNotMoreThanOnePod(name, pods);
 
-        return ((pods.size() == 1) ? ((Pod)pods.toArray()[0]).getBean() : absent());
-    }
-
-    Collection<Pod> getPods()
-    {
-        return beanPackage.getPods();
+        return pods.size() == 1 ? toArray(pods, Pod.class)[0].getBean() : absent();
     }
 
     private void makePodsReady()
@@ -128,10 +121,11 @@ public class BeanContext
 
     private void cleanRequiredScopeBeans()
     {
-        for (final Pod pod : beanPackage.getPods()) {
-            if (pod.getScope().equals(Scope.Required)) {
-                pod.removeBean();
-            }
-        }
+        each(beanPackage.getPods(), pod -> { if (pod.getScope().equals(Scope.Required)) pod.removeBean(); });
+    }
+
+    private Collection<Pod> getPods()
+    {
+        return beanPackage.getPods();
     }
 }

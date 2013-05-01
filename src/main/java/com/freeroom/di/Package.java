@@ -4,6 +4,7 @@ import com.freeroom.di.annotations.Bean;
 import com.freeroom.di.annotations.BeanFactory;
 import com.freeroom.di.exceptions.NotUniqueException;
 import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
 import java.io.File;
@@ -15,9 +16,11 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Stack;
 
+import static com.freeroom.di.util.FuncUtils.each;
 import static com.freeroom.di.util.FuncUtils.reduce;
 import static com.google.common.base.Optional.absent;
 import static com.google.common.base.Optional.of;
+import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.Thread.currentThread;
 
@@ -57,24 +60,24 @@ class Package
 
     private void loadPodsInPath(final Stack<File> pathStack)
     {
-        final List<File> beanFiles = newArrayList();
-        for (final File file : pathStack.pop().listFiles()) {
-            if (isDirectory(file)) {
-                pathStack.push(file);
-            } else if(isClassFile(file)) {
-                beanFiles.add(file);
-            }
-        }
-        final Collection<Pod> podsInPath = createPods(beanFiles);
-        savePods(podsInPath);
+        savePods(createPods(
+            reduce(newArrayList(), copyOf(pathStack.pop().listFiles()), (beanFiles, file) -> {
+                if (isDirectory(file)) {
+                    pathStack.push(file);
+                } else if (isClassFile(file)) {
+                    beanFiles.add(file);
+                }
+                return beanFiles;
+            })
+        ));
     }
 
     private void savePods(final Collection<Pod> podsInPath)
     {
-        for (final Pod pod : podsInPath) {
+        each(podsInPath, pod -> {
             assertNoPodsAreSame(pod);
             pods.add(pod);
-        }
+        });
     }
 
     private Collection<Pod> createPods(final List<File> beanFiles)
@@ -94,11 +97,11 @@ class Package
 
     private Collection<PeaPod> createPodsFromFactory(final Class beanFactoryClass)
     {
-        final List<PeaPod> peaPods = newArrayList();
-        for (final Method beanConstructor : beanFactoryClass.getDeclaredMethods()) {
-            peaPods.add(new PeaPod(beanFactoryClass, beanConstructor));
-        }
-        return peaPods;
+        return reduce(newArrayList(), copyOf(beanFactoryClass.getDeclaredMethods()),
+                (peaPods, beanConstructor) -> {
+                    peaPods.add(new PeaPod(beanFactoryClass, beanConstructor));
+                    return peaPods;
+                });
     }
 
     private Optional<URL> getPackagePath()
@@ -111,7 +114,6 @@ class Package
         } catch (IOException e) {
             throw new RuntimeException("Can't get resources from IO.", e);
         }
-
         return absent();
     }
 

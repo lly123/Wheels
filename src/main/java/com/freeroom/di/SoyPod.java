@@ -17,6 +17,7 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.List;
 
+import static com.freeroom.di.util.FuncUtils.each;
 import static com.freeroom.di.util.FuncUtils.reduce;
 import static com.google.common.base.Optional.absent;
 import static com.google.common.collect.ImmutableList.copyOf;
@@ -66,9 +67,7 @@ class SoyPod extends Pod
     {
         final ConstructorHole hole = (ConstructorHole) getConstructorHole();
         hole.fill(pods);
-        if (hole.isFilled()) {
-            createBean(hole);
-        }
+        if (hole.isFilled()) createBean(hole);
     }
 
     @Override
@@ -137,18 +136,14 @@ class SoyPod extends Pod
 
     private boolean isConstructorForInjection(final Constructor constructor)
     {
-        return any(copyOf(constructor.getParameterAnnotations()), annotations -> containsInjectAnnotation(annotations))
-                || constructor.isAnnotationPresent(Inject.class);
+        return any(copyOf(constructor.getParameterAnnotations()),
+                annotations -> containsInjectAnnotation(annotations)) ||
+                        constructor.isAnnotationPresent(Inject.class);
     }
 
     private boolean containsInjectAnnotation(final Annotation[] annotations)
     {
-        return any(copyOf(annotations), new Predicate<Annotation>() {
-            @Override
-            public boolean apply(final Annotation annotation) {
-                return annotation.annotationType().equals(Inject.class);
-            }
-        });
+        return any(copyOf(annotations), annotation -> annotation.annotationType().equals(Inject.class));
     }
 
     private List<Hole> findFieldHoles()
@@ -175,22 +170,20 @@ class SoyPod extends Pod
 
     private void populateBeanFields()
     {
-        final Collection<FieldHole> fieldHoles = getFieldHoles();
-        try {
-            for (final FieldHole hole : fieldHoles) {
+        each(getFieldHoles(), hole -> {
+            try {
                 hole.getField().set(getBean().get(), hole.getBean());
-            }
-        } catch (Exception ignored) {}
+            } catch (Exception ignored) {}
+        });
     }
 
     private void callBeanSetters()
     {
-        final Collection<SetterHole> setterHoles = getSetterHoles();
-        try {
-            for (final SetterHole hole : setterHoles) {
+        each(getSetterHoles(), hole ->{
+            try {
                 hole.getMethod().invoke(getBean().get(), hole.getBean());
-            }
-        } catch (Exception ignored) {}
+            } catch (Exception ignored) {}
+        });
     }
 
     public List<FieldHole> getFieldHoles()
