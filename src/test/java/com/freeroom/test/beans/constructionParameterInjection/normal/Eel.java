@@ -1,4 +1,4 @@
-package com.freeroom.test.beans.constructionParameterInjection;
+package com.freeroom.test.beans.constructionParameterInjection.normal;
 
 import com.freeroom.di.annotations.Bean;
 import com.freeroom.di.annotations.Inject;

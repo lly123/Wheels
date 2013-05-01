@@ -135,15 +135,6 @@ public class SoyPodTest
     }
 
     @Test(expected = NoBeanException.class)
-    public void should_throw_NoBeanException_given_no_bean_for_constructor_parameter()
-    {
-        final SoyPod pod = new SoyPod(Flamingo.class);
-
-        final Hole constructorHole = pod.getHoles().get(0);
-        constructorHole.fill(podsPool);
-    }
-
-    @Test(expected = NoBeanException.class)
     public void should_throw_NoBeanException_given_filling_bean_type_is_wrong()
     {
         final SoyPod pod = new SoyPod(Hedgehog.class);
@@ -157,7 +148,7 @@ public class SoyPodTest
         final SoyPod pod = new SoyPod(Tarsier.class);
 
         final ConstructorHole hole = (ConstructorHole) pod.getHoles().get(0);
-        hole.fill(studentPodIsUnready());
+        hole.fill(pangolinPodIsUnready());
 
         assertThat(hole.isFilled(), is(false));
         assertThat(hole.getUnreadyPods().size(), is(1));
@@ -214,7 +205,7 @@ public class SoyPodTest
         return asList(squidPod, mosquitoPod, boaPod, mackerelsPod);
     }
 
-    private Collection<Pod> studentPodIsUnready()
+    private Collection<Pod> pangolinPodIsUnready()
     {
         final Pod boaPod = new SoyPod(Boa.class);
         ((SoyPod)boaPod).tryConstructBean(EMPTY_LIST);

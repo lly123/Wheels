@@ -6,7 +6,7 @@ import com.freeroom.test.beans.beanFactory.Dove;
 import com.freeroom.test.beans.beanFactory.Pheasant;
 import com.freeroom.test.beans.beanFactory.Toad;
 import com.freeroom.test.beans.beanFactory.Tuna;
-import com.freeroom.test.beans.constructionParameterInjection.Eel;
+import com.freeroom.test.beans.constructionParameterInjection.normal.Eel;
 import com.freeroom.test.beans.constructionParameterInjection.withName.Turbot;
 import com.freeroom.test.beans.constructorInjection.subPackage.Caribou;
 import com.freeroom.test.beans.constructorInjection.subPackage.Marmot;
@@ -146,7 +146,7 @@ public class BeanContextTest
     public void should_resolve_bean_by_constructor_parameter_injection()
     {
         final BeanContext parentContext = BeanContext.load("com.freeroom.test.beans.sameBeanName");
-        final BeanContext context = BeanContext.load("com.freeroom.test.beans.constructionParameterInjection", parentContext);
+        final BeanContext context = BeanContext.load("com.freeroom.test.beans.constructionParameterInjection.normal", parentContext);
 
         final Optional<?> eel = context.getBean("Eel");
 
@@ -158,7 +158,7 @@ public class BeanContextTest
     {
         final BeanContext grandpaContext = BeanContext.load("com.freeroom.test.beans.requiredScope");
         final BeanContext parentContext = BeanContext.load("com.freeroom.test.beans.sameBeanName", grandpaContext);
-        final BeanContext context = BeanContext.load("com.freeroom.test.beans.constructionParameterInjection", parentContext);
+        final BeanContext context = BeanContext.load("com.freeroom.test.beans.constructionParameterInjection.normal", parentContext);
 
         final Optional<?> eel = context.getBean("Eel");
 

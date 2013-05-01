@@ -5,7 +5,7 @@ import com.freeroom.di.util.Func2;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
-import com.sun.tools.javac.util.Pair;
+import com.freeroom.di.util.Pair;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
@@ -62,7 +62,8 @@ class ConstructorHole extends Hole
                 new Func2<Integer, Annotation[], Pair<Class, Pair<Boolean, Optional<String>>>>() {
                     @Override
                     public Pair<Class, Pair<Boolean, Optional<String>>> call(Integer i, Annotation[] annotations) {
-                        return Pair.of(constructor.getParameterTypes()[i], getInjectInfo(annotations));
+                        return Pair.of(constructor.getParameterTypes()[i],
+                                getInjectInfo(annotations, constructor.isAnnotationPresent(Inject.class)));
                     }
                 });
     }
@@ -111,8 +112,12 @@ class ConstructorHole extends Hole
         return constructor.getParameterTypes().length == 0;
     }
 
-    private Pair<Boolean, Optional<String>> getInjectInfo(final Annotation[] annotations)
+    private Pair<Boolean, Optional<String>> getInjectInfo(final Annotation[] annotations, boolean injectOnConstructor)
     {
+        if (injectOnConstructor) {
+            return Pair.of(true, Optional.<String>absent());
+        }
+
         final List<Annotation> injectAnnotations = copyOf(filter(copyOf(annotations), new Predicate<Annotation>() {
             @Override
             public boolean apply(final Annotation annotation) {
