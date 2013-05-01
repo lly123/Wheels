@@ -15,12 +15,7 @@ public class FuncUtilsTest
     public void should_sum_integers()
     {
         Collection<Integer> integers = newArrayList(1, 2, 3);
-        Integer sum = reduce(0, integers, new Func<Integer, Integer>() {
-            @Override
-            public Integer call(final Integer s, final Integer v) {
-                return s + v;
-            }
-        });
+        Integer sum = reduce(0, integers, (s, v) -> s + v);
         assertThat(sum, is(6));
     }
 }

@@ -99,14 +99,11 @@ public class BeanContext
 
     private List<Pod> excludeDuplicatedPods(final List<Pod> pods, final Collection<Pod> parentContextPods)
     {
-        return reduce(pods, parentContextPods, new Func<List<Pod>, Pod>() {
-            @Override
-            public List<Pod> call(final List<Pod> selectedPods, final Pod pod) {
-                if (!selectedPods.contains(pod)) {
-                    selectedPods.add(pod);
-                }
-                return selectedPods;
+        return reduce(pods, parentContextPods, (selectedPods, pod) -> {
+            if (!selectedPods.contains(pod)) {
+                selectedPods.add(pod);
             }
+            return selectedPods;
         });
     }
 

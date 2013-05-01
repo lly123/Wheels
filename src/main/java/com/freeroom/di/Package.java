@@ -77,19 +77,16 @@ class Package
 
     private Collection<Pod> createPods(final List<File> beanFiles)
     {
-        return reduce(Lists.<Pod>newArrayList(), beanFiles, new Func<List<Pod>, File>() {
-            @Override
-            public List<Pod> call(final List<Pod> pods, final File file) {
-                try {
-                    final Class beanClass = loadClass(packageName, file.getAbsolutePath());
-                    if (beanClass.isAnnotationPresent(Bean.class)) {
-                        pods.add(new SoyPod(beanClass));
-                    } else if (beanClass.isAnnotationPresent(BeanFactory.class)) {
-                        pods.addAll(createPodsFromFactory(beanClass));
-                    }
-                } catch (ClassNotFoundException ignored) {}
-                return pods;
-            }
+        return reduce(Lists.<Pod>newArrayList(), beanFiles, (pods, file) -> {
+            try {
+                final Class beanClass = loadClass(packageName, file.getAbsolutePath());
+                if (beanClass.isAnnotationPresent(Bean.class)) {
+                    pods.add(new SoyPod(beanClass));
+                } else if (beanClass.isAnnotationPresent(BeanFactory.class)) {
+                    pods.addAll(createPodsFromFactory(beanClass));
+                }
+            } catch (ClassNotFoundException ignored) {}
+            return pods;
         });
     }
 

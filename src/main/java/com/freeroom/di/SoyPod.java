@@ -129,15 +129,12 @@ class SoyPod extends Pod
     {
          final Optional<Hole> constructorHole = reduce(Optional.<Hole>absent(),
                 Lists.<Constructor>newArrayList(beanClass.getConstructors()),
-                new Func<Optional<Hole>, Constructor>() {
-                    @Override
-                    public Optional<Hole> call(Optional<Hole> hole, final Constructor constructor) {
-                        if (isConstructorForInjection(constructor)) {
-                            assertNoConstructorHoleBefore(hole);
-                            hole = Optional.<Hole>of(new ConstructorHole(constructor));
-                        }
-                        return hole;
+                (hole, constructor) -> {
+                    if (isConstructorForInjection(constructor)) {
+                        assertNoConstructorHoleBefore(hole);
+                        hole = Optional.<Hole>of(new ConstructorHole(constructor));
                     }
+                    return hole;
                 });
 
          return constructorHole.isPresent() ? constructorHole.get() : new ConstructorHole(getDefaultConstructor());
@@ -166,28 +163,22 @@ class SoyPod extends Pod
     private List<Hole> findFieldHoles()
     {
         return reduce(Lists.<Hole>newArrayList(), newArrayList(beanClass.getDeclaredFields()),
-                new Func<List<Hole>, Field>() {
-                    @Override
-                    public List<Hole> call(final List<Hole> injectionFields, final Field field) {
-                        if (field.isAnnotationPresent(Inject.class)) {
-                            injectionFields.add(new FieldHole(field));
-                        }
-                        return injectionFields;
+                (injectionFields, field) -> {
+                    if (field.isAnnotationPresent(Inject.class)) {
+                        injectionFields.add(new FieldHole(field));
                     }
+                    return injectionFields;
                 });
     }
 
     private List<Hole> findSetterHoles() {
         return reduce(Lists.<Hole>newArrayList(), newArrayList(beanClass.getDeclaredMethods()),
-                new Func<List<Hole>, Method>() {
-                    @Override
-                    public List<Hole> call(final List<Hole> injectionSetters, final Method method) {
-                        if (method.isAnnotationPresent(Inject.class) && startsWithSetPrefix(method)) {
-                            assertHasOnlyOneParameter(method);
-                            injectionSetters.add(new SetterHole(method));
-                        }
-                        return injectionSetters;
+                (injectionSetters, method) -> {
+                    if (method.isAnnotationPresent(Inject.class) && startsWithSetPrefix(method)) {
+                        assertHasOnlyOneParameter(method);
+                        injectionSetters.add(new SetterHole(method));
                     }
+                    return injectionSetters;
                 });
     }
 
@@ -213,27 +204,21 @@ class SoyPod extends Pod
 
     public List<FieldHole> getFieldHoles()
     {
-        return reduce(Lists.<FieldHole>newArrayList(), holes, new Func<List<FieldHole>, Hole>() {
-            @Override
-            public List<FieldHole> call(final List<FieldHole> fieldHoles, final Hole hole) {
-                if (hole instanceof FieldHole) {
-                    fieldHoles.add((FieldHole) hole);
-                }
-                return fieldHoles;
+        return reduce(Lists.<FieldHole>newArrayList(), holes, (fieldHoles, hole) -> {
+            if (hole instanceof FieldHole) {
+                fieldHoles.add((FieldHole) hole);
             }
+            return fieldHoles;
         });
     }
 
     public List<SetterHole> getSetterHoles()
     {
-        return reduce(Lists.<SetterHole>newArrayList(), holes, new Func<List<SetterHole>, Hole>() {
-            @Override
-            public List<SetterHole> call(final List<SetterHole> setterHoles, final Hole hole) {
-                if (hole instanceof SetterHole) {
-                    setterHoles.add((SetterHole) hole);
-                }
-                return setterHoles;
+        return reduce(Lists.<SetterHole>newArrayList(), holes, (setterHoles, hole) -> {
+            if (hole instanceof SetterHole) {
+                setterHoles.add((SetterHole) hole);
             }
+            return setterHoles;
         });
     }
 

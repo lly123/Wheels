@@ -1,6 +1,5 @@
 package com.freeroom.di.util;
 
-import java.util.Collection;
 import java.util.List;
 
 import static com.google.common.collect.Lists.newArrayList;
