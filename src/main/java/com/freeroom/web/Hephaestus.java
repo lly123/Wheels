@@ -31,8 +31,18 @@ public class Hephaestus
     public Pair<Object, Method> getHandler()
     {
         final String[] parts = req.getRequestURI().split("/");
-        final Object controller = getController(parts[1]);
-        return Pair.of(controller, getControllerMethod(controller, parts[2]));
+        final Object controller = getController(getControllerPrefix(parts));
+        return Pair.of(controller, getControllerMethod(controller, getHandlerName(parts)));
+    }
+
+    private String getControllerPrefix(String[] parts)
+    {
+        return parts.length < 2 ? "Home" : parts[1];
+    }
+
+    private String getHandlerName(String[] parts)
+    {
+        return parts.length < 3 ? "index" : parts[2];
     }
 
     private Method getControllerMethod(final Object controller, final String methodName)

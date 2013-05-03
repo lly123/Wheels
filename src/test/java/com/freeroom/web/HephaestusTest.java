@@ -2,6 +2,7 @@ package com.freeroom.web;
 
 import com.freeroom.di.BeanContext;
 import com.freeroom.web.beans.BooksController;
+import com.freeroom.web.beans.HomeController;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -36,5 +37,14 @@ public class HephaestusTest
         assertThat(hephaestus.getHandler().fst, is(instanceOf(BooksController.class)));
         assertThat(hephaestus.getHandler().snd, is(instanceOf(Method.class)));
         assertThat(hephaestus.getHandler().snd.getName(), is("list"));
+    }
+
+    @Test
+    public void should_use_HomeController_and_index_method_given_no_URI()
+    {
+        final Hephaestus hephaestus = new Hephaestus(beanContext, one().uri("/").build());
+        assertThat(hephaestus.getHandler().fst, is(instanceOf(HomeController.class)));
+        assertThat(hephaestus.getHandler().snd, is(instanceOf(Method.class)));
+        assertThat(hephaestus.getHandler().snd.getName(), is("index"));
     }
 }
