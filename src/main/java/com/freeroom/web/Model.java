@@ -30,4 +30,9 @@ public class Model
     {
         return templateName;
     }
+
+    public Map<String, Object> getMap()
+    {
+        return map;
+    }
 }

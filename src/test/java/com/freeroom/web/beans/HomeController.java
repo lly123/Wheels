@@ -8,6 +8,6 @@ public class HomeController
 {
     public Model index()
     {
-        return new Model("html:html/index.html");
+        return new Model("html:html/hello.html");
     }
 }

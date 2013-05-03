@@ -27,22 +27,16 @@ public class AresTest
     {
         final Hephaestus hephaestus = new Hephaestus(beanContext, one().uri("/").build());
         final Ares ares = new Ares(hephaestus.getHandler().fst, hephaestus.getHandler().snd);
-        assertThat(readText(ares.getContent()), containsString("Hello World!"));
+
+        assertThat(ares.getContent(), containsString("Hello World!"));
     }
 
-    private String readText(final FileChannel content)
+    @Test
+    public void should_render_Velocity_template()
     {
-        StringBuilder sb = new StringBuilder();
-        try {
-            final ByteBuffer byteBuffer = ByteBuffer.allocate(1024);
-            Charset charset = Charset.forName("UTF-8");
-            while(content.read(byteBuffer) != -1) {
-                byteBuffer.flip();
-                sb.append(charset.decode(byteBuffer));
-                byteBuffer.clear();
-            }
-            content.close();
-        } catch (Exception ignored) {}
-        return sb.toString();
+        final Hephaestus hephaestus = new Hephaestus(beanContext, one().uri("/books").build());
+        final Ares ares = new Ares(hephaestus.getHandler().fst, hephaestus.getHandler().snd);
+
+        assertThat(ares.getContent(), containsString("Hello World!"));
     }
 }
