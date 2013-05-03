@@ -35,12 +35,12 @@ public class Hephaestus
         return Pair.of(controller, getControllerMethod(controller, getHandlerName(parts)));
     }
 
-    private String getControllerPrefix(String[] parts)
+    private String getControllerPrefix(final String[] parts)
     {
         return parts.length < 2 ? "Home" : parts[1];
     }
 
-    private String getHandlerName(String[] parts)
+    private String getHandlerName(final String[] parts)
     {
         return parts.length < 3 ? "index" : parts[2];
     }

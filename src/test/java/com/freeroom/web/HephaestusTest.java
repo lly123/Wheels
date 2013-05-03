@@ -47,4 +47,13 @@ public class HephaestusTest
         assertThat(hephaestus.getHandler().snd, is(instanceOf(Method.class)));
         assertThat(hephaestus.getHandler().snd.getName(), is("index"));
     }
+
+    @Test
+    public void should_use_BooksController_and_index_method()
+    {
+        final Hephaestus hephaestus = new Hephaestus(beanContext, one().uri("/books").build());
+        assertThat(hephaestus.getHandler().fst, is(instanceOf(BooksController.class)));
+        assertThat(hephaestus.getHandler().snd, is(instanceOf(Method.class)));
+        assertThat(hephaestus.getHandler().snd.getName(), is("index"));
+    }
 }
