@@ -28,7 +28,7 @@ public class Apollo extends HttpServlet
         req.getQueryString();
         req.getAttributeNames();
 
-        new Hephaestus(req);
+        new Hephaestus(beanContext, req);
 
         try {
             req.getClass().getDeclaredMethod("getSession", boolean.class).getParameters()[0].getName();

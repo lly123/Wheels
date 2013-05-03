@@ -25,6 +25,12 @@ public class RequestBuilder
         return this;
     }
 
+    public RequestBuilder uri(final String path)
+    {
+        given(request.getRequestURI()).willReturn(path);
+        return this;
+    }
+
     public HttpServletRequest build()
     {
         return request;
