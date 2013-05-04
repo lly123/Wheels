@@ -11,6 +11,7 @@ import java.util.Map;
 import static com.freeroom.di.util.FuncUtils.each;
 import static com.google.common.base.Optional.fromNullable;
 import static com.google.common.collect.ImmutableList.copyOf;
+import static java.lang.Boolean.parseBoolean;
 import static java.lang.Integer.parseInt;
 
 public class Cerberus
@@ -56,24 +57,31 @@ public class Cerberus
             if (valueOpt.isPresent()) {
                 final Object value = valueOpt.get();
                 if (value instanceof Cerberus) {
-
+                    final Object filledObj = ((Cerberus) value).fill(field.getType());
+                    setFieldValue(obj, field, filledObj);
                 } else {
-                    setFieldValue(obj, field, (String)value);
+                    setFieldValue(obj, field, value);
                 }
             }
         });
         return obj;
     }
 
-    private void setFieldValue(final Object obj, final Field field, final String value)
+    private void setFieldValue(final Object obj, final Field field, final Object value)
     {
         try {
             field.setAccessible(true);
-            final Class<?> fieldType = field.getType();
-            if (fieldType.equals(String.class)) {
+            if (value instanceof String) {
+                final Class<?> fieldType = field.getType();
+                if (fieldType.equals(String.class)) {
+                    field.set(obj, value);
+                } if (fieldType.equals(int.class) || fieldType.equals(Integer.class)) {
+                    field.setInt(obj, parseInt((String)value));
+                } if (fieldType.equals(boolean.class) || fieldType.equals(Boolean.class)) {
+                    field.setBoolean(obj, parseBoolean((String)value));
+                }
+            } else {
                 field.set(obj, value);
-            } if (fieldType.equals(int.class) || fieldType.equals(Integer.class)) {
-                field.setInt(obj, parseInt(value));
             }
         } catch (Exception ignored) {}
     }

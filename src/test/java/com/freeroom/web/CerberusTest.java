@@ -1,6 +1,7 @@
 package com.freeroom.web;
 
 import com.freeroom.web.beans.Book;
+import com.freeroom.web.beans.Order;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -56,24 +57,34 @@ public class CerberusTest
     }
 
     @Test
-    public void should_fill_out_string_field()
+    public void should_fill_out_fields()
     {
         final Cerberus cerberus = new Cerberus();
         cerberus.add("name=AngularJS");
+        cerberus.add("pageNumber=568");
+        cerberus.add("imported=true");
 
         final Book book = (Book)cerberus.fill(Book.class);
 
         assertThat(book.getName(), is("AngularJS"));
+        assertThat(book.getPageNumber(), is(568));
+        assertThat(book.isImported(), is(true));
     }
 
     @Test
-    public void should_fill_out_integer_field()
+    public void should_fill_out_nested_fields()
     {
         final Cerberus cerberus = new Cerberus();
-        cerberus.add("pageNumber=568");
+        cerberus.add("order_name=lly");
+        cerberus.add("order_address=Beijing");
+        cerberus.add("order_price=108");
 
         final Book book = (Book)cerberus.fill(Book.class);
 
-        assertThat(book.getPageNumber(), is(568));
+        assertThat(book.getOrder(), is(instanceOf(Order.class)));
+        final Order order = book.getOrder();
+        assertThat(order.getName(), is("lly"));
+        assertThat(order.getAddress(), is("Beijing"));
+        assertThat(order.getPrice(), is(108));
     }
 }
