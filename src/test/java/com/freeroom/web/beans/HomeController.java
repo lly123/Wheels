@@ -3,17 +3,19 @@ package com.freeroom.web.beans;
 import com.freeroom.di.annotations.Bean;
 import com.freeroom.web.Model;
 
+import static com.freeroom.web.Model.render;
+
 @Bean
 public class HomeController
 {
     public Model index()
     {
-        return new Model("html:html/hello.html");
+        return render("html:html/hello.html");
     }
 
     public Model mirror(final String name, final String age)
     {
-        return new Model("vm:velocity/person.vm")
+        return render("vm:velocity/person.vm")
                 .put("name", name)
                 .put("age", age);
     }

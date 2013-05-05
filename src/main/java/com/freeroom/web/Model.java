@@ -9,10 +9,15 @@ public class Model
     private final String path;
     private final String templateName;
 
-    public Model(final String view)
+    private Model(final String view)
     {
         this.path = view.substring(view.indexOf(':') + 1);
         this.templateName = view.substring(0, view.indexOf(':'));
+    }
+
+    public static Model render(final String view)
+    {
+        return new Model(view);
     }
 
     public Model put(final String key, final Object value)
