@@ -1,14 +1,13 @@
 package com.freeroom.web;
 
 import com.freeroom.di.BeanContext;
-import org.hamcrest.CoreMatchers;
 import org.junit.Before;
 import org.junit.Test;
 
 import static com.freeroom.util.RequestBuilder.one;
-import static org.hamcrest.CoreMatchers.allOf;
-import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
 
 public class AresTest
 {
@@ -57,5 +56,13 @@ public class AresTest
         final Ares ares = new Ares(hephaestus.getHandler().fst, hephaestus.getHandler().snd, cerberus);
 
         assertThat(ares.getContent(), containsString("book: AngularJS, page number: 358"));
+    }
+
+    @Test
+    public void should_render_js_resource()
+    {
+        final Hephaestus hephaestus = new Hephaestus(beanContext, one().uri("/js/angular.min.js").build());
+
+        assertThat(hephaestus.getHandler().fst, is(instanceOf(Prometheus.class)));
     }
 }

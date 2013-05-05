@@ -68,6 +68,11 @@ public class BeanContext
         return pods.size() == 1 ? toArray(pods, Pod.class)[0].getBean() : absent();
     }
 
+    public void addBean(final Class<?> clazz)
+    {
+        beanPackage.addBean(clazz);
+    }
+
     private void makePodsReady()
     {
         cleanRequiredScopeBeans();

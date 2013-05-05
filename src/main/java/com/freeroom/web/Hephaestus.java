@@ -9,11 +9,13 @@ import javax.servlet.http.HttpServletRequest;
 import java.lang.reflect.Method;
 
 import static com.google.common.collect.ImmutableList.copyOf;
+import static com.google.common.collect.Iterables.any;
 import static com.google.common.collect.Iterables.tryFind;
 
 public class Hephaestus
 {
     private static final String CONTROLLER_BEAN_SUFFIX = "Controller";
+    private static final String[] STATIC_FILE_SUFFIX = new String[]{".js", ".css"};
     private final BeanContext beanContext;
     private final HttpServletRequest req;
 
@@ -31,8 +33,22 @@ public class Hephaestus
     public Pair<Object, Method> getHandler()
     {
         final String[] parts = req.getRequestURI().split("/");
-        final Object controller = getController(getControllerPrefix(parts));
-        return Pair.of(controller, getControllerMethod(controller, getHandlerName(parts)));
+
+        Object controller;
+        String handlerName;
+        if (isStaticResource(parts)) {
+            controller = beanContext.getBean(Prometheus.class).get();
+            handlerName = "index";
+        } else {
+            controller = getController(getControllerPrefix(parts));
+            handlerName = getHandlerName(parts);
+        }
+        return Pair.of(controller, getControllerMethod(controller, handlerName));
+    }
+
+    private boolean isStaticResource(final String[] parts)
+    {
+        return any(copyOf(STATIC_FILE_SUFFIX), suffix -> parts.length > 0 && parts[parts.length - 1].endsWith(suffix));
     }
 
     private String getControllerPrefix(final String[] parts)

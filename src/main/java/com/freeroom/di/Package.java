@@ -41,6 +41,13 @@ class Package
         return pods;
     }
 
+    public void addBean(final Class<?> clazz)
+    {
+        if (clazz.isAnnotationPresent(Bean.class)) {
+            pods.add(new SoyPod(clazz));
+        }
+    }
+
     private void loadPods()
     {
         final Optional<URL> packagePath = getPackagePath();

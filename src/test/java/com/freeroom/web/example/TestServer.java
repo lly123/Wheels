@@ -9,11 +9,10 @@ import static org.eclipse.jetty.servlet.ServletContextHandler.*;
 
 public class TestServer
 {
-    public static void main(String[] args) throws Exception
+    public static void main(final String[] args) throws Exception
     {
-        Server server = new Server(80);
-
-        ServletContextHandler context = new ServletContextHandler(SESSIONS);
+        final Server server = new Server(8080);
+        final ServletContextHandler context = new ServletContextHandler(SESSIONS);
         context.setContextPath("/");
         server.setHandler(context);
 
