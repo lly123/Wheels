@@ -3,8 +3,10 @@ package com.freeroom.web;
 import com.freeroom.di.util.Pair;
 import com.google.common.base.Optional;
 
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -13,10 +15,17 @@ import static com.google.common.base.Optional.fromNullable;
 import static com.google.common.collect.ImmutableList.copyOf;
 import static java.lang.Boolean.parseBoolean;
 import static java.lang.Integer.parseInt;
+import static java.net.URLDecoder.decode;
 
 public class Cerberus
 {
     private final Map<String, Object> map = new HashMap<>();
+    private final String charset;
+
+    public Cerberus(final String charset)
+    {
+        this.charset = charset;
+    }
 
     public Optional<Object> getValue(final String key)
     {
@@ -26,16 +35,25 @@ public class Cerberus
     public void add(final String keyValue)
     {
         final String[] strings = keyValue.split("=");
-        final String key = strings[0];
-        final String value = strings[1];
+        final String key = decode(strings[0]);
+        final String value = decode(strings[1]);
 
         if (isCompositeKey(key)) {
             final Pair<String, String> keys = splitKey(key);
-            final Cerberus sub = map.containsKey(keys.fst) ? (Cerberus)map.get(keys.fst) : new Cerberus();
+            final Cerberus sub = map.containsKey(keys.fst) ? (Cerberus)map.get(keys.fst) : new Cerberus(charset);
             sub.add(keys.snd + "=" + value);
             map.put(keys.fst, sub);
         } else {
             map.put(key, value);
+        }
+    }
+
+    private String decode(final String string)
+    {
+        try {
+            return URLDecoder.decode(string, charset);
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException("Get exception when decoding parameters.", e);
         }
     }
 

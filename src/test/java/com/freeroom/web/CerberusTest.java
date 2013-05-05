@@ -13,7 +13,7 @@ public class CerberusTest
     @Test
     public void should_parse_key_and_value()
     {
-        final Cerberus cerberus = new Cerberus();
+        final Cerberus cerberus = new Cerberus("UTF-8");
         cerberus.add("key=value");
 
         assertThat((String)cerberus.getValue("key").get(), is("value"));
@@ -22,7 +22,7 @@ public class CerberusTest
     @Test
     public void should_add_multiple_key_value_pairs()
     {
-        final Cerberus cerberus = new Cerberus();
+        final Cerberus cerberus = new Cerberus("UTF-8");
         cerberus.add("key1=value1");
         cerberus.add("key2=value2");
 
@@ -33,7 +33,7 @@ public class CerberusTest
     @Test
     public void should_parse_nested_key_and_value()
     {
-        final Cerberus cerberus = new Cerberus();
+        final Cerberus cerberus = new Cerberus("UTF-8");
         cerberus.add("key_nestedKey=value");
 
         assertThat(cerberus.getValue("key").get(), is(instanceOf(Cerberus.class)));
@@ -43,7 +43,7 @@ public class CerberusTest
     @Test
     public void should_parse_nested_multiple_key_values()
     {
-        final Cerberus cerberus = new Cerberus();
+        final Cerberus cerberus = new Cerberus("UTF-8");
         cerberus.add("key_nestedKey=value");
         cerberus.add("key_nestedKey2=value2");
         cerberus.add("key3=value3");
@@ -59,7 +59,7 @@ public class CerberusTest
     @Test
     public void should_fill_out_fields()
     {
-        final Cerberus cerberus = new Cerberus();
+        final Cerberus cerberus = new Cerberus("UTF-8");
         cerberus.add("name=AngularJS");
         cerberus.add("pageNumber=568");
         cerberus.add("imported=true");
@@ -74,7 +74,7 @@ public class CerberusTest
     @Test
     public void should_fill_out_nested_fields()
     {
-        final Cerberus cerberus = new Cerberus();
+        final Cerberus cerberus = new Cerberus("UTF-8");
         cerberus.add("order_name=lly");
         cerberus.add("order_address=Beijing");
         cerberus.add("order_price=108");
