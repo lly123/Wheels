@@ -11,7 +11,7 @@ public class HomeController
         return new Model("html:html/hello.html");
     }
 
-    public Model mirror(String name, String age)
+    public Model mirror(final String name, final String age)
     {
         return new Model("vm:velocity/person.vm")
                 .put("name", name)
