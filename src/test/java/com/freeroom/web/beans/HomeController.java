@@ -10,4 +10,11 @@ public class HomeController
     {
         return new Model("html:html/hello.html");
     }
+
+    public Model mirror(String name, String age)
+    {
+        return new Model("vm:velocity/person.vm")
+                .put("name", name)
+                .put("age", age);
+    }
 }

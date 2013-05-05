@@ -1,5 +1,8 @@
 package com.freeroom.web;
 
+import com.google.common.collect.ImmutableList;
+import com.thoughtworks.paranamer.BytecodeReadingParanamer;
+import com.thoughtworks.paranamer.CachingParanamer;
 import org.apache.commons.collections.ExtendedProperties;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
@@ -14,6 +17,9 @@ import java.nio.charset.Charset;
 import java.util.Map;
 
 import static com.freeroom.di.util.FuncUtils.each;
+import static com.freeroom.di.util.FuncUtils.reduce;
+import static com.google.common.collect.ImmutableList.copyOf;
+import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.Thread.currentThread;
 import static org.apache.velocity.runtime.RuntimeConstants.FILE_RESOURCE_LOADER_PATH;
 
@@ -21,17 +27,19 @@ public class Ares
 {
     private final Object controller;
     private final Method method;
+    private final Cerberus cerberus;
 
-    public Ares(final Object controller, final Method method)
+    public Ares(final Object controller, final Method method, Cerberus cerberus)
     {
         this.controller = controller;
         this.method = method;
+        this.cerberus = cerberus;
     }
 
     public String getContent()
     {
         try {
-            final Object model = method.invoke(controller);
+            final Object model = method.invoke(controller, resolveArgs());
             assertTypeIsModel(model);
 
             final String templateName = ((Model)model).getTemplateName();
@@ -45,6 +53,17 @@ public class Ares
         } catch (Exception e) {
             throw new RuntimeException("Get exception when generate content: ", e);
         }
+    }
+
+    private Object[] resolveArgs()
+    {
+        final CachingParanamer pegasus = new CachingParanamer(new BytecodeReadingParanamer());
+        final String[] paramNames = pegasus.lookupParameterNames(method);
+
+        return reduce(newArrayList(), copyOf(paramNames), (s, paramName) -> {
+            s.add(cerberus.getValue(paramName).orNull());
+            return s;
+        }).toArray();
     }
 
     private String renderVelocityTemplate(final Model model)

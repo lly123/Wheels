@@ -32,7 +32,7 @@ public class Cerberus
         return fromNullable(map.get(key));
     }
 
-    public void add(final String keyValue)
+    public Cerberus add(final String keyValue)
     {
         final String[] strings = keyValue.split("=");
         final String key = decode(strings[0]);
@@ -46,6 +46,7 @@ public class Cerberus
         } else {
             map.put(key, value);
         }
+        return this;
     }
 
     private String decode(final String string)
