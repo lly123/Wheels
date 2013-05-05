@@ -47,4 +47,15 @@ public class AresTest
 
         assertThat(ares.getContent(), allOf(containsString("lly"), containsString("98")));
     }
+
+    @Test
+    public void should_resolve_nested_parameter()
+    {
+        final Hephaestus hephaestus = new Hephaestus(beanContext, one().uri("/books/create").build());
+        final Cerberus cerberus = new Cerberus("UTF-8").add("book_name=AngularJS").add("book_pageNumber=358");
+
+        final Ares ares = new Ares(hephaestus.getHandler().fst, hephaestus.getHandler().snd, cerberus);
+
+        assertThat(ares.getContent(), containsString("book: AngularJS, page number: 358"));
+    }
 }

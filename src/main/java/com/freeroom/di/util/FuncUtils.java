@@ -15,6 +15,17 @@ public class FuncUtils
         return retVal;
     }
 
+    public static <T, K> T reduce(T defaultValue, Iterable<K> values, FuncWithIndex<T, K> func)
+    {
+        T retVal = defaultValue;
+        int index = 0;
+        for (K value : values) {
+            retVal = func.call(retVal, value, index);
+            index++;
+        }
+        return retVal;
+    }
+
     public static <T, K> List<K> map(List<T> values, Func2<Integer, T, K> func)
     {
         List<K> retVal = newArrayList();

@@ -14,4 +14,10 @@ public class BooksController
     public void list()
     {
     }
+
+    public Model create(final Book book)
+    {
+        return new Model("vm:velocity/success.vm").put("text",
+                "book: " + book.getName() + ", page number: " + book.getPageNumber());
+    }
 }

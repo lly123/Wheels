@@ -1,5 +1,6 @@
 package com.freeroom.web;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.thoughtworks.paranamer.BytecodeReadingParanamer;
 import com.thoughtworks.paranamer.CachingParanamer;
@@ -60,8 +61,14 @@ public class Ares
         final CachingParanamer pegasus = new CachingParanamer(new BytecodeReadingParanamer());
         final String[] paramNames = pegasus.lookupParameterNames(method);
 
-        return reduce(newArrayList(), copyOf(paramNames), (s, paramName) -> {
-            s.add(cerberus.getValue(paramName).orNull());
+        return reduce(newArrayList(), copyOf(paramNames), (s, paramName, i) -> {
+            final Optional<Object> valueOpt = cerberus.getValue(paramName);
+
+            if (valueOpt.isPresent() && valueOpt.get() instanceof Cerberus) {
+                s.add(((Cerberus)valueOpt.get()).fill(method.getParameterTypes()[i]));
+            } else {
+                s.add(valueOpt.orNull());
+            }
             return s;
         }).toArray();
     }
