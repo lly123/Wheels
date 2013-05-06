@@ -15,7 +15,7 @@ import static com.google.common.collect.Iterables.tryFind;
 public class Hephaestus
 {
     private static final String CONTROLLER_BEAN_SUFFIX = "Controller";
-    private static final String[] STATIC_FILE_SUFFIX = new String[]{".js", ".css"};
+    private static final String[] RESOURCE_FILE_SUFFIX = new String[]{".js", ".css"};
     private final BeanContext beanContext;
     private final HttpServletRequest req;
 
@@ -48,7 +48,7 @@ public class Hephaestus
 
     private boolean isStaticResource(final String[] parts)
     {
-        return any(copyOf(STATIC_FILE_SUFFIX), suffix -> parts.length > 0 && parts[parts.length - 1].endsWith(suffix));
+        return any(copyOf(RESOURCE_FILE_SUFFIX), suffix -> parts.length > 0 && parts[parts.length - 1].endsWith(suffix));
     }
 
     private String getControllerPrefix(final String[] parts)

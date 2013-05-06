@@ -9,6 +9,6 @@ public class Prometheus
 {
     public Model index(final String uri)
     {
-        return render("html:" + uri.substring(1));
+        return render("res:" + uri.substring(1));
     }
 }

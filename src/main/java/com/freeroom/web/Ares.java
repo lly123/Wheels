@@ -8,10 +8,7 @@ import org.apache.commons.collections.ExtendedProperties;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.StringWriter;
+import java.io.*;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -46,10 +43,11 @@ public class Ares
             assertTypeIsModel(model);
 
             final String templateName = ((Model)model).getTemplateName();
-            if (templateName.equals("html")) {
-                final String file = getClassLoader().getResource(((Model)model).getPath()).getFile();
+            if (templateName.equals("res")) {
+                return readFromChannel(getRenderFileChannel((Model)model));
+            } else if (templateName.equals("html")) {
                 return renderHtmlTemplate(
-                        readFromChannel(new FileInputStream(new File(file)).getChannel()),
+                        readFromChannel(getRenderFileChannel((Model)model)),
                         (Model)model);
             } else if (templateName.equals("vm")) {
                 return renderVelocityTemplate((Model)model);
@@ -58,6 +56,12 @@ public class Ares
         } catch (Exception e) {
             throw new RuntimeException("Get exception when generate content: ", e);
         }
+    }
+
+    private FileChannel getRenderFileChannel(final Model model) throws FileNotFoundException
+    {
+        final String filePath = getClassLoader().getResource(model.getPath()).getFile();
+        return new FileInputStream(new File(filePath)).getChannel();
     }
 
     private Object[] resolveArgs()
