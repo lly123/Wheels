@@ -16,6 +16,7 @@ import static com.google.common.collect.ImmutableList.copyOf;
 import static java.lang.Boolean.parseBoolean;
 import static java.lang.Double.parseDouble;
 import static java.lang.Integer.parseInt;
+import static java.lang.Long.parseLong;
 
 public class Cerberus
 {
@@ -35,8 +36,16 @@ public class Cerberus
     public Cerberus add(final String keyValue)
     {
         final String[] strings = keyValue.split("=");
+        if (strings.length < 2) {
+            return this;
+        }
+
         final String key = decode(strings[0]);
         final String value = decode(strings[1]);
+
+        if (map.containsKey(key)) {
+            return this;
+        }
 
         if (isCompositeKey(key)) {
             final Pair<String, String> keys = splitKey(key);
@@ -47,6 +56,11 @@ public class Cerberus
             map.put(key, value);
         }
         return this;
+    }
+
+    public void addValues(final String keyValues)
+    {
+        each(copyOf(keyValues.split("&")), keyValue -> add(keyValue));
     }
 
     private String decode(final String string)
@@ -95,9 +109,11 @@ public class Cerberus
                 if (fieldType.equals(String.class)) {
                     field.set(obj, value);
                 } if (fieldType.equals(int.class) || fieldType.equals(Integer.class)) {
-                    field.setInt(obj, parseInt((String) value));
+                    field.setInt(obj, parseInt((String)value));
+                } if (fieldType.equals(long.class) || fieldType.equals(Long.class)) {
+                    field.setLong(obj, parseLong((String)value));
                 } if (fieldType.equals(double.class) || fieldType.equals(Double.class)) {
-                    field.setDouble(obj, parseDouble((String) value));
+                    field.setDouble(obj, parseDouble((String)value));
                 } if (fieldType.equals(boolean.class) || fieldType.equals(Boolean.class)) {
                     field.setBoolean(obj, parseBoolean((String)value));
                 }

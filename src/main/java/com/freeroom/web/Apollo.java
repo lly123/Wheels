@@ -2,7 +2,6 @@ package com.freeroom.web;
 
 
 import com.freeroom.di.BeanContext;
-import com.google.common.base.Strings;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -11,10 +10,13 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.io.Reader;
+import java.nio.CharBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
 import static com.freeroom.di.util.FuncUtils.each;
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 public class Apollo extends HttpServlet
 {
@@ -45,7 +47,7 @@ public class Apollo extends HttpServlet
         final Ares ares = new Ares(hephaestus.getHandler().fst, hephaestus.getHandler().snd, cerberus);
         final String content = ares.getContent();
 
-        if (Strings.isNullOrEmpty(content)) {
+        if (isNullOrEmpty(content)) {
             resp.setStatus(404);
             return;
         }
@@ -70,6 +72,29 @@ public class Apollo extends HttpServlet
     private void setRequestInformation(final HttpServletRequest req, final Cerberus cerberus)
     {
         cerberus.add("uri=" + req.getRequestURI());
-        cerberus.add("queryString=" + req.getQueryString());
+
+        final String queryString = req.getQueryString();
+        if (!isNullOrEmpty(queryString)) {
+            cerberus.add("queryString=" + queryString);
+            cerberus.addValues(queryString);
+        }
+
+        cerberus.addValues(readPostData(req));
+    }
+
+    private String readPostData(final HttpServletRequest req)
+    {
+        final StringBuilder stringBuilder = new StringBuilder();
+        try {
+            final CharBuffer buf = CharBuffer.allocate(1024);
+            try(final Reader reader = req.getReader()) {
+                while (reader.read(buf) >= 0 ) {
+                    buf.flip();
+                    stringBuilder.append(buf);
+                    buf.clear();
+                }
+            }
+        } catch (IOException ignored) {}
+        return stringBuilder.toString();
     }
 }

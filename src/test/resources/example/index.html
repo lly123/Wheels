@@ -2,13 +2,36 @@
 <html lang="en">
 <head>
     <title>Book Shelf</title>
-    <link href="example/css/bootstrap.min.css" rel="stylesheet">
-    <script type="text/javascript" src="example/js/jquery.min.js"></script>
-    <script type="text/javascript" src="example/js/angular.min.js"></script>
-    <script type="text/javascript" src="example/js/bootstrap.min.js"></script>
+    <link href="/example/css/bootstrap.min.css" rel="stylesheet">
+    <script type="text/javascript" src="/example/js/jquery.min.js"></script>
+    <script type="text/javascript" src="/example/js/angular.min.js"></script>
+    <script type="text/javascript" src="/example/js/bootstrap.min.js"></script>
+
+    <script type="text/javascript">
+        angular.module('bookApp', [], function($locationProvider)
+        {
+            $locationProvider.html5Mode(true);
+        });
+
+        listCtrl = function($scope, $window)
+        {
+            $scope.del = function(isbn)
+            {
+                $window.location.href = "/books/delete?isbn=" + isbn;
+            }
+        }
+
+        addCtrl = function($scope)
+        {
+            $scope.parsePublishDateStr = function()
+            {
+                return Date.parse($scope.publishDateStr);
+            };
+        }
+    </script>
 </head>
-<body ng-app>
-    <div class="container" ng-init='[MODEL_DATA]'>
+<body ng-app="bookApp">
+    <div class="container" ng-init='[MODEL_DATA]' ng-controller="listCtrl">
         <div class="row-fluid">
             <div class="span12">
                 <h1>Book List:</h1>
@@ -17,21 +40,23 @@
         <div class="row-fluid"><div class="span12"> </div></div>
         <div class="row-fluid">
             <div class="span12 well">
-                <table class="table">
+                <table class="table table-striped">
                     <thead>
                         <tr>
                             <th>ISBN</th>
                             <th>Name</th>
                             <th>Price</th>
                             <th>Publish Date</th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr ng-repeat="book in books">
                             <td>{{book.isbn}}</td>
                             <td>{{book.name}}</td>
-                            <td>{{book.price}}</td>
+                            <td>{{book.price | currency}}</td>
                             <td>{{book.publishDate | date:'mediumDate'}}</td>
+                            <td><button class="btn btn-danger" ng-click="del(book.isbn)">Delete</button></td>
                         </tr>
                     </tbody>
                 </table>
@@ -39,9 +64,50 @@
         </div>
         <div class="row-fluid">
             <div class="span12">
-                <button type="button" class="btn btn-info">Add Book</button>
+                <a href="#addBook" role="button" class="btn btn-info" data-toggle="modal">Add Book</a>
             </div>
         </div>
     </div>
+
+    <form class="form-horizontal" action="/books/create" method="post" ng-controller="addCtrl">
+        <input type="hidden" name="book_publishDate" value="{{parsePublishDateStr()}}"/>
+
+        <div id="addBook" class="modal hide fade" tabindex="-1" role="dialog">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h3>Add Book</h3>
+            </div>
+            <div class="modal-body">
+                <div class="control-group">
+                    <label class="control-label" for="isbn">ISBN</label>
+                    <div class="controls">
+                        <input type="text" id="isbn" name="book_isbn" placeholder="ISBN" required/>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="name">Name</label>
+                    <div class="controls">
+                        <input type="text" id="name" name="book_name" placeholder="Name" required/>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="price">Price</label>
+                    <div class="controls">
+                        <input type="text" id="price" name="book_price" placeholder="Price" required/>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="publishDate">Publish Date</label>
+                    <div class="controls">
+                        <input type="text" id="publishDate" ng-model="publishDateStr" placeholder="Publish Date" required/>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" type="submit">Add</button>
+                <button class="btn" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </form>
 </body>
 </html>

@@ -7,6 +7,10 @@ public class Book
     private double price;
     private long publishDate;
 
+    public Book()
+    {
+    }
+
     public Book(final long isbn, final String name, final double price, final long publishDate)
     {
         this.isbn = isbn;
