@@ -1,6 +1,7 @@
 package com.freeroom.web;
 
 import com.google.common.base.Optional;
+import com.google.gson.Gson;
 import com.thoughtworks.paranamer.BytecodeReadingParanamer;
 import com.thoughtworks.paranamer.CachingParanamer;
 import org.apache.commons.collections.ExtendedProperties;
@@ -19,6 +20,7 @@ import java.util.Map;
 
 import static com.freeroom.di.util.FuncUtils.each;
 import static com.freeroom.di.util.FuncUtils.reduce;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.Thread.currentThread;
@@ -46,7 +48,9 @@ public class Ares
             final String templateName = ((Model)model).getTemplateName();
             if (templateName.equals("html")) {
                 final String file = getClassLoader().getResource(((Model)model).getPath()).getFile();
-                return readFromChannel(new FileInputStream(new File(file)).getChannel());
+                return renderHtmlTemplate(
+                        readFromChannel(new FileInputStream(new File(file)).getChannel()),
+                        (Model)model);
             } else if (templateName.equals("vm")) {
                 return renderVelocityTemplate((Model)model);
             }
@@ -71,6 +75,17 @@ public class Ares
             }
             return s;
         }).toArray();
+    }
+
+    private String renderHtmlTemplate(final String content, final Model model)
+    {
+        final StringBuilder dataBuilder = new StringBuilder();
+        each(model.getMap().entrySet(), entry -> {
+            dataBuilder.append(entry.getKey() + "=" + new Gson().toJson(entry.getValue()) + ";");
+        });
+        final String data = dataBuilder.toString();
+        return isNullOrEmpty(data) ? content :
+                content.replaceAll("\\[MODEL_DATA\\]", data.substring(0, data.length() - 1));
     }
 
     private String renderVelocityTemplate(final Model model)

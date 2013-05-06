@@ -2,13 +2,45 @@
 <html lang="en">
 <head>
     <title>Book Shelf</title>
-    <script type="text/javascript" src="example/js/bootstrap.min.js"></script>
+    <link href="example/css/bootstrap.min.css" rel="stylesheet">
+    <script type="text/javascript" src="example/js/jquery.min.js"></script>
     <script type="text/javascript" src="example/js/angular.min.js"></script>
+    <script type="text/javascript" src="example/js/bootstrap.min.js"></script>
 </head>
-<body>
-    <div class="container-fluid">
+<body ng-app>
+    <div class="container" ng-init='[MODEL_DATA]'>
         <div class="row-fluid">
-            <div class="span12">Book List:</div>
+            <div class="span12">
+                <h1>Book List:</h1>
+            </div>
+        </div>
+        <div class="row-fluid"><div class="span12"> </div></div>
+        <div class="row-fluid">
+            <div class="span12 well">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ISBN</th>
+                            <th>Name</th>
+                            <th>Price</th>
+                            <th>Publish Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="book in books">
+                            <td>{{book.isbn}}</td>
+                            <td>{{book.name}}</td>
+                            <td>{{book.price}}</td>
+                            <td>{{book.publishDate | date:'mediumDate'}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="row-fluid">
+            <div class="span12">
+                <button type="button" class="btn btn-info">Add Book</button>
+            </div>
         </div>
     </div>
 </body>

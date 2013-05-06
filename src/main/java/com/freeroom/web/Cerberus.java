@@ -14,8 +14,8 @@ import static com.freeroom.di.util.FuncUtils.each;
 import static com.google.common.base.Optional.fromNullable;
 import static com.google.common.collect.ImmutableList.copyOf;
 import static java.lang.Boolean.parseBoolean;
+import static java.lang.Double.parseDouble;
 import static java.lang.Integer.parseInt;
-import static java.net.URLDecoder.decode;
 
 public class Cerberus
 {
@@ -95,7 +95,9 @@ public class Cerberus
                 if (fieldType.equals(String.class)) {
                     field.set(obj, value);
                 } if (fieldType.equals(int.class) || fieldType.equals(Integer.class)) {
-                    field.setInt(obj, parseInt((String)value));
+                    field.setInt(obj, parseInt((String) value));
+                } if (fieldType.equals(double.class) || fieldType.equals(Double.class)) {
+                    field.setDouble(obj, parseDouble((String) value));
                 } if (fieldType.equals(boolean.class) || fieldType.equals(Boolean.class)) {
                     field.setBoolean(obj, parseBoolean((String)value));
                 }
