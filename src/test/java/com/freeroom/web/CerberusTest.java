@@ -135,4 +135,22 @@ public class CerberusTest
         assertThat(book.getTagIds().get(1), is(218));
         assertThat(book.getTagIds().get(2), is(585));
     }
+
+    @Test
+    public void should_fill_out_nested_Order_array()
+    {
+        final Cerberus cerberus = new Cerberus("UTF-8");
+        cerberus.add("orders[1]_name=Tom");
+        cerberus.add("orders[1]_price=23.56");
+        cerberus.add("orders[2]_name=Jack");
+        cerberus.add("orders[2]_price=18.36");
+
+        final Book book = (Book)cerberus.fill(Book.class);
+
+        assertThat(book.getOrders().size(), is(2));
+        assertThat(book.getOrders().get(0).getName(), is("Tom"));
+        assertThat(book.getOrders().get(0).getPrice(), is(23.56));
+        assertThat(book.getOrders().get(1).getName(), is("Jack"));
+        assertThat(book.getOrders().get(1).getPrice(), is(18.36));
+    }
 }

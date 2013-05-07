@@ -4,7 +4,7 @@ public class Order
 {
     private String name;
     private String address;
-    private int price;
+    private double price;
 
     public String getName()
     {
@@ -16,7 +16,7 @@ public class Order
         return address;
     }
 
-    public int getPrice()
+    public double getPrice()
     {
         return price;
     }

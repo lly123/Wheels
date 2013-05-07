@@ -120,13 +120,7 @@ public class Cerberus
         each(copyOf(clazz.getDeclaredFields()), field -> {
             final Optional<Object> valueOpt = getValue(field.getName());
             if (valueOpt.isPresent()) {
-                final Object value = valueOpt.get();
-                if (value instanceof Cerberus) {
-                    final Object filledObj = ((Cerberus) value).fill(field.getType());
-                    setFieldValue(obj, field, filledObj);
-                } else {
-                    setFieldValue(obj, field, value);
-                }
+                setFieldValue(obj, field, valueOpt.get());
             }
         });
         return obj;
@@ -141,7 +135,7 @@ public class Cerberus
             } else if(value instanceof List<?>) {
                 field.set(obj, parse(field.getGenericType(), (List<?>) value));
             } else {
-                field.set(obj, value);
+                field.set(obj, ((Cerberus)value).fill(field.getType()));
             }
         } catch (Exception ignored) {}
     }
@@ -169,7 +163,11 @@ public class Cerberus
 
         final Type type = ((ParameterizedType) fieldType).getActualTypeArguments()[0];
         return reduce(newArrayList(), values, (s, value) -> {
-            s.add(parse((Class<?>)type, (String)value));
+            if (value instanceof Cerberus) {
+                s.add(((Cerberus)value).fill((Class<?>)type));
+            } else {
+                s.add(parse((Class<?>)type, (String)value));
+            }
             return s;
         });
     }
