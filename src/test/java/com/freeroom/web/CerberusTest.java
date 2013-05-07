@@ -1,11 +1,11 @@
 package com.freeroom.web;
 
+import com.freeroom.web.beans.Address;
 import com.freeroom.web.beans.Book;
 import com.freeroom.web.beans.Order;
 import org.junit.Test;
 
 import java.util.List;
-import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
@@ -78,17 +78,17 @@ public class CerberusTest
     public void should_fill_out_nested_fields()
     {
         final Cerberus cerberus = new Cerberus("UTF-8");
-        cerberus.add("order_name=lly");
-        cerberus.add("order_address=Beijing");
-        cerberus.add("order_price=108");
+        cerberus.add("address_city=Beijing");
+        cerberus.add("address_street=DongZhiMen");
+        cerberus.add("address_zipCode=123456");
 
         final Book book = (Book)cerberus.fill(Book.class);
 
-        assertThat(book.getOrder(), is(instanceOf(Order.class)));
-        final Order order = book.getOrder();
-        assertThat(order.getName(), is("lly"));
-        assertThat(order.getAddress(), is("Beijing"));
-        assertThat(order.getPrice(), is(108));
+        assertThat(book.getAddress(), is(instanceOf(Address.class)));
+        final Address address = book.getAddress();
+        assertThat(address.getCity(), is("Beijing"));
+        assertThat(address.getStreet(), is("DongZhiMen"));
+        assertThat(address.getZipCode(), is(123456));
     }
 
     @Test

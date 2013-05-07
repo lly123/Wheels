@@ -7,9 +7,10 @@ public class Book
     private String name;
     private int pageNumber;
     private boolean imported;
-    private Order order;
+    private Address address;
     private List<String> authors;
     private List<Integer> tagIds;
+    private List<Order> orders;
 
     public String getName()
     {
@@ -26,9 +27,14 @@ public class Book
         return imported;
     }
 
-    public Order getOrder()
+    public Address getAddress()
     {
-        return order;
+        return address;
+    }
+
+    public List<Order> getOrders()
+    {
+        return orders;
     }
 
     public List<String> getAuthors()
