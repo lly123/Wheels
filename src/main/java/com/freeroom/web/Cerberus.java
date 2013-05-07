@@ -1,22 +1,34 @@
 package com.freeroom.web;
 
+import com.freeroom.di.util.FuncUtils;
 import com.freeroom.di.util.Pair;
 import com.google.common.base.Optional;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.net.URLDecoder;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
+import java.util.regex.Matcher;
 
 import static com.freeroom.di.util.FuncUtils.each;
+import static com.freeroom.di.util.FuncUtils.reduce;
+import static com.google.common.base.Optional.absent;
 import static com.google.common.base.Optional.fromNullable;
+import static com.google.common.base.Optional.of;
 import static com.google.common.collect.ImmutableList.copyOf;
+import static com.google.common.collect.Lists.newArrayList;
+import static com.sun.javafx.binding.StringFormatter.format;
 import static java.lang.Boolean.parseBoolean;
 import static java.lang.Double.parseDouble;
 import static java.lang.Integer.parseInt;
 import static java.lang.Long.parseLong;
+import static java.util.regex.Pattern.compile;
 
 public class Cerberus
 {
@@ -30,7 +42,27 @@ public class Cerberus
 
     public Optional<Object> getValue(final String key)
     {
-        return fromNullable(map.get(key));
+        final Optional<Object> valueOpt = fromNullable(map.get(key));
+        if (valueOpt.isPresent()) {
+            return valueOpt;
+        } else {
+            return tryGetIndexedValues(key);
+        }
+    }
+
+    private Optional<Object> tryGetIndexedValues(String key)
+    {
+        final Map<String, Object> indexedValues = new TreeMap<>();
+        each(map.entrySet(), entry -> {
+            final Matcher matcher = compile(format("^%s\\[(\\w+)\\]", key).getValue()).matcher(entry.getKey());
+            if (matcher.find()) {
+                indexedValues.put(matcher.group(1), entry.getValue());
+            }
+        });
+        if (indexedValues.isEmpty()) {
+            return absent();
+        }
+        return of((Object)newArrayList(indexedValues.values()));
     }
 
     public Cerberus add(final String keyValue)
@@ -105,26 +137,41 @@ public class Cerberus
         try {
             field.setAccessible(true);
             if (value instanceof String) {
-                field.set(obj, parse(field.getType(), value));
+                field.set(obj, parse(field.getType(), (String)value));
+            } else if(value instanceof List<?>) {
+                field.set(obj, parse(field.getGenericType(), (List<?>) value));
             } else {
                 field.set(obj, value);
             }
         } catch (Exception ignored) {}
     }
 
-    private Object parse(final Class<?> fieldType, final Object value)
+    private Object parse(final Class<?> fieldType, final String value)
     {
         Object parsedValue = value;
         if (fieldType.equals(int.class) || fieldType.equals(Integer.class)) {
-            parsedValue = parseInt((String)value);
+            parsedValue = parseInt(value);
         } if (fieldType.equals(long.class) || fieldType.equals(Long.class)) {
-            parsedValue = parseLong((String)value);
+            parsedValue = parseLong(value);
         } if (fieldType.equals(double.class) || fieldType.equals(Double.class)) {
-            parsedValue = parseDouble((String)value);
+            parsedValue = parseDouble(value);
         } if (fieldType.equals(boolean.class) || fieldType.equals(Boolean.class)) {
-            parsedValue = parseBoolean((String)value);
+            parsedValue = parseBoolean(value);
         }
         return parsedValue;
+    }
+
+    private Object parse(final Type fieldType, final List<?> values)
+    {
+        if (!(fieldType instanceof ParameterizedType)) {
+            return values;
+        }
+
+        final Type type = ((ParameterizedType) fieldType).getActualTypeArguments()[0];
+        return reduce(newArrayList(), values, (s, value) -> {
+            s.add(parse((Class<?>)type, (String)value));
+            return s;
+        });
     }
 
     private Object createAnInstance(final Class<?> clazz)

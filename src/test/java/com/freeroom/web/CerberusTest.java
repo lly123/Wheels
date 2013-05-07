@@ -4,6 +4,9 @@ import com.freeroom.web.beans.Book;
 import com.freeroom.web.beans.Order;
 import org.junit.Test;
 
+import java.util.List;
+import java.util.Map;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
@@ -86,5 +89,50 @@ public class CerberusTest
         assertThat(order.getName(), is("lly"));
         assertThat(order.getAddress(), is("Beijing"));
         assertThat(order.getPrice(), is(108));
+    }
+
+    @Test
+    public void should_fill_out_array()
+    {
+        final Cerberus cerberus = new Cerberus("UTF-8");
+        cerberus.add("key[20]=value2");
+        cerberus.add("key[10]=value1");
+        cerberus.add("key[30]=value3");
+
+        assertThat(cerberus.getValue("key").get(), is(instanceOf(List.class)));
+        final List<String> value = (List<String>)cerberus.getValue("key").get();
+        assertThat(value.get(0), is("value1"));
+        assertThat(value.get(1), is("value2"));
+        assertThat(value.get(2), is("value3"));
+    }
+
+    @Test
+    public void should_fill_out_nested_array()
+    {
+        final Cerberus cerberus = new Cerberus("UTF-8");
+        cerberus.add("authors[1]=Michael");
+        cerberus.add("authors[2]=David");
+        cerberus.add("authors[3]=Richard");
+
+        final Book book = (Book)cerberus.fill(Book.class);
+
+        assertThat(book.getAuthors().get(0), is("Michael"));
+        assertThat(book.getAuthors().get(1), is("David"));
+        assertThat(book.getAuthors().get(2), is("Richard"));
+    }
+
+    @Test
+    public void should_fill_out_nested_Integer_array()
+    {
+        final Cerberus cerberus = new Cerberus("UTF-8");
+        cerberus.add("tagIds[1]=101");
+        cerberus.add("tagIds[2]=218");
+        cerberus.add("tagIds[3]=585");
+
+        final Book book = (Book)cerberus.fill(Book.class);
+
+        assertThat(book.getTagIds().get(0), is(101));
+        assertThat(book.getTagIds().get(1), is(218));
+        assertThat(book.getTagIds().get(2), is(585));
     }
 }
