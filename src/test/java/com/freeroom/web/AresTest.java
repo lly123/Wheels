@@ -61,7 +61,8 @@ public class AresTest
     @Test
     public void should_render_js_resource()
     {
-        final Hephaestus hephaestus = new Hephaestus(beanContext, one().uri("/js/angular.min.js").build());
+        beanContext.addBean(Prometheus.class);
+        final Hephaestus hephaestus = new Hephaestus(beanContext, one().uri("/example/js/angular.min.js").build());
 
         assertThat(hephaestus.getHandler().fst, is(instanceOf(Prometheus.class)));
     }
