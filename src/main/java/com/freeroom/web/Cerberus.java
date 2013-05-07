@@ -105,22 +105,26 @@ public class Cerberus
         try {
             field.setAccessible(true);
             if (value instanceof String) {
-                final Class<?> fieldType = field.getType();
-                if (fieldType.equals(String.class)) {
-                    field.set(obj, value);
-                } if (fieldType.equals(int.class) || fieldType.equals(Integer.class)) {
-                    field.setInt(obj, parseInt((String)value));
-                } if (fieldType.equals(long.class) || fieldType.equals(Long.class)) {
-                    field.setLong(obj, parseLong((String)value));
-                } if (fieldType.equals(double.class) || fieldType.equals(Double.class)) {
-                    field.setDouble(obj, parseDouble((String)value));
-                } if (fieldType.equals(boolean.class) || fieldType.equals(Boolean.class)) {
-                    field.setBoolean(obj, parseBoolean((String)value));
-                }
+                field.set(obj, parse(field.getType(), value));
             } else {
                 field.set(obj, value);
             }
         } catch (Exception ignored) {}
+    }
+
+    private Object parse(final Class<?> fieldType, final Object value)
+    {
+        Object parsedValue = value;
+        if (fieldType.equals(int.class) || fieldType.equals(Integer.class)) {
+            parsedValue = parseInt((String)value);
+        } if (fieldType.equals(long.class) || fieldType.equals(Long.class)) {
+            parsedValue = parseLong((String)value);
+        } if (fieldType.equals(double.class) || fieldType.equals(Double.class)) {
+            parsedValue = parseDouble((String)value);
+        } if (fieldType.equals(boolean.class) || fieldType.equals(Boolean.class)) {
+            parsedValue = parseBoolean((String)value);
+        }
+        return parsedValue;
     }
 
     private Object createAnInstance(final Class<?> clazz)
