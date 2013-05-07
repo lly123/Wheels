@@ -11,22 +11,39 @@
         angular.module('bookApp', [], function($locationProvider)
         {
             $locationProvider.html5Mode(true);
+        })
+        .value("Tags",
+        {
+            101: [101, "label-success", "Web Development & Design"],
+            102: [102, "label-warning", "Networking"],
+            103: [103, "label-important", " Internet & Web Culture"],
+            104: [104, "label-info", "Programming"],
+            105: [105, "label-inverse", "Databases"]
         });
 
-        listCtrl = function($scope, $window)
+        listCtrl = function($scope, $window, Tags)
         {
+            $scope.Tags = Tags;
+
             $scope.del = function(isbn)
             {
                 $window.location.href = "/books/delete?isbn=" + isbn;
             }
         }
 
-        addCtrl = function($scope)
+        addCtrl = function($scope, Tags)
         {
+            $scope.Tags = Tags;
+
             $scope.parsePublishDateStr = function()
             {
                 return Date.parse($scope.publishDateStr);
-            };
+            }
+
+            $scope.oopp = function(tag)
+            {
+                console.log(tag[0]);
+            }
         }
     </script>
 </head>
@@ -53,7 +70,11 @@
                     <tbody>
                         <tr ng-repeat="book in books">
                             <td>{{book.isbn}}</td>
-                            <td>{{book.name}}</td>
+                            <td>{{book.name}}<br/>
+                                <span ng-repeat="tagId in book.tags">
+                                    <span class='label {{Tags[tagId][1]}}'>{{Tags[tagId][2]}}</span>
+                                </span>
+                            </td>
                             <td>{{book.price | currency}}</td>
                             <td>{{book.publishDate | date:'mediumDate'}}</td>
                             <td><button class="btn btn-danger" ng-click="del(book.isbn)">Delete</button></td>
@@ -100,6 +121,15 @@
                     <label class="control-label" for="publishDate">Publish Date</label>
                     <div class="controls">
                         <input type="text" id="publishDate" ng-model="publishDateStr" placeholder="Publish Date" required/>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Tags</label>
+                    <div class="controls">
+                        <div ng-repeat="tag in Tags">
+                            <input type="checkbox" name="book_tags[{{$index}}]" value="{{tag[0]}}"/>
+                            <span class='label {{tag[1]}}'>{{tag[2]}}</span>
+                        </div>
                     </div>
                 </div>
             </div>
