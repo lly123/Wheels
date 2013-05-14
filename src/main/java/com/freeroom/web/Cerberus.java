@@ -1,6 +1,5 @@
 package com.freeroom.web;
 
-import com.freeroom.di.util.FuncUtils;
 import com.freeroom.di.util.Pair;
 import com.google.common.base.Optional;
 
@@ -18,9 +17,7 @@ import java.util.regex.Matcher;
 
 import static com.freeroom.di.util.FuncUtils.each;
 import static com.freeroom.di.util.FuncUtils.reduce;
-import static com.google.common.base.Optional.absent;
-import static com.google.common.base.Optional.fromNullable;
-import static com.google.common.base.Optional.of;
+import static com.google.common.base.Optional.*;
 import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.sun.javafx.binding.StringFormatter.format;
