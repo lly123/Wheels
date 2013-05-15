@@ -27,6 +27,16 @@ public class Atlas
         return pk.get().getName();
     }
 
+    public static List<Field> getColumnFields(final Class<?> clazz)
+    {
+        return reduce(newArrayList(), copyOf(clazz.getDeclaredFields()), (s, field) -> {
+            if (field.isAnnotationPresent(Column.class)) {
+                s.add(field);
+            }
+            return s;
+        });
+    }
+
     public static List<Pair<String, Object>> getColumns(final Object obj)
     {
         return reduce(newArrayList(), copyOf(obj.getClass().getDeclaredFields()), (s, field) -> {

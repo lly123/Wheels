@@ -4,6 +4,7 @@ import com.freeroom.di.util.Pair;
 import com.freeroom.persistence.beans.Book;
 import org.junit.Test;
 
+import java.lang.reflect.Field;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -15,6 +16,15 @@ public class AtlasTest
     public void should_get_primary_key_name()
     {
         assertThat(Atlas.getPrimaryKeyName(Book.class), is("id"));
+    }
+
+    @Test
+    public void should_get_column_names()
+    {
+        List<Field> columnFields = Atlas.getColumnFields(Book.class);
+
+        assertThat(columnFields.get(0).getName(), is("isbn"));
+        assertThat(columnFields.get(1).getName(), is("name"));
     }
 
     @Test
