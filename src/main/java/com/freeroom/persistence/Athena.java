@@ -6,6 +6,7 @@ import com.google.common.base.Optional;
 import java.lang.reflect.Field;
 import java.sql.*;
 import java.util.List;
+import java.util.Properties;
 
 import static com.freeroom.di.util.FuncUtils.each;
 import static com.google.common.base.Optional.absent;
@@ -14,29 +15,35 @@ import static java.lang.String.format;
 
 public class Athena
 {
-    private final Class<?> clazz;
+    private final Properties properties;
+    private Optional<Class<?>> entityClass;
 
-    public static Athena from(final Class<?> clazz)
+    public Athena(final Properties properties)
     {
-        return new Athena(clazz);
+        this.properties = properties;
     }
 
-    public Athena(final Class<?> clazz)
+    public Athena from(final Class<?> clazz)
     {
-        this.clazz = clazz;
+        this.entityClass = Optional.<Class<?>>of(clazz);
+        return this;
     }
 
     public Optional<Object> find(final int key)
     {
-        String sql = format("SELECT * FROM %s WHERE %s", clazz.getSimpleName(),
-                Atlas.getPrimaryKeyName(clazz) + "=" + key);
+        assertEntityClassExists();
+
+        final Class<?> clazz = entityClass.get();
+
+        String sql = format("SELECT * FROM %s WHERE %s=?", clazz.getSimpleName(), Atlas.getPrimaryKeyName(clazz));
 
         try (Connection connection = getDBConnection()) {
             Object obj = newInstance(clazz);
             List<Field> columnFields = Atlas.getColumnFields(clazz);
 
-            Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery(sql);
+            PreparedStatement statement = connection.prepareStatement(sql);
+            statement.setObject(1, key);
+            ResultSet resultSet = statement.executeQuery();
 
             if (resultSet.next()) {
                 for (Field columnField : columnFields) {
@@ -51,9 +58,9 @@ public class Athena
         return absent();
     }
 
-    public static void save(final Object obj)
+    public void save(final Object obj)
     {
-        List<Pair<String,Object>> columns = Atlas.getColumns(obj);
+        final List<Pair<String,Object>> columns = Atlas.getColumns(obj);
 
         final StringBuilder columnNamesBuffer = new StringBuilder();
         final StringBuilder questionMarksBuffer = new StringBuilder();
@@ -82,6 +89,13 @@ public class Athena
         }
     }
 
+    private void assertEntityClassExists()
+    {
+        if (!entityClass.isPresent()) {
+            throw new RuntimeException("Using from() to set entity class.");
+        }
+    }
+
     private Object newInstance(final Class<?> clazz)
     {
         try {
@@ -91,8 +105,11 @@ public class Athena
         }
     }
 
-    private static Connection getDBConnection() throws SQLException
+    private Connection getDBConnection() throws SQLException
     {
-        return DriverManager.getConnection("jdbc:hsqldb:mem:mydb", "sa", "");
+        return DriverManager.getConnection(
+                properties.getProperty("url"),
+                properties.getProperty("username"),
+                properties.getProperty("password"));
     }
 }
