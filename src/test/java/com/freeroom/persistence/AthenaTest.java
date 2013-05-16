@@ -37,6 +37,15 @@ public class AthenaTest
         assertThat(book.getName(), is("AngularJS"));
     }
 
+    @Test
+    public void should_clear_table()
+    {
+        should_save_and_select_by_id();
+        athena.clear(Book.class);
+
+        assertThat(athena.from(Book.class).find(1).isPresent(), is(false));
+    }
+
     private Properties getDbProperties()
     {
         final Properties properties = new Properties();
