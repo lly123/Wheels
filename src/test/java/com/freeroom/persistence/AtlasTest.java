@@ -21,7 +21,7 @@ public class AtlasTest
     @Test
     public void should_get_column_names()
     {
-        List<Field> columnFields = Atlas.getColumnFields(Book.class);
+        final List<Field> columnFields = Atlas.getColumnFields(Book.class);
 
         assertThat(columnFields.get(0).getName(), is("isbn"));
         assertThat(columnFields.get(1).getName(), is("name"));
@@ -30,11 +30,11 @@ public class AtlasTest
     @Test
     public void should_get_columns()
     {
-        Book book = new Book();
+        final Book book = new Book();
         book.setIsbn(1449344852);
         book.setName("AngularJS");
 
-        List<Pair<String,Object>> columns = Atlas.getColumns(book);
+        final List<Pair<String,Object>> columns = Atlas.getColumns(book);
 
         assertThat(columns.get(0).fst, is("isbn"));
         assertThat((Long)columns.get(0).snd, is(1449344852L));

@@ -34,19 +34,18 @@ public class Athena
         assertEntityClassExists();
 
         final Class<?> clazz = entityClass.get();
-
-        String sql = format("SELECT * FROM %s WHERE %s=?", clazz.getSimpleName(), Atlas.getPrimaryKeyName(clazz));
+        final String sql = format("SELECT * FROM %s WHERE %s=?", clazz.getSimpleName(), Atlas.getPrimaryKeyName(clazz));
 
         try (Connection connection = getDBConnection()) {
-            Object obj = newInstance(clazz);
-            List<Field> columnFields = Atlas.getColumnFields(clazz);
+            final Object obj = newInstance(clazz);
+            final List<Field> columnFields = Atlas.getColumnFields(clazz);
 
-            PreparedStatement statement = connection.prepareStatement(sql);
+            final PreparedStatement statement = connection.prepareStatement(sql);
             statement.setObject(1, key);
-            ResultSet resultSet = statement.executeQuery();
 
+            final ResultSet resultSet = statement.executeQuery();
             if (resultSet.next()) {
-                for (Field columnField : columnFields) {
+                for (final Field columnField : columnFields) {
                     columnField.setAccessible(true);
                     columnField.set(obj, resultSet.getObject(columnField.getName()));
                 }
@@ -75,11 +74,11 @@ public class Athena
         final String sql = format("INSERT INTO %s (%s) VALUES (%s)",
                 obj.getClass().getSimpleName(), columnNames, questionMarks);
 
-        try (Connection connection = getDBConnection()) {
-            PreparedStatement statement = connection.prepareStatement(sql);
+        try (final Connection connection = getDBConnection()) {
+            final PreparedStatement statement = connection.prepareStatement(sql);
 
             int i = 1;
-            for (Pair<String, Object> column : columns) {
+            for (final Pair<String, Object> column : columns) {
                 statement.setObject(i++, column.snd);
             }
 
