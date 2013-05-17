@@ -15,6 +15,6 @@ public class AjaxController
 
     public Model get()
     {
-        return render("jsonp:").put("token", "123456");
+        return render("jsonp").put("token", "123456");
     }
 }

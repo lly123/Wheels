@@ -11,8 +11,18 @@ public class Model
 
     private Model(final String view)
     {
-        this.path = view.substring(view.indexOf(':') + 1);
-        this.templateName = view.substring(0, view.indexOf(':'));
+        if (hasPath(view)) {
+            this.templateName = view.substring(0, view.indexOf(':'));
+            this.path = view.substring(view.indexOf(':') + 1);
+        } else {
+            this.templateName = view;
+            this.path = "";
+        }
+    }
+
+    private boolean hasPath(final String view)
+    {
+        return view.indexOf(':') > -1;
     }
 
     public static Model render(final String view)
