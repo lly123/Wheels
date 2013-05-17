@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ajax Test</title>
+    <link href="/example/css/bootstrap.min.css" rel="stylesheet">
+    <script type="text/javascript" src="/example/js/jquery.min.js"></script>
+    <script type="text/javascript" src="/example/js/angular.min.js"></script>
+    <script type="text/javascript" src="/example/js/bootstrap.min.js"></script>
+    <script type="text/javascript">
+        Ctrl = function($scope)
+        {
+            $scope.call = function()
+            {
+                $.ajax({
+                    url: "http://lly:8080/ajax/get",
+                    type: "GET",
+                    dataType: "jsonp",
+                    jsonpCallback: "logInfo"
+                });
+            }
+        }
+
+        logInfo = function(data)
+        {
+            $('#token').val(data['token']);
+        }
+    </script>
+</head>
+<body ng-app>
+    <div class="container" ng-controller="Ctrl">
+        <div class="row-fluid">&nbsp;</div>
+        <div class="row-fluid">
+            <div class="span12 well">
+                <div class="span4"><button class="btn btn-info" ng-click="call();">Get from www.lly.com</button></div>
+                <div class="span8"><input id="token" type="text" class="span7" placeholder="Token..."/></div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

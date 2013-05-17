@@ -25,7 +25,8 @@ public class AresTest
         final Hephaestus hephaestus = new Hephaestus(beanContext, one().uri("/").build());
         final Ares ares = new Ares(hephaestus.getHandler().fst, hephaestus.getHandler().snd, new Cerberus("UTF-8"));
 
-        assertThat(ares.getContent(), containsString("Hello World!"));
+        assertThat(ares.getContent().fst, is("text/plain"));
+        assertThat(ares.getContent().snd, containsString("Hello World!"));
     }
 
     @Test
@@ -34,7 +35,8 @@ public class AresTest
         final Hephaestus hephaestus = new Hephaestus(beanContext, one().uri("/books").build());
         final Ares ares = new Ares(hephaestus.getHandler().fst, hephaestus.getHandler().snd, new Cerberus("UTF-8"));
 
-        assertThat(ares.getContent(), containsString("Hello World!"));
+        assertThat(ares.getContent().fst, is("text/plain"));
+        assertThat(ares.getContent().snd, containsString("Hello World!"));
     }
 
     @Test
@@ -44,7 +46,8 @@ public class AresTest
         final Cerberus cerberus = new Cerberus("UTF-8").add("name=lly").add("age=98");
         final Ares ares = new Ares(hephaestus.getHandler().fst, hephaestus.getHandler().snd, cerberus);
 
-        assertThat(ares.getContent(), allOf(containsString("lly"), containsString("98")));
+        assertThat(ares.getContent().fst, is("text/plain"));
+        assertThat(ares.getContent().snd, allOf(containsString("lly"), containsString("98")));
     }
 
     @Test
@@ -55,7 +58,8 @@ public class AresTest
 
         final Ares ares = new Ares(hephaestus.getHandler().fst, hephaestus.getHandler().snd, cerberus);
 
-        assertThat(ares.getContent(), containsString("book: AngularJS, page number: 358"));
+        assertThat(ares.getContent().fst, is("text/plain"));
+        assertThat(ares.getContent().snd, containsString("book: AngularJS, page number: 358"));
     }
 
     @Test

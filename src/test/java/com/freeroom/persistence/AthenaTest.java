@@ -41,9 +41,26 @@ public class AthenaTest
     public void should_clear_table()
     {
         should_save_and_select_by_id();
+
         athena.clear(Book.class);
 
         assertThat(athena.from(Book.class).find(1).isPresent(), is(false));
+    }
+
+    @Test
+    public void should_update_record()
+    {
+        should_save_and_select_by_id();
+
+        Book book = (Book) athena.from(Book.class).find(1).get();
+
+        book.setIsbn(1449343910L);
+        book.setName("Bootstrap");
+        athena.save(book);
+
+        book = (Book) athena.from(Book.class).find(1).get();
+        assertThat(book.getIsbn(), is(1449343910L));
+        assertThat(book.getName(), is("Bootstrap"));
     }
 
     private Properties getDbProperties()

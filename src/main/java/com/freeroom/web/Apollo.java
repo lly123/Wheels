@@ -2,6 +2,7 @@ package com.freeroom.web;
 
 
 import com.freeroom.di.BeanContext;
+import com.freeroom.di.util.Pair;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -12,24 +13,12 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.nio.CharBuffer;
-import java.util.HashMap;
-import java.util.Map;
 
-import static com.freeroom.di.util.FuncUtils.each;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 public class Apollo extends HttpServlet
 {
     public static final String CHARSET_NAME = "UTF-8";
-    public static final Map<String, String> CONTENT_TYPE = new HashMap<String, String>()
-    {
-        {
-            put(".html", "text/html");
-            put(".js", "application/x-javascript");
-            put(".css", "text/css");
-        }
-    };
-
     private final BeanContext beanContext;
 
     public Apollo(final String root)
@@ -45,28 +34,19 @@ public class Apollo extends HttpServlet
         setRequestInformation(req, cerberus);
 
         final Ares ares = new Ares(hephaestus.getHandler().fst, hephaestus.getHandler().snd, cerberus);
-        final String content = ares.getContent();
+        final Pair<String, String> content = ares.getContent();
 
-        if (isNullOrEmpty(content)) {
+        if (isNullOrEmpty(content.snd)) {
             resp.setStatus(404);
             return;
         }
 
         resp.setStatus(200);
         resp.setCharacterEncoding(CHARSET_NAME);
-        setContentType(req, resp);
+        resp.setContentType(content.fst);
         try(final PrintWriter out = new PrintWriter(new OutputStreamWriter(resp.getOutputStream(), CHARSET_NAME), true)) {
-            out.write(content);
+            out.write(content.snd);
         }
-    }
-
-    private void setContentType(final HttpServletRequest req, final HttpServletResponse resp)
-    {
-        each(CONTENT_TYPE.entrySet(), entry -> {
-            if (req.getRequestURI().endsWith(entry.getKey())) {
-                resp.setContentType(entry.getValue());
-            }
-        });
     }
 
     private void setRequestInformation(final HttpServletRequest req, final Cerberus cerberus)

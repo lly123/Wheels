@@ -178,4 +178,9 @@ public class Cerberus
             throw new RuntimeException("Get exception when creating an instance of " + clazz, e);
         }
     }
+
+    public String getCharset()
+    {
+        return charset;
+    }
 }

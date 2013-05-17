@@ -1,5 +1,6 @@
 package com.freeroom.web;
 
+import com.freeroom.di.util.Pair;
 import com.google.common.base.Optional;
 import com.google.gson.Gson;
 import com.thoughtworks.paranamer.BytecodeReadingParanamer;
@@ -13,18 +14,29 @@ import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
+import java.util.HashMap;
 import java.util.Map;
 
 import static com.freeroom.di.util.FuncUtils.each;
 import static com.freeroom.di.util.FuncUtils.reduce;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.ImmutableList.copyOf;
+import static com.google.common.collect.Iterables.tryFind;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.Thread.currentThread;
 import static org.apache.velocity.runtime.RuntimeConstants.FILE_RESOURCE_LOADER_PATH;
 
 public class Ares
 {
+    public static final Map<String, String> CONTENT_TYPE = new HashMap<String, String>()
+    {
+        {
+            put(".html", "text/html");
+            put(".js", "application/x-javascript");
+            put(".css", "text/css");
+        }
+    };
+
     private final Object controller;
     private final Method method;
     private final Cerberus cerberus;
@@ -36,7 +48,7 @@ public class Ares
         this.cerberus = cerberus;
     }
 
-    public String getContent()
+    public Pair<String, String> getContent()
     {
         try {
             final Object model = method.invoke(controller, resolveArgs());
@@ -44,15 +56,33 @@ public class Ares
 
             final String templateName = ((Model)model).getTemplateName();
             if (templateName.equals("res")) {
-                return readFromChannel(getRenderFileChannel((Model)model));
+                return Pair.of(
+                        getContentType(((Model)model).getPath()),
+                        readFromChannel(getRenderFileChannel((Model)model))
+                );
             } else if (templateName.equals("html")) {
-                return renderHtmlTemplate(
-                        readFromChannel(getRenderFileChannel((Model)model)),
-                        (Model)model);
+                return Pair.of(
+                        "text/html",
+                        renderHtmlTemplate(
+                            readFromChannel(getRenderFileChannel((Model)model)),
+                            (Model)model)
+                );
             } else if (templateName.equals("vm")) {
-                return renderVelocityTemplate((Model)model);
+                return  Pair.of(
+                        "text/html",
+                        renderVelocityTemplate((Model)model)
+                );
+            } else if (templateName.equals("jsonp")) {
+                final Optional<Object> callbackFuncName = cerberus.getValue("callback");
+                if (callbackFuncName.isPresent()) {
+                    final String content = String.format("%s(%s)",
+                            callbackFuncName.get(),
+                            new Gson().toJson(((Model)model).getMap()), cerberus.getCharset());
+
+                    return Pair.of("application/x-javascript", content);
+                }
             }
-            return "";
+            return Pair.of("text/plain", "");
         } catch (Exception e) {
             throw new RuntimeException("Get exception when generate content: ", e);
         }
@@ -141,5 +171,16 @@ public class Ares
     private ClassLoader getClassLoader()
     {
         return currentThread().getContextClassLoader();
+    }
+
+    private String getContentType(final String path)
+    {
+        Optional<Map.Entry<String, String>> contentType =
+                tryFind(CONTENT_TYPE.entrySet(), entry -> path.endsWith(entry.getKey()));
+        if (contentType.isPresent()) {
+            return contentType.get().getValue();
+        }
+
+        return "text/plain";
     }
 }
