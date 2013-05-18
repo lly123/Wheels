@@ -1,7 +1,7 @@
 package com.freeroom.persistence;
 
 import com.freeroom.di.util.Pair;
-import com.freeroom.persistence.annotations.Column;
+import com.freeroom.persistence.annotations.Persist;
 import com.freeroom.persistence.annotations.ID;
 import com.google.common.base.Optional;
 
@@ -27,20 +27,26 @@ public class Atlas
         return pk.get().getName();
     }
 
-    public static List<Field> getColumnFields(final Class<?> clazz)
+    public static List<Field> getColumnPrimitiveFields(final Class<?> clazz)
     {
         return reduce(newArrayList(), copyOf(clazz.getDeclaredFields()), (s, field) -> {
-            if (field.isAnnotationPresent(Column.class)) {
+            if (field.isAnnotationPresent(Persist.class) && isBasicField(field)) {
                 s.add(field);
             }
             return s;
         });
     }
 
+    private static boolean isBasicField(final Field field)
+    {
+        final Class<?> fieldType = field.getType();
+        return fieldType.isPrimitive() || fieldType.equals(String.class);
+    }
+
     public static List<Pair<String, Object>> getColumns(final Object obj)
     {
         return reduce(newArrayList(), copyOf(obj.getClass().getDeclaredFields()), (s, field) -> {
-            if (field.isAnnotationPresent(Column.class)) {
+            if (field.isAnnotationPresent(Persist.class)) {
                 field.setAccessible(true);
                 try {
                     s.add(Pair.of(field.getName(), field.get(obj)));

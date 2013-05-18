@@ -1,6 +1,6 @@
 package com.freeroom.persistence.beans;
 
-import com.freeroom.persistence.annotations.Column;
+import com.freeroom.persistence.annotations.Persist;
 import com.freeroom.persistence.annotations.ID;
 
 public class Book
@@ -8,10 +8,10 @@ public class Book
     @ID
     private int id;
 
-    @Column
+    @Persist
     private long isbn;
 
-    @Column
+    @Persist
     private String name;
 
     public long getIsbn() {

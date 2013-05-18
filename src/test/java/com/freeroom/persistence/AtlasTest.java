@@ -21,7 +21,7 @@ public class AtlasTest
     @Test
     public void should_get_column_names()
     {
-        final List<Field> columnFields = Atlas.getColumnFields(Book.class);
+        final List<Field> columnFields = Atlas.getColumnPrimitiveFields(Book.class);
 
         assertThat(columnFields.get(0).getName(), is("isbn"));
         assertThat(columnFields.get(1).getName(), is("name"));
