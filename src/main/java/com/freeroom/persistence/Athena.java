@@ -41,7 +41,7 @@ public class Athena
 
         try (Connection connection = getDBConnection()) {
             final Object obj = newInstance(clazz);
-            final List<Field> columnFields = Atlas.getColumnPrimitiveFields(clazz);
+            final List<Field> columnFields = Atlas.getBasicFields(clazz);
 
             final PreparedStatement statement = connection.prepareStatement(sql);
             statement.setObject(1, key);

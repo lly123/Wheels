@@ -6,10 +6,14 @@ import net.sf.cglib.proxy.Factory;
 import org.apache.log4j.Logger;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Type;
 import java.sql.*;
 import java.util.List;
 import java.util.Properties;
 
+import static com.freeroom.di.util.FuncUtils.map;
+import static com.google.common.collect.ImmutableList.copyOf;
+import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.String.format;
 
 public class Hades
@@ -37,7 +41,7 @@ public class Hades
 
         try (Connection connection = getDBConnection()) {
             final Object obj = newInstance(clazz);
-            final List<Field> columnFields = Atlas.getColumnPrimitiveFields(clazz);
+            final List<Field> columnFields = Atlas.getBasicFields(clazz);
 
             final PreparedStatement statement = connection.prepareStatement(sql);
             statement.setLong(1, primaryKey);
@@ -48,7 +52,7 @@ public class Hades
             if (resultSet.next()) {
                 for (final Field columnField : columnFields) {
                     columnField.setAccessible(true);
-                    setFieldValue(columnField, obj, resultSet);
+                    setBasicFieldValue(columnField, obj, resultSet);
                 }
                 return obj;
             }
@@ -58,9 +62,9 @@ public class Hades
         }
     }
 
-    private void setFieldValue(final Field field, final Object obj, final ResultSet resultSet) throws Exception
+    private void setBasicFieldValue(final Field field, final Object obj, final ResultSet resultSet) throws Exception
     {
-        final Class<?> fieldType = field.getType();
+        final Type fieldType = field.getGenericType();
         if (fieldType.equals(String.class)) {
             field.set(obj, resultSet.getString(field.getName()));
         } else if (fieldType.equals(int.class) || fieldType.equals(Integer.class)) {
@@ -71,6 +75,9 @@ public class Hades
             field.setDouble(obj, resultSet.getDouble(field.getName()));
         } else if (fieldType.equals(boolean.class) || fieldType.equals(Boolean.class)) {
             field.setBoolean(obj, resultSet.getBoolean(field.getName()));
+        } else if (Atlas.isListInteger(field)) {
+            String values = resultSet.getString(field.getName());
+            field.set(obj, newArrayList(map(copyOf(values.split(",")), value -> Integer.parseInt(value))));
         }
     }
 

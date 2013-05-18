@@ -22,6 +22,7 @@ public class Book
     @Persist
     private long publishDate;
 
+    @Persist
     private List<Integer> tags;
 
     public long getIsbn() {

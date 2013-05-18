@@ -44,7 +44,7 @@ public class Charon implements MethodInterceptor
 
     protected boolean isDirty()
     {
-        final List<Field> fields = Atlas.getColumnPrimitiveFields(clazz);
+        final List<Field> fields = Atlas.getBasicFields(clazz);
         return any(fields, field -> {
             try {
                 field.setAccessible(true);
@@ -59,7 +59,7 @@ public class Charon implements MethodInterceptor
     private Optional<Object> copy(final Optional<Object> original)
     {
         final Object obj = hades.newInstance(clazz);
-        final List<Field> fields = Atlas.getColumnPrimitiveFields(clazz);
+        final List<Field> fields = Atlas.getBasicFields(clazz);
         each(fields, field -> {
             try {
                 field.setAccessible(true);

@@ -26,6 +26,15 @@ public class FuncUtils
         return retVal;
     }
 
+    public static <T, K> List<K> map(List<T> values, Func1<T, K> func)
+    {
+        List<K> retVal = newArrayList();
+        for (int i = 0; i < values.size(); i++) {
+            retVal.add(func.call(values.get(i)));
+        }
+        return retVal;
+    }
+
     public static <T, K> List<K> map(List<T> values, Func2<Integer, T, K> func)
     {
         List<K> retVal = newArrayList();

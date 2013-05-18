@@ -1,11 +1,12 @@
 package com.freeroom.persistence;
 
 import com.freeroom.di.util.Pair;
-import com.freeroom.persistence.annotations.Persist;
 import com.freeroom.persistence.annotations.ID;
+import com.freeroom.persistence.annotations.Persist;
 import com.google.common.base.Optional;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
 import java.util.List;
 
 import static com.freeroom.di.util.FuncUtils.reduce;
@@ -27,7 +28,7 @@ public class Atlas
         return pk.get().getName();
     }
 
-    public static List<Field> getColumnPrimitiveFields(final Class<?> clazz)
+    public static List<Field> getBasicFields(final Class<?> clazz)
     {
         return reduce(newArrayList(), copyOf(clazz.getDeclaredFields()), (s, field) -> {
             if (field.isAnnotationPresent(Persist.class) && isBasicField(field)) {
@@ -40,7 +41,18 @@ public class Atlas
     private static boolean isBasicField(final Field field)
     {
         final Class<?> fieldType = field.getType();
-        return fieldType.isPrimitive() || fieldType.equals(String.class);
+        return fieldType.isPrimitive() || fieldType.equals(String.class) || isListInteger(field);
+    }
+
+    public static boolean isListInteger(final Field field)
+    {
+        if (field.getGenericType() instanceof ParameterizedType) {
+            ParameterizedType type = (ParameterizedType)field.getGenericType();
+            return type.getRawType().equals(List.class) &&
+                        (type.getActualTypeArguments()[0].equals(Integer.class) ||
+                        type.getActualTypeArguments()[0].equals(int.class));
+        }
+        return false;
     }
 
     public static List<Pair<String, Object>> getColumns(final Object obj)
