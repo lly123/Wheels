@@ -17,4 +17,9 @@ public class AjaxController
     {
         return render("jsonp").put("token", "123456");
     }
+
+    public Model post(final String data)
+    {
+        return render("jsonp").put("token", data + " has been processed.");
+    }
 }

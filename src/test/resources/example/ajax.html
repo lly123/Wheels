@@ -18,6 +18,17 @@
                     jsonpCallback: "logInfo"
                 });
             }
+
+            $scope.post = function()
+            {
+                $.ajax({
+                    url: "http://lly:8080/ajax/post",
+                    type: "GET",
+                    dataType: "jsonp",
+                    jsonpCallback: "logInfo",
+                    data: "data=" + $scope.token
+                });
+            }
         }
 
         logInfo = function(data)
@@ -30,9 +41,12 @@
     <div class="container" ng-controller="Ctrl">
         <div class="row-fluid">&nbsp;</div>
         <div class="row-fluid">
-            <div class="span12 well">
-                <div class="span4"><button class="btn btn-info" ng-click="call();">Get from www.lly.com</button></div>
-                <div class="span8"><input id="token" type="text" class="span7" placeholder="Token..."/></div>
+            <div class="span12">
+                <div class="row-fluid well">
+                    <div class="span2"><button class="btn btn-info" ng-click="call();">Get from lly</button></div>
+                    <div class="span2"><button class="btn btn-info" ng-click="post();">Post to lly</button></div>
+                    <div class="span8"><input class="input-block-level" id="token" type="text" ng-model="token" placeholder="Token..."/></div>
+                </div>
             </div>
         </div>
     </div>

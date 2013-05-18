@@ -2,6 +2,7 @@ package com.freeroom.web;
 
 import com.freeroom.di.util.Pair;
 import com.google.common.base.Optional;
+import com.google.common.base.Strings;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
@@ -29,6 +30,7 @@ import static java.util.regex.Pattern.compile;
 
 public class Cerberus
 {
+    public static final String KEY_SEPARATOR = "_";
     private final Map<String, Object> map = new HashMap<>();
     private final String charset;
 
@@ -64,7 +66,7 @@ public class Cerberus
 
     public Cerberus add(final String keyValue)
     {
-        final String[] strings = keyValue.split("=");
+        final String[] strings = keyValue.split("=", 2);
         if (strings.length < 2) {
             return this;
         }
@@ -72,7 +74,7 @@ public class Cerberus
         final String key = decode(strings[0]);
         final String value = decode(strings[1]);
 
-        if (map.containsKey(key)) {
+        if (map.containsKey(key) || isKeyNotValid(key)) {
             return this;
         }
 
@@ -103,12 +105,12 @@ public class Cerberus
 
     private Pair<String, String> splitKey(final String key)
     {
-        return Pair.of(key.substring(0, key.indexOf("_")), key.substring(key.indexOf("_") + 1));
+        return Pair.of(key.substring(0, key.indexOf(KEY_SEPARATOR)), key.substring(key.indexOf(KEY_SEPARATOR) + 1));
     }
 
     private boolean isCompositeKey(final String key)
     {
-        return key.contains("_");
+        return key.contains(KEY_SEPARATOR);
     }
 
     public Object fill(Class<?> clazz)
@@ -182,5 +184,10 @@ public class Cerberus
     public String getCharset()
     {
         return charset;
+    }
+
+    private boolean isKeyNotValid(final String key)
+    {
+        return Strings.isNullOrEmpty(key) || key.equals(KEY_SEPARATOR);
     }
 }

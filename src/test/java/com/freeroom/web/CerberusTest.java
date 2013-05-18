@@ -2,7 +2,6 @@ package com.freeroom.web;
 
 import com.freeroom.web.beans.Address;
 import com.freeroom.web.beans.Book;
-import com.freeroom.web.beans.Order;
 import org.junit.Test;
 
 import java.util.List;
@@ -20,6 +19,15 @@ public class CerberusTest
         cerberus.add("key=value");
 
         assertThat((String)cerberus.getValue("key").get(), is("value"));
+    }
+
+    @Test
+    public void should_save_value_with_equal_signs()
+    {
+        final Cerberus cerberus = new Cerberus("UTF-8");
+        cerberus.add("key=value=value");
+
+        assertThat((String)cerberus.getValue("key").get(), is("value=value"));
     }
 
     @Test
