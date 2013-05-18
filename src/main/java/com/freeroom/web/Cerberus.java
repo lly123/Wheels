@@ -144,11 +144,11 @@ public class Cerberus
         Object parsedValue = value;
         if (fieldType.equals(int.class) || fieldType.equals(Integer.class)) {
             parsedValue = parseInt(value);
-        } if (fieldType.equals(long.class) || fieldType.equals(Long.class)) {
+        } else if (fieldType.equals(long.class) || fieldType.equals(Long.class)) {
             parsedValue = parseLong(value);
-        } if (fieldType.equals(double.class) || fieldType.equals(Double.class)) {
+        } else if (fieldType.equals(double.class) || fieldType.equals(Double.class)) {
             parsedValue = parseDouble(value);
-        } if (fieldType.equals(boolean.class) || fieldType.equals(Boolean.class)) {
+        } else if (fieldType.equals(boolean.class) || fieldType.equals(Boolean.class)) {
             parsedValue = parseBoolean(value);
         }
         return parsedValue;

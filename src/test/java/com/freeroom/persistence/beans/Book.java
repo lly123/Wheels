@@ -1,7 +1,9 @@
 package com.freeroom.persistence.beans;
 
-import com.freeroom.persistence.annotations.Persist;
 import com.freeroom.persistence.annotations.ID;
+import com.freeroom.persistence.annotations.Persist;
+
+import java.util.List;
 
 public class Book
 {
@@ -13,6 +15,14 @@ public class Book
 
     @Persist
     private String name;
+
+    @Persist
+    private double price;
+
+    @Persist
+    private long publishDate;
+
+    private List<Integer> tags;
 
     public long getIsbn() {
         return isbn;
@@ -28,5 +38,35 @@ public class Book
 
     public void setName(final String name) {
         this.name = name;
+    }
+
+    public double getPrice()
+    {
+        return price;
+    }
+
+    public void setPrice(final double price)
+    {
+        this.price = price;
+    }
+
+    public long getPublishDate()
+    {
+        return publishDate;
+    }
+
+    public void setPublishDate(final long publishDate)
+    {
+        this.publishDate = publishDate;
+    }
+
+    public List<Integer> getTags()
+    {
+        return tags;
+    }
+
+    public void setTags(final List<Integer> tags)
+    {
+        this.tags = tags;
     }
 }
