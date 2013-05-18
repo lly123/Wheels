@@ -37,12 +37,12 @@ public class Hades
         return enhancer.create();
     }
 
-    public void persist(final Object obj)
+    public void persistExisted(final Factory obj)
     {
         if (!isDirty(obj)) return;
 
-        Object realObj = ((Charon)((Factory) obj).getCallback(0)).getCurrent().get();
-        Pair<String, Long> primaryKeyAndValue = Atlas.getPrimaryKeyNameAndValue(realObj);
+        final Object realObj = ((Charon)obj.getCallback(0)).getCurrent().get();
+        final Pair<String, Long> primaryKeyAndValue = Atlas.getPrimaryKeyNameAndValue(realObj);
         final List<Pair<String,Object>> columns = Atlas.getBasicFieldAndValues(realObj);
 
         if (columns.size() == 0) return;
@@ -72,34 +72,39 @@ public class Hades
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+    }
 
-//        final StringBuilder columnNamesBuffer = new StringBuilder();
-//        final StringBuilder questionMarksBuffer = new StringBuilder();
-//
-//        each(columns, column -> {
-//            columnNamesBuffer.append(column.fst + ",");
-//            questionMarksBuffer.append("?,");
-//        });
-//
-//        final String columnNames = columnNamesBuffer.deleteCharAt(columnNamesBuffer.length() - 1).toString();
-//        final String questionMarks = questionMarksBuffer.deleteCharAt(questionMarksBuffer.length() - 1).toString();
-//
-//        final String sql = format("INSERT INTO %s (%s) VALUES (%s)",
-//                realObj.getClass().getSimpleName(), columnNames, questionMarks);
-//
-//        try (final Connection connection = getDBConnection()) {
-//            final PreparedStatement statement = connection.prepareStatement(sql);
-//
-//            int i = 1;
-//            for (final Pair<String, Object> column : columns) {
-//                statement.setObject(i++, column.snd);
-//            }
-//
-//            statement.executeUpdate();
-//            logger.debug("Execute SQL: " + sql);
-//        } catch (SQLException e) {
-//            throw new RuntimeException(e);
-//        }
+    public void persistNew(final Object obj)
+    {
+        final List<Pair<String,Object>> columns = Atlas.getBasicFieldAndValues(obj);
+
+        final StringBuilder columnNamesBuffer = new StringBuilder();
+        final StringBuilder questionMarksBuffer = new StringBuilder();
+
+        each(columns, column -> {
+            columnNamesBuffer.append(column.fst + ",");
+            questionMarksBuffer.append("?,");
+        });
+
+        final String columnNames = columnNamesBuffer.deleteCharAt(columnNamesBuffer.length() - 1).toString();
+        final String questionMarks = questionMarksBuffer.deleteCharAt(questionMarksBuffer.length() - 1).toString();
+
+        final String sql = format("INSERT INTO %s (%s) VALUES (%s)",
+                obj.getClass().getSimpleName(), columnNames, questionMarks);
+
+        try (final Connection connection = getDBConnection()) {
+            final PreparedStatement statement = connection.prepareStatement(sql);
+
+            int i = 1;
+            for (final Pair<String, Object> column : columns) {
+                statement.setObject(i++, column.snd);
+            }
+
+            statement.executeUpdate();
+            logger.debug("Execute SQL: " + sql);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public boolean isDirty(final Object obj)

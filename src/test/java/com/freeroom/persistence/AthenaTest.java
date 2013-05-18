@@ -42,4 +42,18 @@ public class AthenaTest
         assertThat(book.getIsbn(), is(1449323073L));
         assertThat(book.getName(), is("Learning Node"));
     }
+
+    @Test
+    public void should_persist_new_book()
+    {
+        Book book = new Book();
+        book.setIsbn(1449323391L);
+        book.setName("Testable JavaScript");
+
+        athena.persist(book);
+
+        book = (Book)athena.from(Book.class).find(2).get();
+        assertThat(book.getIsbn(), is(1449323391L));
+        assertThat(book.getName(), is("Testable JavaScript"));
+    }
 }

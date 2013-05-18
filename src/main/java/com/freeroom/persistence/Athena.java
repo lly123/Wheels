@@ -58,7 +58,9 @@ public class Athena
     public void persist(final Object obj)
     {
         if (obj instanceof Factory) {
-            hades.persist(obj);
+            hades.persistExisted((Factory)obj);
+        } else {
+            hades.persistNew(obj);
         }
     }
 
