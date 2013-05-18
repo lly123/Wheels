@@ -27,12 +27,12 @@ public class Hades
         this.properties = properties;
     }
 
-    public <T> T create(final Class<T> clazz, final long primaryKey)
+    public Object create(final Class<?> clazz, final long primaryKey)
     {
         final Enhancer enhancer = new Enhancer();
         enhancer.setSuperclass(clazz);
         enhancer.setCallback(new Charon(this, clazz, primaryKey));
-        return (T) enhancer.create();
+        return enhancer.create();
     }
 
     protected Object load(final Class<?> clazz, final long primaryKey)

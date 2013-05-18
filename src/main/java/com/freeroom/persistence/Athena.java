@@ -1,10 +1,10 @@
 package com.freeroom.persistence;
 
 import com.freeroom.di.util.Pair;
+import com.freeroom.persistence.proxy.Hades;
 import com.google.common.base.Optional;
 import org.apache.log4j.Logger;
 
-import java.lang.reflect.Field;
 import java.sql.*;
 import java.util.List;
 import java.util.Properties;
@@ -19,11 +19,13 @@ public class Athena
     private static Logger logger = Logger.getLogger(Athena.class);
 
     private final Properties properties;
+    private final Hades hades;
     private Optional<Class<?>> entityClass;
 
     public Athena(final Properties properties)
     {
         this.properties = properties;
+        this.hades = new Hades(properties);
     }
 
     public Athena from(final Class<?> clazz)
@@ -37,12 +39,11 @@ public class Athena
         assertEntityClassExists();
 
         final Class<?> clazz = entityClass.get();
-        final String sql = format("SELECT * FROM %s WHERE %s=?", clazz.getSimpleName(), Atlas.getPrimaryKeyName(clazz));
+        final String primaryKeyName = Atlas.getPrimaryKeyName(clazz);
+        final String sql = format("SELECT %s FROM %s WHERE %s=?",
+                primaryKeyName, clazz.getSimpleName(), primaryKeyName);
 
         try (Connection connection = getDBConnection()) {
-            final Object obj = newInstance(clazz);
-            final List<Field> columnFields = Atlas.getBasicFields(clazz);
-
             final PreparedStatement statement = connection.prepareStatement(sql);
             statement.setObject(1, key);
 
@@ -50,15 +51,9 @@ public class Athena
             logger.debug("Execute SQL: " + sql);
 
             if (resultSet.next()) {
-                for (final Field columnField : columnFields) {
-                    columnField.setAccessible(true);
-                    columnField.set(obj, resultSet.getObject(columnField.getName()));
-                }
-                return of(obj);
+                return of(hades.create(clazz, resultSet.getLong(1)));
             }
-        } catch (Exception e) {
-            throw new RuntimeException("DB exception.", e);
-        }
+        } catch (Exception ignored) {}
         return absent();
     }
 
@@ -110,15 +105,6 @@ public class Athena
     {
         if (!entityClass.isPresent()) {
             throw new RuntimeException("Using from() to set entity class.");
-        }
-    }
-
-    private Object newInstance(final Class<?> clazz)
-    {
-        try {
-            return clazz.getConstructor().newInstance();
-        } catch (Exception e){
-            throw new RuntimeException("Get exception when creating " + clazz, e);
         }
     }
 
