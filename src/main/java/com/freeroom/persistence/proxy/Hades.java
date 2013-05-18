@@ -14,6 +14,7 @@ import java.util.Properties;
 
 import static com.freeroom.di.util.FuncUtils.each;
 import static com.freeroom.di.util.FuncUtils.map;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.String.format;
@@ -43,17 +44,17 @@ public class Hades
 
         final Object realObj = ((Charon)obj.getCallback(0)).getCurrent().get();
         final Pair<String, Long> primaryKeyAndValue = Atlas.getPrimaryKeyNameAndValue(realObj);
-        final List<Pair<String,Object>> columns = Atlas.getBasicFieldAndValues(realObj);
+        final List<Pair<Field, Object>> columns = Atlas.getBasicFieldAndValues(realObj);
 
         if (columns.size() == 0) return;
 
         final StringBuilder questionMarksBuffer = new StringBuilder();
 
         each(columns, column -> {
-            questionMarksBuffer.append(column.fst + "=?,");
+            questionMarksBuffer.append(column.fst.getName() + "=?,");
         });
 
-        final String questionMarks = questionMarksBuffer.deleteCharAt(questionMarksBuffer.length() - 1).toString();
+        final String questionMarks = removeTailComma(questionMarksBuffer);
 
         final String sql = format("UPDATE %s SET %s WHERE %s=?",
                 realObj.getClass().getSimpleName(), questionMarks, primaryKeyAndValue.fst);
@@ -62,8 +63,8 @@ public class Hades
             final PreparedStatement statement = connection.prepareStatement(sql);
 
             int i = 1;
-            for (final Pair<String, Object> column : columns) {
-                statement.setObject(i++, column.snd);
+            for (final Pair<Field, Object> column : columns) {
+                setValue(i++, statement, column);
             }
 
             statement.setObject(i, primaryKeyAndValue.snd);
@@ -76,18 +77,18 @@ public class Hades
 
     public void persistNew(final Object obj)
     {
-        final List<Pair<String,Object>> columns = Atlas.getBasicFieldAndValues(obj);
+        final List<Pair<Field, Object>> columns = Atlas.getBasicFieldAndValues(obj);
 
         final StringBuilder columnNamesBuffer = new StringBuilder();
         final StringBuilder questionMarksBuffer = new StringBuilder();
 
         each(columns, column -> {
-            columnNamesBuffer.append(column.fst + ",");
+            columnNamesBuffer.append(column.fst.getName() + ",");
             questionMarksBuffer.append("?,");
         });
 
-        final String columnNames = columnNamesBuffer.deleteCharAt(columnNamesBuffer.length() - 1).toString();
-        final String questionMarks = questionMarksBuffer.deleteCharAt(questionMarksBuffer.length() - 1).toString();
+        final String columnNames = removeTailComma(columnNamesBuffer);
+        final String questionMarks = removeTailComma(questionMarksBuffer);
 
         final String sql = format("INSERT INTO %s (%s) VALUES (%s)",
                 obj.getClass().getSimpleName(), columnNames, questionMarks);
@@ -96,14 +97,30 @@ public class Hades
             final PreparedStatement statement = connection.prepareStatement(sql);
 
             int i = 1;
-            for (final Pair<String, Object> column : columns) {
-                statement.setObject(i++, column.snd);
+            for (final Pair<Field, Object> column : columns) {
+                setValue(i++, statement, column);
             }
 
             statement.executeUpdate();
             logger.debug("Execute SQL: " + sql);
         } catch (SQLException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    private void setValue(final int i, final PreparedStatement statement,
+                          final Pair<Field, Object> column) throws SQLException
+    {
+        if (Atlas.isListLong(column.fst)) {
+            final StringBuilder buffer = new StringBuilder();
+
+            for (Long value : (List<Long>)column.snd) {
+                buffer.append(value + ",");
+            }
+
+            statement.setString(i, removeTailComma(buffer));
+        } else {
+            statement.setObject(i, column.snd);
         }
     }
 
@@ -166,9 +183,11 @@ public class Hades
             field.setDouble(obj, resultSet.getDouble(field.getName()));
         } else if (fieldType.equals(boolean.class) || fieldType.equals(Boolean.class)) {
             field.setBoolean(obj, resultSet.getBoolean(field.getName()));
-        } else if (Atlas.isListInteger(field)) {
+        } else if (Atlas.isListLong(field)) {
             String values = resultSet.getString(field.getName());
-            field.set(obj, newArrayList(map(copyOf(values.split(",")), value -> Integer.parseInt(value))));
+            if (!isNullOrEmpty(values)) {
+                field.set(obj, newArrayList(map(copyOf(values.split(",")), value -> Long.parseLong(value))));
+            }
         }
     }
 
@@ -178,5 +197,14 @@ public class Hades
                 properties.getProperty("url"),
                 properties.getProperty("username"),
                 properties.getProperty("password"));
+    }
+
+    private String removeTailComma(final StringBuilder buffer)
+    {
+        if (buffer.length() > 0) {
+            return buffer.deleteCharAt(buffer.length() - 1).toString();
+        } else {
+            return "";
+        }
     }
 }

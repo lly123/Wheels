@@ -22,8 +22,8 @@ public class Book
     @Persist
     private long publishDate;
 
-    //@Persist
-    private List<Integer> tags;
+    @Persist
+    private List<Long> tags;
 
     public long getIsbn() {
         return isbn;
@@ -61,12 +61,12 @@ public class Book
         this.publishDate = publishDate;
     }
 
-    public List<Integer> getTags()
+    public List<Long> getTags()
     {
         return tags;
     }
 
-    public void setTags(final List<Integer> tags)
+    public void setTags(final List<Long> tags)
     {
         this.tags = tags;
     }

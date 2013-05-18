@@ -62,13 +62,17 @@ public class Atlas
         });
     }
 
-    public static List<Pair<String, Object>> getBasicFieldAndValues(final Object obj)
+    public static List<Pair<Field, Object>> getBasicFieldAndValues(final Object obj)
     {
         return reduce(newArrayList(), copyOf(obj.getClass().getDeclaredFields()), (s, field) -> {
             if (field.isAnnotationPresent(Persist.class) && isBasicField(field)) {
                 field.setAccessible(true);
                 try {
-                    s.add(Pair.of(field.getName(), field.get(obj)));
+                    Object value = field.get(obj);
+                    if (isListLong(field) && value == null) {
+                        value = newArrayList();
+                    }
+                    s.add(Pair.of(field, value));
                 } catch (Exception ignored) {}
             }
             return s;
@@ -78,16 +82,15 @@ public class Atlas
     private static boolean isBasicField(final Field field)
     {
         final Class<?> fieldType = field.getType();
-        return fieldType.isPrimitive() || fieldType.equals(String.class) || isListInteger(field);
+        return fieldType.isPrimitive() || fieldType.equals(String.class) || isListLong(field);
     }
 
-    public static boolean isListInteger(final Field field)
+    public static boolean isListLong(final Field field)
     {
         if (field.getGenericType() instanceof ParameterizedType) {
             ParameterizedType type = (ParameterizedType)field.getGenericType();
             return type.getRawType().equals(List.class) &&
-                        (type.getActualTypeArguments()[0].equals(Integer.class) ||
-                        type.getActualTypeArguments()[0].equals(int.class));
+                   type.getActualTypeArguments()[0].equals(Long.class);
         }
         return false;
     }

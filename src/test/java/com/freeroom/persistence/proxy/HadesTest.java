@@ -31,8 +31,8 @@ public class HadesTest
         assertThat(book.getName(), is("JBoss Seam"));
         assertThat(book.getPrice(), is(18.39));
         assertThat(book.getPublishDate(), is(1234567890L));
-        assertThat(book.getTags().get(0), is(101));
-        assertThat(book.getTags().get(1), is(102));
+        assertThat(book.getTags().get(0), is(101L));
+        assertThat(book.getTags().get(1), is(102L));
     }
 
     @Test
