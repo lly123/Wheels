@@ -34,7 +34,7 @@ public class AtlasTest
         book.setIsbn(1449344852);
         book.setName("AngularJS");
 
-        final List<Pair<String,Object>> columns = Atlas.getColumns(book);
+        final List<Pair<String,Object>> columns = Atlas.getBasicFieldAndValues(book);
 
         assertThat(columns.get(0).fst, is("isbn"));
         assertThat((Long)columns.get(0).snd, is(1449344852L));

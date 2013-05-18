@@ -9,7 +9,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
 
-import static com.freeroom.di.util.FuncUtils.each;
 import static com.google.common.base.Optional.absent;
 import static com.google.common.base.Optional.of;
 import static com.google.common.collect.Iterables.any;
@@ -37,7 +36,7 @@ public class Charon implements MethodInterceptor
     {
         if (!original.isPresent()) {
             original = of(hades.load(clazz, primaryKey));
-            current = copy(original);
+            current = copy(original.get());
         }
         return method.invoke(current.get(), args);
     }
@@ -56,16 +55,24 @@ public class Charon implements MethodInterceptor
         });
     }
 
-    private Optional<Object> copy(final Optional<Object> original)
+    protected Optional<Object> getCurrent()
+    {
+        return current;
+    }
+
+    private Optional<Object> copy(final Object original)
     {
         final Object obj = hades.newInstance(clazz);
+        final Field pkField = Atlas.getPrimaryKey(clazz);
         final List<Field> fields = Atlas.getBasicFields(clazz);
-        each(fields, field -> {
-            try {
+
+        try {
+            pkField.setLong(obj, pkField.getLong(original));
+            for (final Field field : fields) {
                 field.setAccessible(true);
-                field.set(obj, field.get(original.get()));
-            } catch (Exception ignored) {}
-        });
+                field.set(obj, field.get(original));
+            }
+        } catch (Exception ignored) {}
         return Optional.of(obj);
     }
 }

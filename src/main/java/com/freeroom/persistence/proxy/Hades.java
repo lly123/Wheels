@@ -1,5 +1,6 @@
 package com.freeroom.persistence.proxy;
 
+import com.freeroom.di.util.Pair;
 import com.freeroom.persistence.Atlas;
 import net.sf.cglib.proxy.Enhancer;
 import net.sf.cglib.proxy.Factory;
@@ -11,6 +12,7 @@ import java.sql.*;
 import java.util.List;
 import java.util.Properties;
 
+import static com.freeroom.di.util.FuncUtils.each;
 import static com.freeroom.di.util.FuncUtils.map;
 import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Lists.newArrayList;
@@ -35,12 +37,86 @@ public class Hades
         return enhancer.create();
     }
 
+    public void persist(final Object obj)
+    {
+        if (!isDirty(obj)) return;
+
+        Object realObj = ((Charon)((Factory) obj).getCallback(0)).getCurrent().get();
+        Pair<String, Long> primaryKeyAndValue = Atlas.getPrimaryKeyNameAndValue(realObj);
+        final List<Pair<String,Object>> columns = Atlas.getBasicFieldAndValues(realObj);
+
+        if (columns.size() == 0) return;
+
+        final StringBuilder questionMarksBuffer = new StringBuilder();
+
+        each(columns, column -> {
+            questionMarksBuffer.append(column.fst + "=?,");
+        });
+
+        final String questionMarks = questionMarksBuffer.deleteCharAt(questionMarksBuffer.length() - 1).toString();
+
+        final String sql = format("UPDATE %s SET %s WHERE %s=?",
+                realObj.getClass().getSimpleName(), questionMarks, primaryKeyAndValue.fst);
+
+        try (final Connection connection = getDBConnection()) {
+            final PreparedStatement statement = connection.prepareStatement(sql);
+
+            int i = 1;
+            for (final Pair<String, Object> column : columns) {
+                statement.setObject(i++, column.snd);
+            }
+
+            statement.setObject(i, primaryKeyAndValue.snd);
+            statement.executeUpdate();
+            logger.debug("Execute SQL: " + sql);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+//        final StringBuilder columnNamesBuffer = new StringBuilder();
+//        final StringBuilder questionMarksBuffer = new StringBuilder();
+//
+//        each(columns, column -> {
+//            columnNamesBuffer.append(column.fst + ",");
+//            questionMarksBuffer.append("?,");
+//        });
+//
+//        final String columnNames = columnNamesBuffer.deleteCharAt(columnNamesBuffer.length() - 1).toString();
+//        final String questionMarks = questionMarksBuffer.deleteCharAt(questionMarksBuffer.length() - 1).toString();
+//
+//        final String sql = format("INSERT INTO %s (%s) VALUES (%s)",
+//                realObj.getClass().getSimpleName(), columnNames, questionMarks);
+//
+//        try (final Connection connection = getDBConnection()) {
+//            final PreparedStatement statement = connection.prepareStatement(sql);
+//
+//            int i = 1;
+//            for (final Pair<String, Object> column : columns) {
+//                statement.setObject(i++, column.snd);
+//            }
+//
+//            statement.executeUpdate();
+//            logger.debug("Execute SQL: " + sql);
+//        } catch (SQLException e) {
+//            throw new RuntimeException(e);
+//        }
+    }
+
+    public boolean isDirty(final Object obj)
+    {
+        if (!(obj instanceof Factory)) return false;
+
+        Charon charon = (Charon)((Factory) obj).getCallback(0);
+        return charon.isDirty();
+    }
+
     protected Object load(final Class<?> clazz, final long primaryKey)
     {
         final String sql = format("SELECT * FROM %s WHERE %s=?", clazz.getSimpleName(), Atlas.getPrimaryKeyName(clazz));
 
         try (Connection connection = getDBConnection()) {
             final Object obj = newInstance(clazz);
+            final Field pkField = Atlas.getPrimaryKey(clazz);
             final List<Field> columnFields = Atlas.getBasicFields(clazz);
 
             final PreparedStatement statement = connection.prepareStatement(sql);
@@ -50,6 +126,7 @@ public class Hades
             logger.debug("Execute SQL: " + sql);
 
             if (resultSet.next()) {
+                pkField.setLong(obj, primaryKey);
                 for (final Field columnField : columnFields) {
                     columnField.setAccessible(true);
                     setBasicFieldValue(columnField, obj, resultSet);
@@ -59,6 +136,15 @@ public class Hades
             throw new RuntimeException(format("Can't find %s with id %s", clazz.getSimpleName(), primaryKey));
         } catch (Exception e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    protected Object newInstance(final Class<?> clazz)
+    {
+        try {
+            return clazz.getConstructor().newInstance();
+        } catch (Exception e){
+            throw new RuntimeException("Get exception when creating " + clazz, e);
         }
     }
 
@@ -78,21 +164,6 @@ public class Hades
         } else if (Atlas.isListInteger(field)) {
             String values = resultSet.getString(field.getName());
             field.set(obj, newArrayList(map(copyOf(values.split(",")), value -> Integer.parseInt(value))));
-        }
-    }
-
-    protected boolean isDirty(final Object obj)
-    {
-        Charon charon = (Charon)((Factory) obj).getCallback(0);
-        return charon.isDirty();
-    }
-
-    protected Object newInstance(final Class<?> clazz)
-    {
-        try {
-            return clazz.getConstructor().newInstance();
-        } catch (Exception e){
-            throw new RuntimeException("Get exception when creating " + clazz, e);
         }
     }
 

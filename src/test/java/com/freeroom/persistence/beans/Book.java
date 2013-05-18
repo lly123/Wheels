@@ -8,7 +8,7 @@ import java.util.List;
 public class Book
 {
     @ID
-    private int id;
+    private long id;
 
     @Persist
     private long isbn;
@@ -22,7 +22,7 @@ public class Book
     @Persist
     private long publishDate;
 
-    @Persist
+    //@Persist
     private List<Integer> tags;
 
     public long getIsbn() {

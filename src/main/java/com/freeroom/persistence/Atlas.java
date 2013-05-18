@@ -18,6 +18,11 @@ public class Atlas
 {
     public static String getPrimaryKeyName(final Class<?> clazz)
     {
+        return getPrimaryKey(clazz).getName();
+    }
+
+    public static Field getPrimaryKey(final Class<?> clazz)
+    {
         final Optional<Field> pk = tryFind(copyOf(clazz.getDeclaredFields()),
                 field -> field.isAnnotationPresent(ID.class));
 
@@ -25,7 +30,26 @@ public class Atlas
             throw new RuntimeException("Can't find primary key for bean: " + clazz);
         }
 
-        return pk.get().getName();
+        pk.get().setAccessible(true);
+        return pk.get();
+    }
+
+    public static Pair<String, Long> getPrimaryKeyNameAndValue(final Object obj)
+    {
+        final Optional<Field> pk = tryFind(copyOf(obj.getClass().getDeclaredFields()),
+                field -> field.isAnnotationPresent(ID.class));
+
+        if (!pk.isPresent()) {
+            throw new RuntimeException("Can't find primary key for bean: " + obj.getClass());
+        }
+
+        try {
+            final Field pkField = pk.get();
+            pkField.setAccessible(true);
+            return Pair.of(pkField.getName(), pkField.getLong(obj));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static List<Field> getBasicFields(final Class<?> clazz)
@@ -33,6 +57,19 @@ public class Atlas
         return reduce(newArrayList(), copyOf(clazz.getDeclaredFields()), (s, field) -> {
             if (field.isAnnotationPresent(Persist.class) && isBasicField(field)) {
                 s.add(field);
+            }
+            return s;
+        });
+    }
+
+    public static List<Pair<String, Object>> getBasicFieldAndValues(final Object obj)
+    {
+        return reduce(newArrayList(), copyOf(obj.getClass().getDeclaredFields()), (s, field) -> {
+            if (field.isAnnotationPresent(Persist.class) && isBasicField(field)) {
+                field.setAccessible(true);
+                try {
+                    s.add(Pair.of(field.getName(), field.get(obj)));
+                } catch (Exception ignored) {}
             }
             return s;
         });
@@ -53,18 +90,5 @@ public class Atlas
                         type.getActualTypeArguments()[0].equals(int.class));
         }
         return false;
-    }
-
-    public static List<Pair<String, Object>> getColumns(final Object obj)
-    {
-        return reduce(newArrayList(), copyOf(obj.getClass().getDeclaredFields()), (s, field) -> {
-            if (field.isAnnotationPresent(Persist.class)) {
-                field.setAccessible(true);
-                try {
-                    s.add(Pair.of(field.getName(), field.get(obj)));
-                } catch (Exception ignored) {}
-            }
-            return s;
-        });
     }
 }

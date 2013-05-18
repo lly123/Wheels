@@ -23,8 +23,23 @@ public class AthenaTest
     @Test
     public void should_select_by_id()
     {
-        Book book = (Book)athena.from(Book.class).find(1).get();
+        final Book book = (Book)athena.from(Book.class).find(1).get();
+
         assertThat(book.getIsbn(), is(123L));
         assertThat(book.getName(), is("JBoss Seam"));
+    }
+    
+    @Test
+    public void should_persist_existed_book()
+    {
+        Book book = (Book)athena.from(Book.class).find(1).get();
+        book.setIsbn(1449323073L);
+        book.setName("Learning Node");
+
+        athena.persist(book);
+
+        book = (Book)athena.from(Book.class).find(1).get();
+        assertThat(book.getIsbn(), is(1449323073L));
+        assertThat(book.getName(), is("Learning Node"));
     }
 }

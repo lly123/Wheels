@@ -1,15 +1,13 @@
 package com.freeroom.persistence;
 
-import com.freeroom.di.util.Pair;
 import com.freeroom.persistence.proxy.Hades;
 import com.google.common.base.Optional;
+import net.sf.cglib.proxy.Factory;
 import org.apache.log4j.Logger;
 
 import java.sql.*;
-import java.util.List;
 import java.util.Properties;
 
-import static com.freeroom.di.util.FuncUtils.each;
 import static com.google.common.base.Optional.absent;
 import static com.google.common.base.Optional.of;
 import static java.lang.String.format;
@@ -57,35 +55,10 @@ public class Athena
         return absent();
     }
 
-    public void save(final Object obj)
+    public void persist(final Object obj)
     {
-        final List<Pair<String,Object>> columns = Atlas.getColumns(obj);
-
-        final StringBuilder columnNamesBuffer = new StringBuilder();
-        final StringBuilder questionMarksBuffer = new StringBuilder();
-        each(columns, column -> {
-            columnNamesBuffer.append(column.fst + ",");
-            questionMarksBuffer.append("?,");
-        });
-
-        final String columnNames = columnNamesBuffer.deleteCharAt(columnNamesBuffer.length() - 1).toString();
-        final String questionMarks = questionMarksBuffer.deleteCharAt(questionMarksBuffer.length() - 1).toString();
-
-        final String sql = format("INSERT INTO %s (%s) VALUES (%s)",
-                obj.getClass().getSimpleName(), columnNames, questionMarks);
-
-        try (final Connection connection = getDBConnection()) {
-            final PreparedStatement statement = connection.prepareStatement(sql);
-
-            int i = 1;
-            for (final Pair<String, Object> column : columns) {
-                statement.setObject(i++, column.snd);
-            }
-
-            statement.executeUpdate();
-            logger.debug("Execute SQL: " + sql);
-        } catch (SQLException e) {
-            throw new RuntimeException("DB exception.", e);
+        if (obj instanceof Factory) {
+            hades.persist(obj);
         }
     }
 
