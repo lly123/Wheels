@@ -1,5 +1,6 @@
 package com.freeroom.persistence;
 
+import com.freeroom.persistence.exceptions.NotOnlyResultException;
 import com.freeroom.persistence.proxy.Hades;
 import com.google.common.base.Optional;
 import net.sf.cglib.proxy.Factory;
@@ -50,6 +51,34 @@ public class Athena
 
             if (resultSet.next()) {
                 return of(hades.create(clazz, resultSet.getLong(1)));
+            }
+        } catch (Exception ignored) {}
+        return absent();
+    }
+
+    public Optional<Object> findOnly(final String where)
+    {
+        assertEntityClassExists();
+
+        final Class<?> clazz = entityClass.get();
+        final String primaryKeyName = Atlas.getPrimaryKeyName(clazz);
+        final String sql = format("SELECT %s FROM %s WHERE %s",
+                primaryKeyName, clazz.getSimpleName(), where);
+
+        try (Connection connection = getDBConnection()) {
+            final PreparedStatement statement = connection.prepareStatement(sql);
+
+            final ResultSet resultSet = statement.executeQuery();
+            logger.debug("Execute SQL: " + sql);
+
+            if (resultSet.next()) {
+                final Optional<Object> retVal = of(hades.create(clazz, resultSet.getLong(1)));
+
+                if (resultSet.next()) {
+                    throw new NotOnlyResultException("Found more than one result.");
+                }
+
+                return retVal;
             }
         } catch (Exception ignored) {}
         return absent();

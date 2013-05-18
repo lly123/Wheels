@@ -6,6 +6,7 @@ import org.junit.Test;
 
 import static com.freeroom.persistence.DBFixture.getDbProperties;
 import static com.freeroom.persistence.DBFixture.prepareDB;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 
@@ -55,5 +56,19 @@ public class AthenaTest
         book = (Book)athena.from(Book.class).find(2).get();
         assertThat(book.getIsbn(), is(1449323391L));
         assertThat(book.getName(), is("Testable JavaScript"));
+    }
+
+    @Test
+    public void should_keep_null()
+    {
+        Book book = new Book();
+        book.setIsbn(1449323391L);
+        book.setName(null);
+
+        athena.persist(book);
+
+        book = (Book)athena.from(Book.class).findOnly("isbn=1449323391").get();
+        assertThat(book.getIsbn(), is(1449323391L));
+        assertThat(book.getName(), is(nullValue()));
     }
 }
