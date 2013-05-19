@@ -40,8 +40,7 @@ public class Athena
 
         final Class<?> clazz = entityClass.get();
         final String primaryKeyName = Atlas.getPrimaryKeyName(clazz);
-        final String sql = format("SELECT %s FROM %s WHERE %s=?",
-                primaryKeyName, clazz.getSimpleName(), primaryKeyName);
+        final String sql = format("SELECT %s FROM %s WHERE %s=?", primaryKeyName, clazz.getSimpleName(), primaryKeyName);
 
         try (Connection connection = getDBConnection()) {
             final PreparedStatement statement = connection.prepareStatement(sql);
@@ -63,8 +62,7 @@ public class Athena
 
         final Class<?> clazz = entityClass.get();
         final String primaryKeyName = Atlas.getPrimaryKeyName(clazz);
-        final String sql = format("SELECT %s FROM %s WHERE %s",
-                primaryKeyName, clazz.getSimpleName(), where);
+        final String sql = format("SELECT %s FROM %s WHERE %s", primaryKeyName, clazz.getSimpleName(), where);
 
         try (Connection connection = getDBConnection()) {
             final PreparedStatement statement = connection.prepareStatement(sql);
