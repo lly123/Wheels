@@ -30,11 +30,11 @@ public class Hades
         this.properties = properties;
     }
 
-    public Object create(final Class<?> clazz, final long primaryKey)
+    public Object create(final Class<?> clazz, final Pair<String, Long> primaryKeyAndValue)
     {
         final Enhancer enhancer = new Enhancer();
         enhancer.setSuperclass(clazz);
-        enhancer.setCallback(new Charon(this, clazz, primaryKey));
+        enhancer.setCallback(new Charon(this, clazz, primaryKeyAndValue));
         return enhancer.create();
     }
 
@@ -42,9 +42,9 @@ public class Hades
     {
         if (!isDirty(obj)) return;
 
-        final Object realObj = ((Charon)obj.getCallback(0)).getCurrent().get();
-        final Pair<String, Long> primaryKeyAndValue = Atlas.getPrimaryKeyNameAndValue(realObj);
-        final List<Pair<Field, Object>> columns = Atlas.getBasicFieldAndValues(realObj);
+        final Charon charon = (Charon)obj.getCallback(0);
+        final Pair<String, Long> primaryKeyAndValue = charon.getPrimaryKeyAndValue();
+        final List<Pair<Field, Object>> columns = Atlas.getBasicFieldAndValues(charon.getCurrent());
 
         if (columns.size() == 0) return;
 
@@ -57,7 +57,7 @@ public class Hades
         final String questionMarks = removeTailComma(questionMarksBuffer);
 
         final String sql = format("UPDATE %s SET %s WHERE %s=?",
-                realObj.getClass().getSimpleName(), questionMarks, primaryKeyAndValue.fst);
+                charon.getPersistBeanName(), questionMarks, primaryKeyAndValue.fst);
 
         try (final Connection connection = getDBConnection()) {
             final PreparedStatement statement = connection.prepareStatement(sql);
@@ -108,13 +108,31 @@ public class Hades
         }
     }
 
+    public void remove(final Factory obj)
+    {
+        final Charon charon = (Charon)obj.getCallback(0);
+        final Pair<String, Long> primaryKeyAndValue = charon.getPrimaryKeyAndValue();
+        final String sql = format("DELETE FROM %s WHERE %s=?", charon.getPersistBeanName(), primaryKeyAndValue.fst);
+
+        try (final Connection connection = getDBConnection()) {
+            final PreparedStatement statement = connection.prepareStatement(sql);
+            statement.setLong(1, primaryKeyAndValue.snd);
+            statement.executeUpdate();
+            logger.debug("Execute SQL: " + sql);
+
+            charon.removed();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private void setValue(final int i, final PreparedStatement statement,
                           final Pair<Field, Object> column) throws SQLException
     {
         if (Atlas.isListLong(column.fst)) {
             final StringBuilder buffer = new StringBuilder();
 
-            for (Long value : (List<Long>)column.snd) {
+            for (final Long value : (List<Long>)column.snd) {
                 buffer.append(value + ",");
             }
 
@@ -128,7 +146,7 @@ public class Hades
     {
         if (!(obj instanceof Factory)) return false;
 
-        Charon charon = (Charon)((Factory) obj).getCallback(0);
+        final Charon charon = (Charon)((Factory)obj).getCallback(0);
         return charon.isDirty();
     }
 

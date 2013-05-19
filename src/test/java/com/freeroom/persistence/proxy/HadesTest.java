@@ -1,5 +1,6 @@
 package com.freeroom.persistence.proxy;
 
+import com.freeroom.di.util.Pair;
 import com.freeroom.persistence.beans.Book;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -25,7 +26,7 @@ public class HadesTest
     @Test
     public void should_get_simple_record()
     {
-        final Book book = (Book)hades.create(Book.class, 1);
+        final Book book = (Book)hades.create(Book.class, Pair.of("id", 1L));
 
         assertThat(book.getIsbn(), is(123L));
         assertThat(book.getName(), is("JBoss Seam"));
@@ -38,7 +39,7 @@ public class HadesTest
     @Test
     public void should_know_simple_record_has_been_changed()
     {
-        final Book book = (Book)hades.create(Book.class, 1);
+        final Book book = (Book)hades.create(Book.class, Pair.of("id", 1L));
         book.setName("Learning Node");
 
         assertThat(hades.isDirty(book), is(true));

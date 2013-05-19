@@ -71,4 +71,18 @@ public class AthenaTest
         assertThat(book.getIsbn(), is(1449323391L));
         assertThat(book.getName(), is(nullValue()));
     }
+
+    @Test
+    public void should_remove_persisted_book()
+    {
+        should_keep_null();
+
+        final Book book = (Book)athena.from(Book.class).findOnly("isbn=1449323391").get();
+
+        athena.remove(book);
+
+        book.setName("ABC");
+        athena.persist(book);
+        assertThat(athena.from(Book.class).findOnly("isbn=1449323391").isPresent(), is(false));
+    }
 }

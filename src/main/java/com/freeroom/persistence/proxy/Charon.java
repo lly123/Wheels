@@ -1,5 +1,6 @@
 package com.freeroom.persistence.proxy;
 
+import com.freeroom.di.util.Pair;
 import com.freeroom.persistence.Atlas;
 import com.google.common.base.Optional;
 import net.sf.cglib.proxy.MethodInterceptor;
@@ -17,37 +18,41 @@ public class Charon implements MethodInterceptor
 {
     private final Hades hades;
     private final Class<?> clazz;
-    private final long primaryKey;
+    private Pair<String, Long> primaryKeyAndValue;
     private Optional<Object> original;
-    private Optional<Object> current;
+    private Object current;
+    private boolean removed;
 
-    public Charon(Hades hades, Class<?> clazz, long primaryKey)
+    public Charon(Hades hades, Class<?> clazz, final Pair<String, Long> primaryKeyAndValue)
     {
         this.hades = hades;
         this.clazz = clazz;
-        this.primaryKey = primaryKey;
+        this.primaryKeyAndValue = primaryKeyAndValue;
         this.original = absent();
-        this.current = absent();
+        this.current = hades.newInstance(clazz);
+        this.removed = false;
     }
 
     @Override
     public Object intercept(final Object bean, final Method method,
                             final Object[] args, final MethodProxy methodProxy) throws Throwable
     {
-        if (!original.isPresent()) {
-            original = of(hades.load(clazz, primaryKey));
+        if (!original.isPresent() && !removed) {
+            original = of(hades.load(clazz, primaryKeyAndValue.snd));
             current = copy(original.get());
         }
-        return method.invoke(current.get(), args);
+        return method.invoke(current, args);
     }
 
     protected boolean isDirty()
     {
+        if (removed) return false;
+
         final List<Field> fields = Atlas.getBasicFields(clazz);
         return any(fields, field -> {
             try {
                 field.setAccessible(true);
-                Object v1 = field.get(current.get());
+                Object v1 = field.get(current);
                 Object v2 = field.get(original.get());
                 return !v1.equals(v2);
             } catch (Exception ignored) {}
@@ -55,12 +60,27 @@ public class Charon implements MethodInterceptor
         });
     }
 
-    protected Optional<Object> getCurrent()
+    protected Pair<String, Long> getPrimaryKeyAndValue()
+    {
+        return primaryKeyAndValue;
+    }
+
+    protected Object getCurrent()
     {
         return current;
     }
 
-    private Optional<Object> copy(final Object original)
+    protected String getPersistBeanName()
+    {
+        return clazz.getSimpleName();
+    }
+
+    protected void removed()
+    {
+        this.removed = true;
+    }
+
+    private Object copy(final Object original)
     {
         final Object obj = hades.newInstance(clazz);
         final Field pkField = Atlas.getPrimaryKey(clazz);
@@ -73,6 +93,6 @@ public class Charon implements MethodInterceptor
                 field.set(obj, field.get(original));
             }
         } catch (Exception ignored) {}
-        return Optional.of(obj);
+        return obj;
     }
 }
