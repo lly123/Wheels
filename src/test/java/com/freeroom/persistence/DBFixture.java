@@ -34,6 +34,9 @@ public class DBFixture
             statement.executeUpdate(
                     "INSERT INTO PUBLIC.BOOK (ISBN, NAME, PRICE, PUBLISHDATE, TAGS) "+
                     "VALUES (123, 'JBoss Seam', 18.39, 1234567890, '101,102')");
+            statement.executeUpdate(
+                    "INSERT INTO PUBLIC.BOOK (ISBN, NAME, PRICE, PUBLISHDATE, TAGS) "+
+                    "VALUES (128, 'Bootstrap', 18.39, 1234567896, '101')");
 
             statement.executeUpdate(
                     "CREATE MEMORY TABLE PUBLIC.ORDER("+

@@ -55,7 +55,7 @@ public class AthenaTest
 
         athena.persist(book);
 
-        book = (Book)athena.from(Book.class).find(2).get();
+        book = (Book)athena.from(Book.class).find(3).get();
         assertThat(book.getIsbn(), is(1449323391L));
         assertThat(book.getName(), is("Testable JavaScript"));
     }
@@ -93,10 +93,22 @@ public class AthenaTest
     @Test
     public void should_find_list_of_values()
     {
-        should_keep_null();
-
         final List<Object> books = athena.from(Book.class).find("price=18.39");
 
         assertThat(books.size(), is(2));
+    }
+
+    @Test
+    public void should_persist_list_with_removed_obj()
+    {
+        List<Object> books = athena.from(Book.class).find("price=18.39");
+
+        assertThat(books.size(), is(2));
+
+        books.remove(0);
+        athena.persist(books);
+
+        books = athena.from(Book.class).find("price=18.39");
+        assertThat(books.size(), is(1));
     }
 }

@@ -117,6 +117,14 @@ public class Hades
         }
     }
 
+    public void persistExistedList(final Factory obj)
+    {
+        if (!isDirtyList(obj)) return;
+
+        final Hecate hecate = (Hecate)obj.getCallback(0);
+        each(hecate.getRemoved(), o -> remove(o));
+    }
+
     public void remove(final Factory obj)
     {
         final Charon charon = (Charon)obj.getCallback(0);
@@ -159,7 +167,7 @@ public class Hades
         return charon.isDirty();
     }
 
-    public boolean isDirtyList(final List<Object> objs)
+    public boolean isDirtyList(final Object objs)
     {
         if (!(objs instanceof Factory)) return false;
 

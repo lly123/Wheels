@@ -1,6 +1,7 @@
 package com.freeroom.persistence;
 
 import com.freeroom.persistence.exceptions.NotOnlyResultException;
+import com.freeroom.persistence.proxy.Charon;
 import com.freeroom.persistence.proxy.Hades;
 import com.google.common.base.Optional;
 import net.sf.cglib.proxy.Factory;
@@ -97,7 +98,11 @@ public class Athena
     public void persist(final Object obj)
     {
         if (obj instanceof Factory) {
-            hades.persistExisted((Factory)obj);
+            if (((Factory)obj).getCallback(0) instanceof Charon) {
+                hades.persistExisted((Factory)obj);
+            } else {
+                hades.persistExistedList((Factory)obj);
+            }
         } else {
             hades.persistNew(obj);
         }
