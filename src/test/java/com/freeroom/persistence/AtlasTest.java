@@ -19,26 +19,35 @@ public class AtlasTest
     }
 
     @Test
-    public void should_get_column_names()
+    public void should_get_basic_fields()
     {
-        final List<Field> columnFields = Atlas.getBasicFields(Book.class);
+        final List<Field> fields = Atlas.getBasicFields(Book.class);
 
-        assertThat(columnFields.get(0).getName(), is("isbn"));
-        assertThat(columnFields.get(1).getName(), is("name"));
+        assertThat(fields.get(0).getName(), is("isbn"));
+        assertThat(fields.get(1).getName(), is("name"));
     }
 
     @Test
-    public void should_get_columns()
+    public void should_get_basic_fields_and_values()
     {
         final Book book = new Book();
         book.setIsbn(1449344852);
         book.setName("AngularJS");
 
-        final List<Pair<Field,Object>> columns = Atlas.getBasicFieldAndValues(book);
+        final List<Pair<Field,Object>> fields = Atlas.getBasicFieldAndValues(book);
 
-        assertThat(columns.get(0).fst.getName(), is("isbn"));
-        assertThat((Long)columns.get(0).snd, is(1449344852L));
-        assertThat(columns.get(1).fst.getName(), is("name"));
-        assertThat((String)columns.get(1).snd, is("AngularJS"));
+        assertThat(fields.get(0).fst.getName(), is("isbn"));
+        assertThat((Long)fields.get(0).snd, is(1449344852L));
+        assertThat(fields.get(1).fst.getName(), is("name"));
+        assertThat((String)fields.get(1).snd, is("AngularJS"));
+    }
+
+    @Test
+    public void should_get_relational_object_names()
+    {
+        final List<String> objectNames = Atlas.getRelationalObjectNames(Book.class);
+
+        assertThat(objectNames.size(), is(1));
+        assertThat(objectNames.get(0), is("Order"));
     }
 }

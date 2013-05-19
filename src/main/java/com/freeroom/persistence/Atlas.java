@@ -7,6 +7,7 @@ import com.google.common.base.Optional;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.List;
 
 import static com.freeroom.di.util.FuncUtils.reduce;
@@ -93,5 +94,23 @@ public class Atlas
                    type.getActualTypeArguments()[0].equals(Long.class);
         }
         return false;
+    }
+
+    public static List<String> getRelationalObjectNames(final Class<?> clazz)
+    {
+        return reduce(newArrayList(), copyOf(clazz.getDeclaredFields()), (s, field) -> {
+            if (field.isAnnotationPresent(Persist.class) && !isBasicField(field) && isGenericListField(field)) {
+                s.add(((Class)((ParameterizedType)field.getGenericType()).getActualTypeArguments()[0]).getSimpleName());
+            }
+            return s;
+        });
+    }
+
+    private static boolean isGenericListField(final Field field)
+    {
+        final Type type = field.getGenericType();
+        return (type instanceof ParameterizedType) &&
+            ((ParameterizedType)type).getRawType().equals(List.class) &&
+            ((ParameterizedType)type).getActualTypeArguments().length > 0;
     }
 }

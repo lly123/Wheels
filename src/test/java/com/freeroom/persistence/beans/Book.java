@@ -25,19 +25,26 @@ public class Book
     @Persist
     private List<Long> tags;
 
-    public long getIsbn() {
+    @Persist
+    private List<Order> orders;
+
+    public long getIsbn()
+    {
         return isbn;
     }
 
-    public String getName() {
+    public String getName()
+    {
         return name;
     }
 
-    public void setIsbn(final long isbn) {
+    public void setIsbn(final long isbn)
+    {
         this.isbn = isbn;
     }
 
-    public void setName(final String name) {
+    public void setName(final String name)
+    {
         this.name = name;
     }
 
