@@ -13,6 +13,8 @@ import java.util.List;
 import static com.freeroom.di.util.FuncUtils.map;
 import static com.google.common.base.Optional.absent;
 import static com.google.common.base.Optional.of;
+import static com.google.common.collect.ImmutableList.copyOf;
+import static com.google.common.collect.Iterables.all;
 
 public class Hecate implements MethodInterceptor
 {
@@ -58,15 +60,25 @@ public class Hecate implements MethodInterceptor
             }
         });
 
-        if (currentIDs.size() != originalIDs.get().size()) return true;
+        return areIDsSame(currentIDs, originalIDs.get()) || areObjsDirty(current);
+    }
+
+    private boolean areIDsSame(final List<Long> currentIDs, final List<Long> originalIDs)
+    {
+        if (currentIDs.size() != originalIDs.size()) return true;
 
         final List<Long> sortedCurrentIDs = Ordering.natural().sortedCopy(currentIDs);
-        final List<Long> sortedOriginalIDs = Ordering.natural().sortedCopy(originalIDs.get());
+        final List<Long> sortedOriginalIDs = Ordering.natural().sortedCopy(originalIDs);
 
         boolean retVal = false;
         for (int i = 0; i < sortedCurrentIDs.size(); i++) {
             retVal = retVal || (sortedCurrentIDs.get(i) != sortedOriginalIDs.get(i));
         }
         return retVal;
+    }
+
+    private boolean areObjsDirty(final List<Object> current)
+    {
+        return !all(copyOf(current), o -> (o instanceof Factory) && !((Charon)((Factory)o).getCallback(0)).isDirty());
     }
 }

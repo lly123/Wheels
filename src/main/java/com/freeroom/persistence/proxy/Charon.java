@@ -47,6 +47,7 @@ public class Charon implements MethodInterceptor
     protected boolean isDirty()
     {
         if (removed) return false;
+        if (!original.isPresent()) return false;
 
         final List<Field> fields = Atlas.getBasicFields(clazz);
         return any(fields, field -> {

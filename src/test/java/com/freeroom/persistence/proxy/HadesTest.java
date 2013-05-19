@@ -79,4 +79,15 @@ public class HadesTest
 
         assertThat(hades.isDirtyList(orders), is(true));
     }
+
+    @Test
+    public void should_check_modified_obj_in_list()
+    {
+        final List<Object> orders = hades.createList(Order.class, "SELECT id FROM order WHERE book_id=?", of(1L));
+
+        final Order book = (Order)orders.get(0);
+        book.setAmount(2);
+
+        assertThat(hades.isDirtyList(orders), is(true));
+    }
 }
