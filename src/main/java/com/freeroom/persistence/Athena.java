@@ -101,18 +101,6 @@ public class Athena
         }
     }
 
-    public void clear(final Class<?> clazz)
-    {
-        final String sql = format("DELETE FROM %s", clazz.getSimpleName());
-        try (final Connection connection = getDBConnection()) {
-            final PreparedStatement statement = connection.prepareStatement(sql);
-            statement.executeUpdate();
-            logger.debug("Execute SQL: " + sql);
-        } catch (SQLException e) {
-            throw new RuntimeException("DB exception.", e);
-        }
-    }
-
     private void assertEntityClassExists()
     {
         if (!entityClass.isPresent()) {
