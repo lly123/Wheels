@@ -55,4 +55,28 @@ public class HadesTest
         assertThat(((Order)orders.get(0)).getAmount(), is(8));
         assertThat(((Order)orders.get(0)).getMemo(), is("Deliver at work time"));
     }
+
+    @Test
+    public void should_check_removed_obj_from_list()
+    {
+        final List<Object> orders = hades.createList(Order.class, "SELECT id FROM order WHERE book_id=?", of(1L));
+
+        orders.remove(0);
+
+        assertThat(hades.isDirtyList(orders), is(true));
+    }
+
+    @Test
+    public void should_check_added_obj_in_list()
+    {
+        final List<Object> orders = hades.createList(Order.class, "SELECT id FROM order WHERE book_id=?", of(1L));
+
+        Book book = new Book();
+        book.setIsbn(1449323391L);
+        book.setName("Testable JavaScript");
+        book.setPrice(20.18);
+        orders.add(book);
+
+        assertThat(hades.isDirtyList(orders), is(true));
+    }
 }

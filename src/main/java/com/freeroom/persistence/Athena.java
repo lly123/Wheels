@@ -7,6 +7,7 @@ import net.sf.cglib.proxy.Factory;
 import org.apache.log4j.Logger;
 
 import java.sql.*;
+import java.util.List;
 import java.util.Properties;
 
 import static com.google.common.base.Optional.absent;
@@ -33,7 +34,7 @@ public class Athena
         return this;
     }
 
-    public Optional<Object> find(final int key)
+    public Optional<Object> find(final long key)
     {
         assertEntityClassExists();
 
@@ -43,7 +44,7 @@ public class Athena
 
         try (Connection connection = getDBConnection()) {
             final PreparedStatement statement = connection.prepareStatement(sql);
-            statement.setObject(1, key);
+            statement.setLong(1, key);
 
             final ResultSet resultSet = statement.executeQuery();
             logger.debug("Execute SQL: " + sql);
@@ -80,6 +81,17 @@ public class Athena
             }
         } catch (Exception ignored) {}
         return absent();
+    }
+
+    public List<Object> find(final String where)
+    {
+        assertEntityClassExists();
+
+        final Class<?> clazz = entityClass.get();
+        final String primaryKeyName = Atlas.getPrimaryKeyName(clazz);
+        final String sql = format("SELECT %s FROM %s WHERE %s", primaryKeyName, clazz.getSimpleName(), where);
+
+        return hades.createList(clazz, sql, absent());
     }
 
     public void persist(final Object obj)

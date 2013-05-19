@@ -4,6 +4,8 @@ import com.freeroom.persistence.beans.Book;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.List;
+
 import static com.freeroom.persistence.DBFixture.getDbProperties;
 import static com.freeroom.persistence.DBFixture.prepareDB;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -64,12 +66,14 @@ public class AthenaTest
         Book book = new Book();
         book.setIsbn(1449323391L);
         book.setName(null);
+        book.setPrice(18.39);
 
         athena.persist(book);
 
         book = (Book)athena.from(Book.class).findOnly("isbn=1449323391").get();
         assertThat(book.getIsbn(), is(1449323391L));
         assertThat(book.getName(), is(nullValue()));
+        assertThat(book.getPrice(), is(18.39));
     }
 
     @Test
@@ -84,5 +88,15 @@ public class AthenaTest
         book.setName("ABC");
         athena.persist(book);
         assertThat(athena.from(Book.class).findOnly("isbn=1449323391").isPresent(), is(false));
+    }
+
+    @Test
+    public void should_find_list_of_values()
+    {
+        should_keep_null();
+
+        final List<Object> books = athena.from(Book.class).find("price=18.39");
+
+        assertThat(books.size(), is(2));
     }
 }

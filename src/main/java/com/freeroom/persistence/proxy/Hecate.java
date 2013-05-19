@@ -1,6 +1,8 @@
 package com.freeroom.persistence.proxy;
 
+import com.freeroom.persistence.Atlas;
 import com.google.common.base.Optional;
+import com.google.common.collect.Ordering;
 import net.sf.cglib.proxy.Factory;
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
@@ -44,5 +46,27 @@ public class Hecate implements MethodInterceptor
     private Optional<List<Long>> extractIDs(final List<Object> current)
     {
         return of(map(current, obj -> ((Charon)((Factory)obj).getCallback(0)).getPrimaryKeyAndValue().snd));
+    }
+
+    public boolean isDirty()
+    {
+        final List<Long> currentIDs = map(current, obj -> {
+            if (obj instanceof Factory) {
+                return ((Charon)((Factory)obj).getCallback(0)).getPrimaryKeyAndValue().snd;
+            } else {
+                return Atlas.getPrimaryKeyNameAndValue(obj).snd;
+            }
+        });
+
+        if (currentIDs.size() != originalIDs.get().size()) return true;
+
+        final List<Long> sortedCurrentIDs = Ordering.natural().sortedCopy(currentIDs);
+        final List<Long> sortedOriginalIDs = Ordering.natural().sortedCopy(originalIDs.get());
+
+        boolean retVal = false;
+        for (int i = 0; i < sortedCurrentIDs.size(); i++) {
+            retVal = retVal || (sortedCurrentIDs.get(i) != sortedOriginalIDs.get(i));
+        }
+        return retVal;
     }
 }

@@ -159,6 +159,14 @@ public class Hades
         return charon.isDirty();
     }
 
+    public boolean isDirtyList(final List<Object> objs)
+    {
+        if (!(objs instanceof Factory)) return false;
+
+        final Hecate hecate = (Hecate)((Factory)objs).getCallback(0);
+        return hecate.isDirty();
+    }
+
     protected Object load(final Class<?> clazz, final long primaryKey)
     {
         final String sql = format("SELECT * FROM %s WHERE %s=?", clazz.getSimpleName(), Atlas.getPrimaryKeyName(clazz));
