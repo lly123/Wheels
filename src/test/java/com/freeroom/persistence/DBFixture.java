@@ -42,6 +42,9 @@ public class DBFixture
             statement.executeUpdate(
                     "INSERT INTO PUBLIC.ORDER (BOOK_ID, AMOUNT, MEMO) "+
                     "VALUES (1, 8, 'Deliver at work time')");
+            statement.executeUpdate(
+                    "INSERT INTO PUBLIC.ORDER (BOOK_ID, AMOUNT, MEMO) "+
+                    "VALUES (1, 1, 'Deliver at night')");
 
             statement.close();
         }

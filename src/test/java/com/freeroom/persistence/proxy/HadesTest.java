@@ -51,7 +51,7 @@ public class HadesTest
     public void should_load_records()
     {
         final List<Object> orders = hades.createList(Order.class, "SELECT id FROM order WHERE book_id=?", of(1L));
-        assertThat(orders.size(), is(1));
+        assertThat(orders.size(), is(2));
         assertThat(((Order)orders.get(0)).getAmount(), is(8));
         assertThat(((Order)orders.get(0)).getMemo(), is("Deliver at work time"));
     }
