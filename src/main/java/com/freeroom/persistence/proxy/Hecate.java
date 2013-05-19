@@ -17,11 +17,11 @@ public class Hecate implements MethodInterceptor
     private final Hades hades;
     private final Class<?> clazz;
     private final String sql;
-    private final Long foreignKey;
+    private final Optional<Long> foreignKey;
     private Optional<List<Long>> originalIDs;
     private List<Object> current;
 
-    public Hecate(final Hades hades, final Class<?> clazz, final String sql, final Long foreignKey)
+    public Hecate(final Hades hades, final Class<?> clazz, final String sql, final Optional<Long> foreignKey)
     {
         this.hades = hades;
         this.clazz = clazz;

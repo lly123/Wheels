@@ -2,6 +2,7 @@ package com.freeroom.persistence.proxy;
 
 import com.freeroom.di.util.Pair;
 import com.freeroom.persistence.Atlas;
+import com.google.common.base.Optional;
 import net.sf.cglib.proxy.Enhancer;
 import net.sf.cglib.proxy.Factory;
 import org.apache.log4j.Logger;
@@ -38,7 +39,7 @@ public class Hades
         return enhancer.create();
     }
 
-    public List<Object> createList(final Class<?> clazz, final String sql, final Long foreignKey)
+    public List<Object> createList(final Class<?> clazz, final String sql, final Optional<Long> foreignKey)
     {
         final Enhancer enhancer = new Enhancer();
         enhancer.setSuperclass(List.class);
@@ -187,11 +188,14 @@ public class Hades
         }
     }
 
-    public List<Object> loadList(final Class<?> clazz, final String sql, final Long foreignKey)
+    public List<Object> loadList(final Class<?> clazz, final String sql, final Optional<Long> foreignKey)
     {
         try (Connection connection = getDBConnection()) {
             final PreparedStatement statement = connection.prepareStatement(sql);
-            statement.setLong(1, foreignKey);
+
+            if (foreignKey.isPresent()) {
+                statement.setLong(1, foreignKey.get());
+            }
 
             final ResultSet resultSet = statement.executeQuery();
             logger.debug("Execute SQL: " + sql);
