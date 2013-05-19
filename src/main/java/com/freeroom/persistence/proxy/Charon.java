@@ -23,7 +23,7 @@ public class Charon implements MethodInterceptor
     private Object current;
     private boolean removed;
 
-    public Charon(Hades hades, Class<?> clazz, final Pair<String, Long> primaryKeyAndValue)
+    public Charon(final Hades hades, final Class<?> clazz, final Pair<String, Long> primaryKeyAndValue)
     {
         this.hades = hades;
         this.clazz = clazz;

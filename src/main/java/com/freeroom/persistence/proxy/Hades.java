@@ -30,12 +30,20 @@ public class Hades
         this.properties = properties;
     }
 
-    public Object create(final Class<?> clazz, final Pair<String, Long> primaryKeyAndValue)
+    public Object create(final Class<?> clazz, final Long primaryKey)
     {
         final Enhancer enhancer = new Enhancer();
         enhancer.setSuperclass(clazz);
-        enhancer.setCallback(new Charon(this, clazz, primaryKeyAndValue));
+        enhancer.setCallback(new Charon(this, clazz, Pair.of(Atlas.getPrimaryKeyName(clazz), primaryKey)));
         return enhancer.create();
+    }
+
+    public List<Object> createList(final Class<?> clazz, final String sql, final Long foreignKey)
+    {
+        final Enhancer enhancer = new Enhancer();
+        enhancer.setSuperclass(List.class);
+        enhancer.setCallback(new Hecate(this, clazz, sql, foreignKey));
+        return (List<Object>)enhancer.create();
     }
 
     public void persistExisted(final Factory obj)
@@ -174,6 +182,25 @@ public class Hades
                 return obj;
             }
             throw new RuntimeException(format("Can't find %s with id %s", clazz.getSimpleName(), primaryKey));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public List<Object> loadList(final Class<?> clazz, final String sql, final Long foreignKey)
+    {
+        try (Connection connection = getDBConnection()) {
+            final PreparedStatement statement = connection.prepareStatement(sql);
+            statement.setLong(1, foreignKey);
+
+            final ResultSet resultSet = statement.executeQuery();
+            logger.debug("Execute SQL: " + sql);
+
+            final List<Object> retVal = newArrayList();
+            while (resultSet.next()) {
+                retVal.add(create(clazz, resultSet.getLong(1)));
+            }
+            return retVal;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

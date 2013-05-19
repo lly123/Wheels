@@ -1,11 +1,12 @@
 package com.freeroom.persistence.proxy;
 
-import com.freeroom.di.util.Pair;
 import com.freeroom.persistence.beans.Book;
+import com.freeroom.persistence.beans.Order;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.sql.SQLException;
+import java.util.List;
 
 import static com.freeroom.persistence.DBFixture.getDbProperties;
 import static com.freeroom.persistence.DBFixture.prepareDB;
@@ -26,7 +27,7 @@ public class HadesTest
     @Test
     public void should_get_simple_record()
     {
-        final Book book = (Book)hades.create(Book.class, Pair.of("id", 1L));
+        final Book book = (Book)hades.create(Book.class, 1L);
 
         assertThat(book.getIsbn(), is(123L));
         assertThat(book.getName(), is("JBoss Seam"));
@@ -39,9 +40,18 @@ public class HadesTest
     @Test
     public void should_know_simple_record_has_been_changed()
     {
-        final Book book = (Book)hades.create(Book.class, Pair.of("id", 1L));
+        final Book book = (Book)hades.create(Book.class, 1L);
         book.setName("Learning Node");
 
         assertThat(hades.isDirty(book), is(true));
+    }
+
+    @Test
+    public void should_load_records()
+    {
+        final List<Object> orders = hades.createList(Order.class, "SELECT id FROM order WHERE book_id=?", 1L);
+        assertThat(orders.size(), is(1));
+        assertThat(((Order)orders.get(0)).getAmount(), is(8));
+        assertThat(((Order)orders.get(0)).getMemo(), is("Deliver at work time"));
     }
 }

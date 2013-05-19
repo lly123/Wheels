@@ -1,6 +1,5 @@
 package com.freeroom.persistence;
 
-import com.freeroom.di.util.Pair;
 import com.freeroom.persistence.exceptions.NotOnlyResultException;
 import com.freeroom.persistence.proxy.Hades;
 import com.google.common.base.Optional;
@@ -50,7 +49,7 @@ public class Athena
             logger.debug("Execute SQL: " + sql);
 
             if (resultSet.next()) {
-                return of(hades.create(clazz, Pair.of(primaryKeyName, resultSet.getLong(1))));
+                return of(hades.create(clazz, resultSet.getLong(1)));
             }
         } catch (Exception ignored) {}
         return absent();
@@ -71,7 +70,7 @@ public class Athena
             logger.debug("Execute SQL: " + sql);
 
             if (resultSet.next()) {
-                final Optional<Object> retVal = of(hades.create(clazz, Pair.of(primaryKeyName, resultSet.getLong(1))));
+                final Optional<Object> retVal = of(hades.create(clazz, resultSet.getLong(1)));
 
                 if (resultSet.next()) {
                     throw new NotOnlyResultException("Found more than one result.");
