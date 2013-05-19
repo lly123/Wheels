@@ -2,7 +2,6 @@ package com.freeroom.persistence.proxy;
 
 import com.freeroom.persistence.Atlas;
 import com.google.common.base.Optional;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Ordering;
 import net.sf.cglib.proxy.Factory;
 import net.sf.cglib.proxy.MethodInterceptor;
@@ -17,6 +16,7 @@ import static com.google.common.base.Optional.absent;
 import static com.google.common.base.Optional.of;
 import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Iterables.all;
+import static com.google.common.collect.Iterables.tryFind;
 import static com.google.common.collect.Lists.newArrayList;
 
 public class Hecate implements MethodInterceptor
@@ -101,9 +101,29 @@ public class Hecate implements MethodInterceptor
         });
     }
 
+    public List<Object> getAdded()
+    {
+        return reduce(newArrayList(), current, (s, obj) -> {
+            if (!(obj instanceof Factory)) {
+                s.add(obj);
+            }
+            return s;
+        });
+    }
+
     private boolean notContainsInCurrent(final Long primaryKey)
     {
-        return Iterables.tryFind(current, o ->
-                (o instanceof Factory) &&  getPrimaryKeyValue((Factory)o) == primaryKey).isPresent();
+        return !tryFind(current, o ->
+                (o instanceof Factory) && getPrimaryKeyValue((Factory) o) == primaryKey).isPresent();
+    }
+
+    public List<Factory> getModified()
+    {
+        return reduce(newArrayList(), current, (s, obj) -> {
+            if ((obj instanceof Factory) && ((Charon)((Factory)obj).getCallback(0)).isDirty()) {
+                s.add((Factory)obj);
+            }
+            return s;
+        });
     }
 }

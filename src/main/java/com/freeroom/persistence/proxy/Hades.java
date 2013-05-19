@@ -123,6 +123,8 @@ public class Hades
 
         final Hecate hecate = (Hecate)obj.getCallback(0);
         each(hecate.getRemoved(), o -> remove(o));
+        each(hecate.getAdded(), o -> persistNew(o));
+        each(hecate.getModified(), o -> persistExisted(o));
     }
 
     public void remove(final Factory obj)

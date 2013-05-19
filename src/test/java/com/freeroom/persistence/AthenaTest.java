@@ -111,4 +111,36 @@ public class AthenaTest
         books = athena.from(Book.class).find("price=18.39");
         assertThat(books.size(), is(1));
     }
+
+    @Test
+    public void should_persist_list_with_added_obj()
+    {
+        List<Object> books = athena.from(Book.class).find("price=18.39");
+
+        assertThat(books.size(), is(2));
+
+        Book book = new Book();
+        book.setIsbn(1449323391L);
+        book.setName("Testable JavaScript");
+        book.setPrice(18.39);
+        books.add(book);
+        athena.persist(books);
+
+        books = athena.from(Book.class).find("price=18.39");
+        assertThat(books.size(), is(3));
+    }
+
+    @Test
+    public void should_persist_list_with_modified_obj()
+    {
+        List<Object> books = athena.from(Book.class).find("price=18.39");
+
+        assertThat(books.size(), is(2));
+
+        ((Book)books.get(0)).setName("A Book");
+        athena.persist(books);
+
+        books = athena.from(Book.class).find("name='A Book'");
+        assertThat(books.size(), is(1));
+    }
 }
