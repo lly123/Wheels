@@ -10,6 +10,7 @@ import java.util.List;
 
 import static com.freeroom.persistence.DBFixture.getDbProperties;
 import static com.freeroom.persistence.DBFixture.prepareDB;
+import static com.google.common.base.Optional.of;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
@@ -49,7 +50,7 @@ public class HadesTest
     @Test
     public void should_load_records()
     {
-        final List<Object> orders = hades.createList(Order.class, "SELECT id FROM order WHERE book_id=?", 1L);
+        final List<Object> orders = hades.createList(Order.class, "SELECT id FROM order WHERE book_id=?", of(1L));
         assertThat(orders.size(), is(1));
         assertThat(((Order)orders.get(0)).getAmount(), is(8));
         assertThat(((Order)orders.get(0)).getMemo(), is("Deliver at work time"));
