@@ -77,4 +77,14 @@ public class Book
     {
         this.tags = tags;
     }
+
+    public List<Order> getOrders()
+    {
+        return orders;
+    }
+
+    public void setOrders(final List<Order> orders)
+    {
+        this.orders = orders;
+    }
 }

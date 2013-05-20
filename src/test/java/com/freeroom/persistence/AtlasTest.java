@@ -43,11 +43,11 @@ public class AtlasTest
     }
 
     @Test
-    public void should_get_relational_object_names()
+    public void should_get_relational_object_fields()
     {
-        final List<String> objectNames = Atlas.getRelationalObjectNames(Book.class);
+        final List<Pair<Field, Class>> objectNames = Atlas.getRelationalObjectFields(Book.class);
 
         assertThat(objectNames.size(), is(1));
-        assertThat(objectNames.get(0), is("Order"));
+        assertThat(objectNames.get(0).snd.getSimpleName(), is("Order"));
     }
 }

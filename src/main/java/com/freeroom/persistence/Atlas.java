@@ -57,6 +57,7 @@ public class Atlas
     {
         return reduce(newArrayList(), copyOf(clazz.getDeclaredFields()), (s, field) -> {
             if (field.isAnnotationPresent(Persist.class) && isBasicField(field)) {
+                field.setAccessible(true);
                 s.add(field);
             }
             return s;
@@ -96,11 +97,12 @@ public class Atlas
         return false;
     }
 
-    public static List<String> getRelationalObjectNames(final Class<?> clazz)
+    public static List<Pair<Field, Class>> getRelationalObjectFields(final Class<?> clazz)
     {
         return reduce(newArrayList(), copyOf(clazz.getDeclaredFields()), (s, field) -> {
             if (field.isAnnotationPresent(Persist.class) && !isBasicField(field) && isGenericListField(field)) {
-                s.add(((Class)((ParameterizedType)field.getGenericType()).getActualTypeArguments()[0]).getSimpleName());
+                field.setAccessible(true);
+                s.add(Pair.of(field, getFirstGenericParameterClass(field)));
             }
             return s;
         });
@@ -112,5 +114,10 @@ public class Atlas
         return (type instanceof ParameterizedType) &&
             ((ParameterizedType)type).getRawType().equals(List.class) &&
             ((ParameterizedType)type).getActualTypeArguments().length > 0;
+    }
+
+    private static Class getFirstGenericParameterClass(final Field field)
+    {
+        return (Class)((ParameterizedType)field.getGenericType()).getActualTypeArguments()[0];
     }
 }

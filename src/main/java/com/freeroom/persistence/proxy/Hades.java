@@ -195,7 +195,6 @@ public class Hades
             if (resultSet.next()) {
                 pkField.setLong(obj, primaryKey);
                 for (final Field columnField : columnFields) {
-                    columnField.setAccessible(true);
                     setBasicFieldValue(columnField, obj, resultSet);
                 }
                 return obj;

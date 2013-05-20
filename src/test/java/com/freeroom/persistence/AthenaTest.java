@@ -1,6 +1,8 @@
 package com.freeroom.persistence;
 
 import com.freeroom.persistence.beans.Book;
+import com.freeroom.persistence.beans.Order;
+import com.google.common.base.Optional;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -142,5 +144,16 @@ public class AthenaTest
 
         books = athena.from(Book.class).find("name='A Book'");
         assertThat(books.size(), is(1));
+    }
+
+    @Test
+    public void should_load_ONE_TO_MANY_relations()
+    {
+        final Optional<Object> book = athena.from(Book.class).find(1);
+
+        final List<Order> orders = ((Book)book.get()).getOrders();
+        assertThat(orders.size(), is(2));
+        assertThat(orders.get(0).getAmount(), is(8));
+        assertThat(orders.get(0).getMemo(), is("Deliver at work time"));
     }
 }
