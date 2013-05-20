@@ -26,6 +26,9 @@ public class Book
     private List<Long> tags;
 
     @Persist
+    private Publisher publisher;
+
+    @Persist
     private List<Order> orders;
 
     public long getIsbn()
@@ -86,5 +89,15 @@ public class Book
     public void setOrders(final List<Order> orders)
     {
         this.orders = orders;
+    }
+
+    public Publisher getPublisher()
+    {
+        return publisher;
+    }
+
+    public void setPublisher(final Publisher publisher)
+    {
+        this.publisher = publisher;
     }
 }
