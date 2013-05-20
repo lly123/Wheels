@@ -16,7 +16,7 @@ public class AtlasTest
     @Test
     public void should_get_primary_key_name()
     {
-        assertThat(Atlas.getPrimaryKeyName(Book.class), is("id"));
+        assertThat(Atlas.getPrimaryKeyName(Book.class), is("bookid"));
     }
 
     @Test

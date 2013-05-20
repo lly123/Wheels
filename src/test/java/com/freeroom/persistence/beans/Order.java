@@ -6,7 +6,7 @@ import com.freeroom.persistence.annotations.Persist;
 public class Order
 {
     @ID
-    private long id;
+    private long orderid;
 
     @Persist
     private int amount;

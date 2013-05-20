@@ -6,7 +6,7 @@ import com.freeroom.persistence.annotations.Persist;
 public class Publisher
 {
     @ID
-    private long id;
+    private long publisherid;
 
     @Persist
     private String name;

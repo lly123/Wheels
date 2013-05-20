@@ -8,7 +8,7 @@ import java.util.List;
 public class Book
 {
     @ID
-    private long id;
+    private long bookid;
 
     @Persist
     private long isbn;
