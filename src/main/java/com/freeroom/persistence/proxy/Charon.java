@@ -117,7 +117,9 @@ public class Charon implements MethodInterceptor
                     relation.set(obj, objects.get(0));
                 }
             }
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
         return obj;
     }
 }

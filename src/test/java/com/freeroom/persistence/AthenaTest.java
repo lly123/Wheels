@@ -218,4 +218,29 @@ public class AthenaTest
         assertThat(book.getPublisher().getName(), is("O' Reilly"));
         assertThat(book.getOrders().get(0).getAmount(), is(1));
     }
+
+    @Test
+    public void should_persist_existed_book_with_new_relations()
+    {
+        Book book = (Book)athena.from(Book.class).find(1).get();
+        book.setPrice(19.88);
+
+        athena.remove(book.getPublisher());
+        final Publisher publisher = new Publisher();
+        publisher.setName("O' Reilly");
+        book.setPublisher(publisher);
+
+        final Order order = new Order();
+        order.setAmount(1);
+        order.setMemo("Deliver on time.");
+        book.getOrders().add(order);
+
+        athena.persist(book);
+
+        book = (Book)athena.from(Book.class).find(1).get();
+        assertThat(book.getPrice(), is(19.88));
+
+        assertThat(book.getPublisher().getName(), is("O' Reilly"));
+        assertThat(book.getOrders().size(), is(3));
+    }
 }
