@@ -97,6 +97,11 @@ public class Atlas
         return false;
     }
 
+    public static boolean isList(final Object obj)
+    {
+        return List.class.isAssignableFrom(obj.getClass());
+    }
+
     public static List<Pair<Field, Class>> getOneToManyRelations(final Class<?> clazz)
     {
         return reduce(newArrayList(), copyOf(clazz.getDeclaredFields()), (s, field) -> {

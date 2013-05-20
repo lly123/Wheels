@@ -13,6 +13,7 @@ import java.util.List;
 import static com.google.common.base.Optional.absent;
 import static com.google.common.base.Optional.of;
 import static com.google.common.collect.Iterables.any;
+import static java.lang.String.format;
 
 public class Charon implements MethodInterceptor
 {
@@ -89,6 +90,8 @@ public class Charon implements MethodInterceptor
         final List<Field> oneToOneRelations = Atlas.getOneToOneRelations(clazz);
 
         try {
+            final String sql = "SELECT %s FROM %s WHERE %s=?";
+
             pkField.setLong(obj, pkField.getLong(original));
 
             for (final Field field : fields) {
@@ -96,15 +99,23 @@ public class Charon implements MethodInterceptor
             }
 
             for (final Pair<Field, Class> relation : oneToManyRelations) {
-                final String sql = "SELECT %s FROM %s WHERE %s=?";
                 relation.fst.set(obj, hades.createList(relation.snd,
-                        String.format(sql, Atlas.getPrimaryKeyName(relation.snd),
+                        format(sql, Atlas.getPrimaryKeyName(relation.snd),
                                 relation.snd.getSimpleName(), clazz.getSimpleName() + "_" + primaryKeyAndValue.fst),
                         Optional.of(primaryKeyAndValue.snd)));
             }
 
             for (Field relation : oneToOneRelations) {
-                relation.set(obj, hades.create(relation.getType(), primaryKeyAndValue.snd));
+                final List<Object> objects = hades.loadList(relation.getType(),
+                        format(sql, Atlas.getPrimaryKeyName(relation.getType()),
+                                relation.getType().getSimpleName(), clazz.getSimpleName() + "_" + primaryKeyAndValue.fst),
+                        Optional.of(primaryKeyAndValue.snd));
+
+                if (objects.size() > 1) {
+                    throw new RuntimeException("ONE-TO-ONE relation " + relation.getType() + " has more than one object.");
+                } else if (objects.size() == 1) {
+                    relation.set(obj, objects.get(0));
+                }
             }
         } catch (Exception ignored) {}
         return obj;

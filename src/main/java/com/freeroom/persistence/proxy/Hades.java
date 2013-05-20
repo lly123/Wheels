@@ -15,10 +15,12 @@ import java.util.Properties;
 
 import static com.freeroom.di.util.FuncUtils.each;
 import static com.freeroom.di.util.FuncUtils.map;
+import static com.freeroom.persistence.Atlas.isList;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.String.format;
+import static java.sql.Statement.RETURN_GENERATED_KEYS;
 
 public class Hades
 {
@@ -47,7 +49,26 @@ public class Hades
         return (List<Object>)enhancer.create();
     }
 
-    public void persistExisted(final Factory obj)
+    public void persist(final Object obj, final Optional<Pair<String, Long>> foreignKeyAndValue)
+    {
+        if (obj == null) return;
+
+        if (obj instanceof Factory) {
+            if (((Factory)obj).getCallback(0) instanceof Charon) {
+                persistExisted((Factory)obj, foreignKeyAndValue);
+            } else {
+                persistExistedList((Factory)obj, foreignKeyAndValue);
+            }
+        } else {
+            if (isList(obj)) {
+                persistNewList((List)obj, foreignKeyAndValue);
+            } else {
+                persistNew(obj, foreignKeyAndValue);
+            }
+        }
+    }
+
+    public void persistExisted(final Factory obj, final Optional<Pair<String, Long>> foreignKeyAndValue)
     {
         if (!isDirty(obj)) return;
 
@@ -65,8 +86,11 @@ public class Hades
 
         final String questionMarks = removeTailComma(questionMarksBuffer);
 
-        final String sql = format("UPDATE %s SET %s WHERE %s=?",
-                charon.getPersistBeanName(), questionMarks, primaryKeyAndValue.fst);
+        final String sql = format("UPDATE %s SET %s%s WHERE %s=?",
+                charon.getPersistBeanName(),
+                questionMarks,
+                foreignKeyAndValue.isPresent() ? "," + foreignKeyAndValue.get().fst + "=?" : "",
+                primaryKeyAndValue.fst);
 
         try (final Connection connection = getDBConnection()) {
             final PreparedStatement statement = connection.prepareStatement(sql);
@@ -76,15 +100,20 @@ public class Hades
                 setValue(i++, statement, column);
             }
 
+            if (foreignKeyAndValue.isPresent()) {
+                statement.setLong(i++, foreignKeyAndValue.get().snd);
+            }
             statement.setObject(i, primaryKeyAndValue.snd);
             statement.executeUpdate();
             logger.debug("Execute SQL: " + sql);
+
+            persistRelations(charon.getCurrent(), primaryKeyAndValue);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public void persistNew(final Object obj)
+    public void persistNew(final Object obj, final Optional<Pair<String, Long>> foreignKeyAndValue)
     {
         final List<Pair<Field, Object>> basicFields = Atlas.getBasicFieldAndValues(obj);
 
@@ -99,32 +128,69 @@ public class Hades
         final String fieldNames = removeTailComma(fieldNamesBuffer);
         final String questionMarks = removeTailComma(questionMarksBuffer);
 
-        final String sql = format("INSERT INTO %s (%s) VALUES (%s)",
-                obj.getClass().getSimpleName(), fieldNames, questionMarks);
+        final String sql = format("INSERT INTO %s (%s%s) VALUES (%s%s)",
+                obj.getClass().getSimpleName(),
+                fieldNames, foreignKeyAndValue.isPresent() ? "," + foreignKeyAndValue.get().fst : "",
+                questionMarks, foreignKeyAndValue.isPresent() ? ",?" : "");
 
         try (final Connection connection = getDBConnection()) {
-            final PreparedStatement statement = connection.prepareStatement(sql);
+            final PreparedStatement statement = connection.prepareStatement(sql, RETURN_GENERATED_KEYS);
 
             int i = 1;
             for (final Pair<Field, Object> column : basicFields) {
                 setValue(i++, statement, column);
             }
 
+            if (foreignKeyAndValue.isPresent()) {
+                statement.setLong(i, foreignKeyAndValue.get().snd);
+            }
             statement.executeUpdate();
             logger.debug("Execute SQL: " + sql);
+
+            final ResultSet generatedKeys = statement.getGeneratedKeys();
+            if (generatedKeys.next()) {
+                persistRelations(obj, Pair.of(Atlas.getPrimaryKeyName(obj.getClass()), generatedKeys.getLong(1)));
+            }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public void persistExistedList(final Factory obj)
+    public void persistExistedList(final Factory obj, final Optional<Pair<String, Long>> foreignKeyAndValue)
     {
         if (!isDirtyList(obj)) return;
 
         final Hecate hecate = (Hecate)obj.getCallback(0);
         each(hecate.getRemoved(), o -> remove(o));
-        each(hecate.getAdded(), o -> persistNew(o));
-        each(hecate.getModified(), o -> persistExisted(o));
+        each(hecate.getAdded(), o -> persistNew(o, foreignKeyAndValue));
+        each(hecate.getModified(), o -> persistExisted(o, foreignKeyAndValue));
+    }
+
+    public void persistNewList(final List objects, final Optional<Pair<String, Long>> foreignKeyAndValue)
+    {
+        for (final Object o : objects) {
+            persistNew(o, foreignKeyAndValue);
+        }
+    }
+
+    private void persistRelations(final Object obj, final Pair<String, Long> primaryKeyAndValue)
+    {
+        final Pair<String, Long> foreignKeyAndValue =
+                Pair.of(obj.getClass().getSimpleName() + "_" + primaryKeyAndValue.fst, primaryKeyAndValue.snd);
+
+        final List<Pair<Field, Class>> oneToManyRelations = Atlas.getOneToManyRelations(obj.getClass());
+        each(oneToManyRelations, relation -> {
+            try {
+                persist(relation.fst.get(obj), Optional.of(foreignKeyAndValue));
+            } catch (Exception ignored) {}
+        });
+
+        final List<Field> oneToOneRelations = Atlas.getOneToOneRelations(obj.getClass());
+        each(oneToOneRelations, relation -> {
+            try {
+                persist(relation.get(obj), Optional.of(foreignKeyAndValue));
+            } catch (Exception ignored) {}
+        });
     }
 
     public void remove(final Factory obj)
