@@ -53,14 +53,14 @@ public class Hades
 
         final Charon charon = (Charon)obj.getCallback(0);
         final Pair<String, Long> primaryKeyAndValue = charon.getPrimaryKeyAndValue();
-        final List<Pair<Field, Object>> columns = Atlas.getBasicFieldAndValues(charon.getCurrent());
+        final List<Pair<Field, Object>> basicFields = Atlas.getBasicFieldAndValues(charon.getCurrent());
 
-        if (columns.size() == 0) return;
+        if (basicFields.size() == 0) return;
 
         final StringBuilder questionMarksBuffer = new StringBuilder();
 
-        each(columns, column -> {
-            questionMarksBuffer.append(column.fst.getName() + "=?,");
+        each(basicFields, field -> {
+            questionMarksBuffer.append(field.fst.getName() + "=?,");
         });
 
         final String questionMarks = removeTailComma(questionMarksBuffer);
@@ -72,7 +72,7 @@ public class Hades
             final PreparedStatement statement = connection.prepareStatement(sql);
 
             int i = 1;
-            for (final Pair<Field, Object> column : columns) {
+            for (final Pair<Field, Object> column : basicFields) {
                 setValue(i++, statement, column);
             }
 
@@ -86,27 +86,27 @@ public class Hades
 
     public void persistNew(final Object obj)
     {
-        final List<Pair<Field, Object>> columns = Atlas.getBasicFieldAndValues(obj);
+        final List<Pair<Field, Object>> basicFields = Atlas.getBasicFieldAndValues(obj);
 
-        final StringBuilder columnNamesBuffer = new StringBuilder();
+        final StringBuilder fieldNamesBuffer = new StringBuilder();
         final StringBuilder questionMarksBuffer = new StringBuilder();
 
-        each(columns, column -> {
-            columnNamesBuffer.append(column.fst.getName() + ",");
+        each(basicFields, field -> {
+            fieldNamesBuffer.append(field.fst.getName() + ",");
             questionMarksBuffer.append("?,");
         });
 
-        final String columnNames = removeTailComma(columnNamesBuffer);
+        final String fieldNames = removeTailComma(fieldNamesBuffer);
         final String questionMarks = removeTailComma(questionMarksBuffer);
 
         final String sql = format("INSERT INTO %s (%s) VALUES (%s)",
-                obj.getClass().getSimpleName(), columnNames, questionMarks);
+                obj.getClass().getSimpleName(), fieldNames, questionMarks);
 
         try (final Connection connection = getDBConnection()) {
             final PreparedStatement statement = connection.prepareStatement(sql);
 
             int i = 1;
-            for (final Pair<Field, Object> column : columns) {
+            for (final Pair<Field, Object> column : basicFields) {
                 setValue(i++, statement, column);
             }
 
