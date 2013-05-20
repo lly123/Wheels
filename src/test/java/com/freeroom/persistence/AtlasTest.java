@@ -2,6 +2,7 @@ package com.freeroom.persistence;
 
 import com.freeroom.di.util.Pair;
 import com.freeroom.persistence.beans.Book;
+import com.freeroom.persistence.beans.Publisher;
 import org.junit.Test;
 
 import java.lang.reflect.Field;
@@ -43,11 +44,20 @@ public class AtlasTest
     }
 
     @Test
-    public void should_get_relational_object_fields()
+    public void should_get_ONE_TO_MANY_relations()
     {
-        final List<Pair<Field, Class>> objectNames = Atlas.getRelationalObjectFields(Book.class);
+        final List<Pair<Field, Class>> relations = Atlas.getOneToManyRelations(Book.class);
 
-        assertThat(objectNames.size(), is(1));
-        assertThat(objectNames.get(0).snd.getSimpleName(), is("Order"));
+        assertThat(relations.size(), is(1));
+        assertThat(relations.get(0).snd.getSimpleName(), is("Order"));
+    }
+
+    @Test
+    public void should_get_ONE_TO_ONE_relations()
+    {
+        final List<Field> relations = Atlas.getOneToOneRelations(Book.class);
+
+        assertThat(relations.size(), is(1));
+        assertThat(relations.get(0).getType().equals(Publisher.class), is(true));
     }
 }

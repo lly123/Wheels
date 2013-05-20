@@ -156,4 +156,12 @@ public class AthenaTest
         assertThat(orders.get(0).getAmount(), is(8));
         assertThat(orders.get(0).getMemo(), is("Deliver at work time"));
     }
+
+    @Test
+    public void should_load_ONE_TO_ONE_relations()
+    {
+        final Optional<Object> book = athena.from(Book.class).find(1);
+
+        assertThat(((Book)book.get()).getPublisher().getName(), is("O Reilly"));
+    }
 }

@@ -85,20 +85,26 @@ public class Charon implements MethodInterceptor
         final Object obj = hades.newInstance(clazz);
         final Field pkField = Atlas.getPrimaryKey(clazz);
         final List<Field> fields = Atlas.getBasicFields(clazz);
-        final List<Pair<Field, Class>> relations = Atlas.getRelationalObjectFields(clazz);
+        final List<Pair<Field, Class>> oneToManyRelations = Atlas.getOneToManyRelations(clazz);
+        final List<Field> oneToOneRelations = Atlas.getOneToOneRelations(clazz);
 
         try {
             pkField.setLong(obj, pkField.getLong(original));
+
             for (final Field field : fields) {
                 field.set(obj, field.get(original));
             }
-            for (final Pair<Field, Class> relation : relations)
-            {
+
+            for (final Pair<Field, Class> relation : oneToManyRelations) {
                 final String sql = "SELECT %s FROM %s WHERE %s=?";
                 relation.fst.set(obj, hades.createList(relation.snd,
                         String.format(sql, Atlas.getPrimaryKeyName(relation.snd),
                                 relation.snd.getSimpleName(), clazz.getSimpleName() + "_" + primaryKeyAndValue.fst),
                         Optional.of(primaryKeyAndValue.snd)));
+            }
+
+            for (Field relation : oneToOneRelations) {
+                relation.set(obj, hades.create(relation.getType(), primaryKeyAndValue.snd));
             }
         } catch (Exception ignored) {}
         return obj;

@@ -13,4 +13,24 @@ public class Publisher
 
     @Persist
     private String profile;
+
+    public String getName()
+    {
+        return name;
+    }
+
+    public void setName(final String name)
+    {
+        this.name = name;
+    }
+
+    public String getProfile()
+    {
+        return profile;
+    }
+
+    public void setProfile(final String profile)
+    {
+        this.profile = profile;
+    }
 }

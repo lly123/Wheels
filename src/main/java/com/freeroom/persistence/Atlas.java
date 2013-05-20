@@ -97,12 +97,23 @@ public class Atlas
         return false;
     }
 
-    public static List<Pair<Field, Class>> getRelationalObjectFields(final Class<?> clazz)
+    public static List<Pair<Field, Class>> getOneToManyRelations(final Class<?> clazz)
     {
         return reduce(newArrayList(), copyOf(clazz.getDeclaredFields()), (s, field) -> {
             if (field.isAnnotationPresent(Persist.class) && !isBasicField(field) && isGenericListField(field)) {
                 field.setAccessible(true);
                 s.add(Pair.of(field, getFirstGenericParameterClass(field)));
+            }
+            return s;
+        });
+    }
+
+    public static List<Field> getOneToOneRelations(final Class<?> clazz)
+    {
+        return reduce(newArrayList(), copyOf(clazz.getDeclaredFields()), (s, field) -> {
+            if (field.isAnnotationPresent(Persist.class) && !isBasicField(field) && !isGenericListField(field)) {
+                field.setAccessible(true);
+                s.add(field);
             }
             return s;
         });
