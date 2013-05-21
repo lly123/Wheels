@@ -28,7 +28,7 @@ public class HadesTest
     @Test
     public void should_get_simple_record()
     {
-        final Book book = (Book)hades.create(Book.class, 1L);
+        final Book book = (Book)hades.create(Book.class, 1L, 1);
 
         assertThat(book.getIsbn(), is(123L));
         assertThat(book.getName(), is("JBoss Seam"));
@@ -41,7 +41,7 @@ public class HadesTest
     @Test
     public void should_know_simple_record_has_been_changed()
     {
-        final Book book = (Book)hades.create(Book.class, 1L);
+        final Book book = (Book)hades.create(Book.class, 1L, 1);
         book.setName("Learning Node");
 
         assertThat(hades.isDirty(book), is(true));
@@ -50,7 +50,8 @@ public class HadesTest
     @Test
     public void should_load_records()
     {
-        final List<Object> orders = hades.createList(Order.class, "SELECT orderid FROM order WHERE book_bookid=?", of(1L));
+        final List<Object> orders = hades.createList(Order.class,
+                "SELECT orderid FROM order WHERE book_bookid=?", of(1L), 1);
         assertThat(orders.size(), is(2));
         assertThat(((Order)orders.get(0)).getAmount(), is(8));
         assertThat(((Order)orders.get(0)).getMemo(), is("Deliver at work time"));
@@ -59,7 +60,8 @@ public class HadesTest
     @Test
     public void should_check_removed_obj_from_list()
     {
-        final List<Object> orders = hades.createList(Order.class, "SELECT orderid FROM order WHERE book_bookid=?", of(1L));
+        final List<Object> orders = hades.createList(Order.class,
+                "SELECT orderid FROM order WHERE book_bookid=?", of(1L), 1);
 
         orders.remove(0);
 
@@ -69,7 +71,8 @@ public class HadesTest
     @Test
     public void should_check_added_obj_in_list()
     {
-        final List<Object> orders = hades.createList(Order.class, "SELECT orderid FROM order WHERE book_bookid=?", of(1L));
+        final List<Object> orders = hades.createList(Order.class,
+                "SELECT orderid FROM order WHERE book_bookid=?", of(1L), 1);
 
         Book book = new Book();
         book.setIsbn(1449323391L);
@@ -83,7 +86,8 @@ public class HadesTest
     @Test
     public void should_check_modified_obj_in_list()
     {
-        final List<Object> orders = hades.createList(Order.class, "SELECT orderid FROM order WHERE book_bookid=?", of(1L));
+        final List<Object> orders = hades.createList(Order.class,
+                "SELECT orderid FROM order WHERE book_bookid=?", of(1L), 1);
 
         final Order book = (Order)orders.get(0);
         book.setAmount(2);

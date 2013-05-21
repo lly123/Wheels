@@ -33,19 +33,20 @@ public class Hades
         this.properties = properties;
     }
 
-    public Object create(final Class<?> clazz, final Long primaryKey)
+    public Object create(final Class<?> clazz, final Long primaryKey, final int blockSize)
     {
         final Enhancer enhancer = new Enhancer();
         enhancer.setSuperclass(clazz);
-        enhancer.setCallback(new Charon(this, clazz, Pair.of(Atlas.getPrimaryKeyName(clazz), primaryKey)));
+        enhancer.setCallback(new Charon(this, clazz, Pair.of(Atlas.getPrimaryKeyName(clazz), primaryKey), blockSize));
         return enhancer.create();
     }
 
-    public List<Object> createList(final Class<?> clazz, final String sql, final Optional<Long> foreignKey)
+    public List<Object> createList(final Class<?> clazz, final String sql,
+                                   final Optional<Long> foreignKey, final int blockSize)
     {
         final Enhancer enhancer = new Enhancer();
         enhancer.setSuperclass(List.class);
-        enhancer.setCallback(new Hecate(this, clazz, sql, foreignKey));
+        enhancer.setCallback(new Hecate(this, clazz, sql, foreignKey, blockSize));
         return (List<Object>)enhancer.create();
     }
 
@@ -271,7 +272,8 @@ public class Hades
         }
     }
 
-    public List<Object> loadList(final Class<?> clazz, final String sql, final Optional<Long> foreignKey)
+    public List<Object> loadList(final Class<?> clazz, final String sql,
+                                 final Optional<Long> foreignKey, final int blockSize)
     {
         try (Connection connection = getDBConnection()) {
             final PreparedStatement statement = connection.prepareStatement(sql);
@@ -285,7 +287,7 @@ public class Hades
 
             final List<Object> retVal = newArrayList();
             while (resultSet.next()) {
-                retVal.add(create(clazz, resultSet.getLong(1)));
+                retVal.add(create(clazz, resultSet.getLong(1), blockSize));
             }
             return retVal;
         } catch (Exception e) {

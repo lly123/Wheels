@@ -12,6 +12,7 @@ import java.util.Properties;
 
 import static com.google.common.base.Optional.absent;
 import static com.google.common.base.Optional.of;
+import static java.lang.Integer.parseInt;
 import static java.lang.String.format;
 
 public class Athena
@@ -50,7 +51,7 @@ public class Athena
             logger.debug("Execute SQL: " + sql);
 
             if (resultSet.next()) {
-                return of(hades.create(clazz, resultSet.getLong(1)));
+                return of(hades.create(clazz, resultSet.getLong(1), getBlockSize()));
             }
         } catch (Exception ignored) {}
         return absent();
@@ -71,7 +72,7 @@ public class Athena
             logger.debug("Execute SQL: " + sql);
 
             if (resultSet.next()) {
-                final Optional<Object> retVal = of(hades.create(clazz, resultSet.getLong(1)));
+                final Optional<Object> retVal = of(hades.create(clazz, resultSet.getLong(1), getBlockSize()));
 
                 if (resultSet.next()) {
                     throw new NotOnlyResultException("Found more than one result.");
@@ -91,7 +92,7 @@ public class Athena
         final String primaryKeyName = Atlas.getPrimaryKeyName(clazz);
         final String sql = format("SELECT %s FROM %s WHERE %s", primaryKeyName, clazz.getSimpleName(), where);
 
-        return hades.createList(clazz, sql, absent());
+        return hades.createList(clazz, sql, absent(), getBlockSize());
     }
 
     public void persist(final Object obj)
@@ -119,5 +120,10 @@ public class Athena
                 properties.getProperty("url"),
                 properties.getProperty("username"),
                 properties.getProperty("password"));
+    }
+
+    private int getBlockSize()
+    {
+        return parseInt(properties.getProperty("blockSize"));
     }
 }

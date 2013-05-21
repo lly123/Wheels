@@ -25,15 +25,18 @@ public class Hecate implements MethodInterceptor
     private final Class<?> clazz;
     private final String sql;
     private final Optional<Long> foreignKey;
+    private final int blockSize;
     private Optional<List<Object>> original;
     private List<Object> current;
 
-    public Hecate(final Hades hades, final Class<?> clazz, final String sql, final Optional<Long> foreignKey)
+    public Hecate(final Hades hades, final Class<?> clazz, final String sql,
+                  final Optional<Long> foreignKey, final int blockSize)
     {
         this.hades = hades;
         this.clazz = clazz;
         this.sql = sql;
         this.foreignKey = foreignKey;
+        this.blockSize = blockSize;
         this.original = absent();
     }
 
@@ -42,7 +45,7 @@ public class Hecate implements MethodInterceptor
                             final Object[] args, final MethodProxy methodProxy) throws Throwable
     {
         if (!original.isPresent()) {
-            current = hades.loadList(clazz, sql, foreignKey);
+            current = hades.loadList(clazz, sql, foreignKey, blockSize);
             original = copy(current);
         }
         return method.invoke(current, args);

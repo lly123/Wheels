@@ -20,15 +20,18 @@ public class Charon implements MethodInterceptor
     private final Hades hades;
     private final Class<?> clazz;
     private Pair<String, Long> primaryKeyAndValue;
+    private final int blockSize;
     private Optional<Object> original;
     private Object current;
     private boolean removed;
 
-    public Charon(final Hades hades, final Class<?> clazz, final Pair<String, Long> primaryKeyAndValue)
+    public Charon(final Hades hades, final Class<?> clazz,
+                  final Pair<String, Long> primaryKeyAndValue, final int blockSize)
     {
         this.hades = hades;
         this.clazz = clazz;
         this.primaryKeyAndValue = primaryKeyAndValue;
+        this.blockSize = blockSize;
         this.original = absent();
         this.current = hades.newInstance(clazz);
         this.removed = false;
@@ -102,14 +105,14 @@ public class Charon implements MethodInterceptor
                 relation.fst.set(obj, hades.createList(relation.snd,
                         format(sql, Atlas.getPrimaryKeyName(relation.snd),
                                 relation.snd.getSimpleName(), clazz.getSimpleName() + "_" + primaryKeyAndValue.fst),
-                        Optional.of(primaryKeyAndValue.snd)));
+                        Optional.of(primaryKeyAndValue.snd), blockSize));
             }
 
             for (Field relation : oneToOneRelations) {
                 final List<Object> objects = hades.loadList(relation.getType(),
                         format(sql, Atlas.getPrimaryKeyName(relation.getType()),
                                 relation.getType().getSimpleName(), clazz.getSimpleName() + "_" + primaryKeyAndValue.fst),
-                        Optional.of(primaryKeyAndValue.snd));
+                        Optional.of(primaryKeyAndValue.snd), blockSize);
 
                 if (objects.size() > 1) {
                     throw new RuntimeException("ONE-TO-ONE relation " + relation.getType() + " has more than one object.");
