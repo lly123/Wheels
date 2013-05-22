@@ -48,6 +48,11 @@ public class Hecate implements MethodInterceptor
             current = hades.loadList(clazz, sql, foreignKey, blockSize);
             original = copy(current);
         }
+
+        if (original.isPresent() && method.getName().equals("get")) {
+            hades.loadBatch(clazz, (int)args[0], blockSize, current);
+        }
+
         return method.invoke(current, args);
     }
 

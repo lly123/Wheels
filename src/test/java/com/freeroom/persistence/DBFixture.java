@@ -14,7 +14,7 @@ public class DBFixture
         properties.setProperty("url", "jdbc:hsqldb:mem:mydb");
         properties.setProperty("username", "sa");
         properties.setProperty("password", "");
-        properties.setProperty("blockSize", "1");
+        properties.setProperty("blockSize", "2");
         return properties;
     }
 

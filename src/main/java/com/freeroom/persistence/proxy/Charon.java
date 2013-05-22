@@ -8,6 +8,7 @@ import net.sf.cglib.proxy.MethodProxy;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.sql.ResultSet;
 import java.util.List;
 
 import static com.google.common.base.Optional.absent;
@@ -41,11 +42,25 @@ public class Charon implements MethodInterceptor
     public Object intercept(final Object bean, final Method method,
                             final Object[] args, final MethodProxy methodProxy) throws Throwable
     {
-        if (!original.isPresent() && !removed) {
-            original = of(hades.load(clazz, primaryKeyAndValue.snd));
+        load(absent());
+        return method.invoke(current, args);
+    }
+
+    protected void load(final Optional<ResultSet> resultSet)
+    {
+        if (isNotLoaded()) {
+            if (resultSet.isPresent()) {
+                original = of(hades.load(clazz, primaryKeyAndValue.snd, resultSet.get()));
+            } else {
+                original = of(hades.load(clazz, primaryKeyAndValue.snd));
+            }
             current = copy(original.get());
         }
-        return method.invoke(current, args);
+    }
+
+    protected boolean isNotLoaded()
+    {
+        return !original.isPresent() && !removed;
     }
 
     protected boolean isDirty()

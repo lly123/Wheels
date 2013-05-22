@@ -71,47 +71,46 @@ public class Hades
 
     public void persistExisted(final Factory obj, final Optional<Pair<String, Long>> foreignKeyAndValue)
     {
-        if (!isDirty(obj)) return;
-
         final Charon charon = (Charon)obj.getCallback(0);
         final Pair<String, Long> primaryKeyAndValue = charon.getPrimaryKeyAndValue();
-        final List<Pair<Field, Object>> basicFields = Atlas.getBasicFieldAndValues(charon.getCurrent());
+        if (isDirty(obj)) {
+            final List<Pair<Field, Object>> basicFields = Atlas.getBasicFieldAndValues(charon.getCurrent());
 
-        if (basicFields.size() == 0) return;
+            if (basicFields.size() == 0) return;
 
-        final StringBuilder questionMarksBuffer = new StringBuilder();
+            final StringBuilder questionMarksBuffer = new StringBuilder();
 
-        each(basicFields, field -> {
-            questionMarksBuffer.append(field.fst.getName() + "=?,");
-        });
+            each(basicFields, field -> {
+                questionMarksBuffer.append(field.fst.getName() + "=?,");
+            });
 
-        final String questionMarks = removeTailComma(questionMarksBuffer);
+            final String questionMarks = removeTailComma(questionMarksBuffer);
 
-        final String sql = format("UPDATE %s SET %s%s WHERE %s=?",
-                charon.getPersistBeanName(),
-                questionMarks,
-                foreignKeyAndValue.isPresent() ? "," + foreignKeyAndValue.get().fst + "=?" : "",
-                primaryKeyAndValue.fst);
+            final String sql = format("UPDATE %s SET %s%s WHERE %s=?",
+                    charon.getPersistBeanName(),
+                    questionMarks,
+                    foreignKeyAndValue.isPresent() ? "," + foreignKeyAndValue.get().fst + "=?" : "",
+                    primaryKeyAndValue.fst);
 
-        try (final Connection connection = getDBConnection()) {
-            final PreparedStatement statement = connection.prepareStatement(sql);
+            try (final Connection connection = getDBConnection()) {
+                final PreparedStatement statement = connection.prepareStatement(sql);
 
-            int i = 1;
-            for (final Pair<Field, Object> column : basicFields) {
-                setValue(i++, statement, column);
+                int i = 1;
+                for (final Pair<Field, Object> column : basicFields) {
+                    setValue(i++, statement, column);
+                }
+
+                if (foreignKeyAndValue.isPresent()) {
+                    statement.setLong(i++, foreignKeyAndValue.get().snd);
+                }
+                statement.setObject(i, primaryKeyAndValue.snd);
+                statement.executeUpdate();
+                logger.debug("Execute SQL: " + sql);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
             }
-
-            if (foreignKeyAndValue.isPresent()) {
-                statement.setLong(i++, foreignKeyAndValue.get().snd);
-            }
-            statement.setObject(i, primaryKeyAndValue.snd);
-            statement.executeUpdate();
-            logger.debug("Execute SQL: " + sql);
-
-            persistRelations(charon.getCurrent(), primaryKeyAndValue);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
         }
+        persistRelations(charon.getCurrent(), primaryKeyAndValue);
     }
 
     public void persistNew(final Object obj, final Optional<Pair<String, Long>> foreignKeyAndValue)
@@ -272,6 +271,23 @@ public class Hades
         }
     }
 
+    protected Object load(final Class<?> clazz, final long primaryKey, final ResultSet resultSet)
+    {
+        final Object obj = newInstance(clazz);
+        final Field pkField = Atlas.getPrimaryKey(clazz);
+        final List<Field> columnFields = Atlas.getBasicFields(clazz);
+
+        try {
+            pkField.setLong(obj, primaryKey);
+            for (final Field columnField : columnFields) {
+                setBasicFieldValue(columnField, obj, resultSet);
+            }
+            return obj;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public List<Object> loadList(final Class<?> clazz, final String sql,
                                  final Optional<Long> foreignKey, final int blockSize)
     {
@@ -295,12 +311,66 @@ public class Hades
         }
     }
 
+    public void loadBatch(final Class<?> clazz, final int beginIndex, final int blockSize, List<Object> objects)
+    {
+        final String primaryKeyName = Atlas.getPrimaryKeyName(clazz);
+        final String ids = getBlockIds(beginIndex, blockSize, objects);
+
+        if (ids.length() > 0) {
+            final String sql = format("SELECT * FROM %s WHERE %s in (%s)", clazz.getSimpleName(), primaryKeyName, ids);
+
+            try (Connection connection = getDBConnection()) {
+                final PreparedStatement statement = connection.prepareStatement(sql);
+
+                final ResultSet resultSet = statement.executeQuery();
+                logger.debug("Execute SQL: " + sql);
+
+                while (resultSet.next()) {
+                    fillObjectByResultSet(objects, primaryKeyName, resultSet);
+                }
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
     protected Object newInstance(final Class<?> clazz)
     {
         try {
             return clazz.getConstructor().newInstance();
         } catch (Exception e){
             throw new RuntimeException("Get exception when creating " + clazz, e);
+        }
+    }
+
+    private String getBlockIds(final int beginIndex, final int blockSize, final List<Object> objects)
+    {
+        Charon charon = (Charon)((Factory)objects.get(beginIndex)).getCallback(0);
+        if (charon.isNotLoaded()) {
+            int count = 0;
+            final StringBuilder idsBuffer = new StringBuilder();
+            for (int i = beginIndex; i < objects.size() && count < blockSize; i++) {
+                charon = (Charon)((Factory)objects.get(i)).getCallback(0);
+                if (charon.isNotLoaded()) {
+                    idsBuffer.append(charon.getPrimaryKeyAndValue().snd + ",");
+                    count++;
+                }
+            }
+            return removeTailComma(idsBuffer);
+        }
+        return "";
+    }
+
+    private void fillObjectByResultSet(final List<Object> objects, final String primaryKeyName,
+                                       final ResultSet resultSet) throws SQLException
+    {
+        final long pk = resultSet.getLong(primaryKeyName);
+        for (Object o : objects) {
+            final Charon charon = (Charon) ((Factory) o).getCallback(0);
+            if (charon.getPrimaryKeyAndValue().snd == pk) {
+                charon.load(Optional.of(resultSet));
+                break;
+            }
         }
     }
 

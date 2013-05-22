@@ -1,8 +1,10 @@
 package com.freeroom.persistence.proxy;
 
+import com.freeroom.di.util.Pair;
 import com.freeroom.persistence.beans.Book;
 import com.freeroom.persistence.beans.Order;
-import org.junit.BeforeClass;
+import net.sf.cglib.proxy.Factory;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.sql.SQLException;
@@ -18,8 +20,8 @@ public class HadesTest
 {
     private static Hades hades;
 
-    @BeforeClass
-    public static void setUp() throws SQLException
+    @Before
+    public void setUp() throws SQLException
     {
         prepareDB();
         hades = new Hades(getDbProperties());
@@ -74,11 +76,9 @@ public class HadesTest
         final List<Object> orders = hades.createList(Order.class,
                 "SELECT orderid FROM order WHERE book_bookid=?", of(1L), 1);
 
-        Book book = new Book();
-        book.setIsbn(1449323391L);
-        book.setName("Testable JavaScript");
-        book.setPrice(20.18);
-        orders.add(book);
+        final Order order = new Order();
+        order.setAmount(1);
+        orders.add(order);
 
         assertThat(hades.isDirtyList(orders), is(true));
     }
@@ -93,5 +93,24 @@ public class HadesTest
         book.setAmount(2);
 
         assertThat(hades.isDirtyList(orders), is(true));
+    }
+
+    @Test
+    public void should_batch_load()
+    {
+        hades.persistNew(new Order(), of(Pair.of("book_bookid", 1L)));
+        hades.persistNew(new Order(), of(Pair.of("book_bookid", 1L)));
+        hades.persistNew(new Order(), of(Pair.of("book_bookid", 1L)));
+
+        final List<Object> orders = hades.createList(Order.class,
+                "SELECT orderid FROM order WHERE book_bookid=?", of(1L), 2);
+        assertThat(orders.size(), is(5));
+
+        ((Order)orders.get(2)).getAmount();
+        assertThat(((Charon) ((Factory) orders.get(2)).getCallback(0)).isNotLoaded(), is(false));
+        assertThat(((Charon)((Factory)orders.get(3)).getCallback(0)).isNotLoaded(), is(false));
+
+        ((Order)orders.get(3)).getAmount();
+        assertThat(((Charon)((Factory)orders.get(4)).getCallback(0)).isNotLoaded(), is(false));
     }
 }
