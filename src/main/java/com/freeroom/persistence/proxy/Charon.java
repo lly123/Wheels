@@ -3,6 +3,7 @@ package com.freeroom.persistence.proxy;
 import com.freeroom.di.util.Pair;
 import com.freeroom.persistence.Atlas;
 import com.google.common.base.Optional;
+import net.sf.cglib.proxy.Factory;
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
 
@@ -89,6 +90,11 @@ public class Charon implements MethodInterceptor
         return current;
     }
 
+    protected void setOriginal(final Object original)
+    {
+        this.original = Optional.of(original);
+    }
+
     protected String getPersistBeanName()
     {
         return clazz.getSimpleName();
@@ -101,20 +107,12 @@ public class Charon implements MethodInterceptor
 
     private Object copy(final Object original)
     {
-        final Object obj = hades.newInstance(clazz);
-        final Field pkField = Atlas.getPrimaryKey(clazz);
-        final List<Field> fields = Atlas.getBasicFields(clazz);
+        final Object obj = copyWithoutRelations(original);
         final List<Pair<Field, Class>> oneToManyRelations = Atlas.getOneToManyRelations(clazz);
         final List<Field> oneToOneRelations = Atlas.getOneToOneRelations(clazz);
 
         try {
             final String sql = "SELECT %s FROM %s WHERE %s=?";
-
-            pkField.setLong(obj, pkField.getLong(original));
-
-            for (final Field field : fields) {
-                field.set(obj, field.get(original));
-            }
 
             for (final Pair<Field, Class> relation : oneToManyRelations) {
                 relation.fst.set(obj, hades.createList(relation.snd,
@@ -138,6 +136,56 @@ public class Charon implements MethodInterceptor
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+        return obj;
+    }
+
+    public Object detach()
+    {
+        if (!original.isPresent()) return null;
+
+        final Object obj = copyWithoutRelations(current);
+
+        try {
+            final List<Field> oneToOneRelations = Atlas.getOneToOneRelations(clazz);
+            for (Field relationField : oneToOneRelations) {
+                final Object relation = relationField.get(current);
+                relationField.setAccessible(true);
+                if (relation instanceof Factory) {
+                    relationField.set(obj, ((Charon)((Factory)relation).getCallback(0)).detach());
+                }
+            }
+
+            final List<Pair<Field, Class>> oneToManyRelations = Atlas.getOneToManyRelations(clazz);
+            for (Pair<Field, Class> relationField : oneToManyRelations) {
+                final Object relation = relationField.fst.get(current);
+                relationField.fst.setAccessible(true);
+                if (relation instanceof Factory) {
+                    relationField.fst.set(obj, ((Hecate)((Factory)relation).getCallback(0)).detach());
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        return obj;
+    }
+
+    private Object copyWithoutRelations(final Object original)
+    {
+        final Object obj = hades.newInstance(clazz);
+        final Field pkField = Atlas.getPrimaryKey(clazz);
+        final List<Field> fields = Atlas.getBasicFields(clazz);
+
+        try {
+            pkField.setLong(obj, pkField.getLong(original));
+
+            for (final Field field : fields) {
+                field.set(obj, field.get(original));
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
         return obj;
     }
 }

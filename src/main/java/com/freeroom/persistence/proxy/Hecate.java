@@ -134,4 +134,16 @@ public class Hecate implements MethodInterceptor
             return s;
         });
     }
+
+    public Object detach()
+    {
+        if (!original.isPresent()) return null;
+
+        return reduce(newArrayList(), current, (s, o) -> {
+            if (o instanceof Factory) {
+                s.add(((Charon)((Factory)o).getCallback(0)).detach());
+            }
+            return s;
+        });
+    }
 }
