@@ -1,8 +1,11 @@
 package com.freeroom.persistence;
 
 import com.freeroom.persistence.exceptions.NotOnlyResultException;
+import com.freeroom.persistence.proxy.Charon;
 import com.freeroom.persistence.proxy.Hades;
+import com.freeroom.persistence.proxy.Hecate;
 import com.google.common.base.Optional;
+import net.sf.cglib.proxy.Callback;
 import net.sf.cglib.proxy.Factory;
 import org.apache.log4j.Logger;
 
@@ -105,6 +108,15 @@ public class Athena
         if (obj instanceof Factory) {
             hades.remove((Factory)obj);
         }
+    }
+
+    public Object detach(final Object obj)
+    {
+        if (obj instanceof Factory) {
+            final Callback callback = ((Factory) obj).getCallback(0);
+            return callback instanceof Charon ? ((Charon) callback).detach() : ((Hecate) callback).detach();
+        }
+        return null;
     }
 
     private void assertEntityClassExists()
