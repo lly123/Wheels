@@ -12,6 +12,8 @@ import java.util.List;
 
 import static com.freeroom.persistence.DBFixture.getDbProperties;
 import static com.freeroom.persistence.DBFixture.prepareDB;
+import static com.freeroom.persistence.proxy.IdPurpose.Locate;
+import static com.freeroom.persistence.proxy.IdPurpose.Remove;
 import static com.freeroom.persistence.proxy.IdPurpose.Update;
 import static com.google.common.collect.Lists.newArrayList;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -305,5 +307,89 @@ public class AthenaTest
         book = (Book)athena.from(Book.class).find(1).get();
         assertThat(book.getIsbn(), is(1449323399L));
         assertThat(book.getName(), is("A Book"));
+    }
+
+    @Test
+    public void should_remove_book_with_id()
+    {
+        Book book = new Book();
+        book.setBookid(1L);
+        book.setIsbn(1449323399L);
+        book.setName("A Book");
+        book.setIdPurpose(Remove);
+
+        athena.persist(book);
+
+        final Optional<Object> object = athena.from(Book.class).find(1);
+        assertThat(object.isPresent(), is(false));
+    }
+
+    @Test
+    public void should_persist_book_with_id_and_ONE_TO_ONE_update_relation()
+    {
+        Book book = new Book();
+        book.setBookid(1L);
+        book.setIdPurpose(Locate);
+
+        final Publisher publisher = new Publisher();
+        publisher.setPublisherid(1L);
+        publisher.setName("A Publisher");
+        publisher.setIdPurpose(Update);
+        book.setPublisher(publisher);
+
+        athena.persist(book);
+
+        book = (Book)athena.from(Book.class).find(1).get();
+        assertThat(book.getIsbn(), is(123L));
+        assertThat(book.getPublisher().getName(), is("A Publisher"));
+    }
+
+    @Test
+    public void should_persist_book_with_id_and_ONE_TO_ONE_remove_relation()
+    {
+        Book book = new Book();
+        book.setBookid(1L);
+        book.setIsbn(456L);
+        book.setIdPurpose(Update);
+
+        final Publisher publisher = new Publisher();
+        publisher.setPublisherid(1L);
+        publisher.setIdPurpose(Remove);
+        book.setPublisher(publisher);
+
+        athena.persist(book);
+
+        book = (Book)athena.from(Book.class).find(1).get();
+        assertThat(book.getIsbn(), is(456L));
+        assertThat(book.getPublisher(), is(nullValue()));
+    }
+
+    @Test
+    public void should_persist_book_with_id_and_ONE_TO_MANY_add_relation()
+    {
+        Book book = new Book();
+        book.setBookid(1L);
+        book.setIsbn(456L);
+        book.setIdPurpose(Update);
+
+        final Order order1 = new Order();
+        order1.setAmount(9);
+        order1.setMemo("order1 Memo");
+
+        final Order order2 = new Order();
+        order2.setOrderid(1L);
+        order2.setAmount(3);
+        order2.setIdPurpose(Update);
+        order2.setMemo("order2 Memo");
+
+        book.setOrders(newArrayList(order1, order2));
+
+        athena.persist(book);
+
+        book = (Book)athena.from(Book.class).find(1).get();
+        assertThat(book.getIsbn(), is(456L));
+        assertThat(book.getOrders().size(), is(3));
+        assertThat(book.getOrders().get(0).getMemo(), is("order2 Memo"));
+        assertThat(book.getOrders().get(2).getMemo(), is("order1 Memo"));
     }
 }

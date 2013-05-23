@@ -16,6 +16,8 @@ import java.util.Properties;
 import static com.freeroom.di.util.FuncUtils.each;
 import static com.freeroom.di.util.FuncUtils.map;
 import static com.freeroom.persistence.Atlas.isList;
+import static com.freeroom.persistence.proxy.IdPurpose.Remove;
+import static com.freeroom.persistence.proxy.IdPurpose.Update;
 import static com.google.common.base.Optional.absent;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.ImmutableList.copyOf;
@@ -68,7 +70,12 @@ public class Hades
                 final Pair<String, Long> primaryKeyNameAndValue = Atlas.getPrimaryKeyNameAndValue(obj);
                 final Optional<IdPurpose> idPurpose = Atlas.getIdPurpose(obj);
                 if (primaryKeyNameAndValue.snd > 0 && idPurpose.isPresent()) {
-                    update(obj, primaryKeyNameAndValue, absent());
+                    if (idPurpose.get() == Update) {
+                        update(obj, primaryKeyNameAndValue, absent());
+                    } else if (idPurpose.get() == Remove) {
+                        remove(obj.getClass().getSimpleName(), primaryKeyNameAndValue);
+                    }
+                    persistRelations(obj, primaryKeyNameAndValue);
                 } else {
                     persistNew(obj, foreignKeyAndValue);
                 }
@@ -182,7 +189,7 @@ public class Hades
     public void persistNewList(final List objects, final Optional<Pair<String, Long>> foreignKeyAndValue)
     {
         for (final Object o : objects) {
-            persistNew(o, foreignKeyAndValue);
+            persist(o, foreignKeyAndValue);
         }
     }
 
@@ -210,15 +217,19 @@ public class Hades
     {
         final Charon charon = (Charon)obj.getCallback(0);
         final Pair<String, Long> primaryKeyAndValue = charon.getPrimaryKeyAndValue();
-        final String sql = format("DELETE FROM %s WHERE %s=?", charon.getPersistBeanName(), primaryKeyAndValue.fst);
+        remove(charon.getPersistBeanName(), primaryKeyAndValue);
+        charon.removed();
+    }
+
+    private void remove(final String className, final Pair<String, Long> primaryKeyAndValue)
+    {
+        final String sql = format("DELETE FROM %s WHERE %s=?", className, primaryKeyAndValue.fst);
 
         try (final Connection connection = getDBConnection()) {
             final PreparedStatement statement = connection.prepareStatement(sql);
             statement.setLong(1, primaryKeyAndValue.snd);
             statement.executeUpdate();
             logger.debug("Execute SQL: " + sql);
-
-            charon.removed();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

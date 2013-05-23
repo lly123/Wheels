@@ -2,6 +2,7 @@ package com.freeroom.persistence.beans;
 
 import com.freeroom.persistence.annotations.ID;
 import com.freeroom.persistence.annotations.Persist;
+import com.freeroom.persistence.proxy.IdPurpose;
 
 public class Order
 {
@@ -13,6 +14,8 @@ public class Order
 
     @Persist
     private String memo;
+
+    private IdPurpose idPurpose;
 
     public int getAmount()
     {
@@ -32,5 +35,15 @@ public class Order
     public void setMemo(final String memo)
     {
         this.memo = memo;
+    }
+
+    public void setIdPurpose(final IdPurpose idPurpose)
+    {
+        this.idPurpose = idPurpose;
+    }
+
+    public void setOrderid(final long orderid)
+    {
+        this.orderid = orderid;
     }
 }

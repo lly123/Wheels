@@ -2,6 +2,7 @@ package com.freeroom.persistence.beans;
 
 import com.freeroom.persistence.annotations.ID;
 import com.freeroom.persistence.annotations.Persist;
+import com.freeroom.persistence.proxy.IdPurpose;
 
 public class Publisher
 {
@@ -13,6 +14,8 @@ public class Publisher
 
     @Persist
     private String profile;
+
+    private IdPurpose idPurpose;
 
     public String getName()
     {
@@ -32,5 +35,15 @@ public class Publisher
     public void setProfile(final String profile)
     {
         this.profile = profile;
+    }
+
+    public void setPublisherid(final long publisherid)
+    {
+        this.publisherid = publisherid;
+    }
+
+    public void setIdPurpose(final IdPurpose idPurpose)
+    {
+        this.idPurpose = idPurpose;
     }
 }
