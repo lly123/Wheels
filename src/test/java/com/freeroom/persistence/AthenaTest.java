@@ -12,6 +12,7 @@ import java.util.List;
 
 import static com.freeroom.persistence.DBFixture.getDbProperties;
 import static com.freeroom.persistence.DBFixture.prepareDB;
+import static com.freeroom.persistence.proxy.IdPurpose.Update;
 import static com.google.common.collect.Lists.newArrayList;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -288,5 +289,21 @@ public class AthenaTest
 
         assertThat(detachedBook.getName(), CoreMatchers.is("JBoss Seam"));
         assertThat(detachedBook.getOrders().get(0).getMemo(), CoreMatchers.is("Deliver at work time"));
+    }
+
+    @Test
+    public void should_persist_book_with_id()
+    {
+        Book book = new Book();
+        book.setBookid(1L);
+        book.setIsbn(1449323399L);
+        book.setName("A Book");
+        book.setIdPurpose(Update);
+
+        athena.persist(book);
+
+        book = (Book)athena.from(Book.class).find(1).get();
+        assertThat(book.getIsbn(), is(1449323399L));
+        assertThat(book.getName(), is("A Book"));
     }
 }

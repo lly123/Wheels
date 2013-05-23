@@ -3,6 +3,7 @@ package com.freeroom.persistence;
 import com.freeroom.di.util.Pair;
 import com.freeroom.persistence.annotations.ID;
 import com.freeroom.persistence.annotations.Persist;
+import com.freeroom.persistence.proxy.IdPurpose;
 import com.google.common.base.Optional;
 
 import java.lang.reflect.Field;
@@ -11,6 +12,8 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 import static com.freeroom.di.util.FuncUtils.reduce;
+import static com.google.common.base.Optional.absent;
+import static com.google.common.base.Optional.of;
 import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Iterables.tryFind;
 import static com.google.common.collect.Lists.newArrayList;
@@ -122,6 +125,19 @@ public class Atlas
             }
             return s;
         });
+    }
+
+    public static Optional<IdPurpose> getIdPurpose(final Object obj)
+    {
+        final Optional<Field> idPurpose = tryFind(copyOf(obj.getClass().getDeclaredFields()),
+                field -> field.getType().equals(IdPurpose.class));
+
+        try {
+            idPurpose.get().setAccessible(true);
+            return of((IdPurpose)idPurpose.get().get(obj));
+        } catch (Exception ignored) {}
+
+        return absent();
     }
 
     private static boolean isGenericListField(final Field field)

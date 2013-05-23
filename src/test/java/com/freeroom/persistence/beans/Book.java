@@ -2,6 +2,7 @@ package com.freeroom.persistence.beans;
 
 import com.freeroom.persistence.annotations.ID;
 import com.freeroom.persistence.annotations.Persist;
+import com.freeroom.persistence.proxy.IdPurpose;
 
 import java.util.List;
 
@@ -30,6 +31,13 @@ public class Book
 
     @Persist
     private List<Order> orders;
+
+    private IdPurpose idPurpose;
+
+    public void setBookid(final long bookid)
+    {
+        this.bookid = bookid;
+    }
 
     public long getIsbn()
     {
@@ -99,5 +107,10 @@ public class Book
     public void setPublisher(final Publisher publisher)
     {
         this.publisher = publisher;
+    }
+
+    public void setIdPurpose(final IdPurpose idPurpose)
+    {
+        this.idPurpose = idPurpose;
     }
 }

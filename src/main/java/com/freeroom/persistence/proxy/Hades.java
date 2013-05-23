@@ -16,6 +16,7 @@ import java.util.Properties;
 import static com.freeroom.di.util.FuncUtils.each;
 import static com.freeroom.di.util.FuncUtils.map;
 import static com.freeroom.persistence.Atlas.isList;
+import static com.google.common.base.Optional.absent;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Lists.newArrayList;
@@ -64,7 +65,13 @@ public class Hades
             if (isList(obj)) {
                 persistNewList((List)obj, foreignKeyAndValue);
             } else {
-                persistNew(obj, foreignKeyAndValue);
+                final Pair<String, Long> primaryKeyNameAndValue = Atlas.getPrimaryKeyNameAndValue(obj);
+                final Optional<IdPurpose> idPurpose = Atlas.getIdPurpose(obj);
+                if (primaryKeyNameAndValue.snd > 0 && idPurpose.isPresent()) {
+                    update(obj, primaryKeyNameAndValue, absent());
+                } else {
+                    persistNew(obj, foreignKeyAndValue);
+                }
             }
         }
     }
@@ -74,43 +81,49 @@ public class Hades
         final Charon charon = (Charon)obj.getCallback(0);
         final Pair<String, Long> primaryKeyAndValue = charon.getPrimaryKeyAndValue();
         if (isDirty(obj)) {
-            final List<Pair<Field, Object>> basicFields = Atlas.getBasicFieldAndValues(charon.getCurrent());
-
-            if (basicFields.size() == 0) return;
-
-            final StringBuilder questionMarksBuffer = new StringBuilder();
-
-            each(basicFields, field -> {
-                questionMarksBuffer.append(field.fst.getName() + "=?,");
-            });
-
-            final String questionMarks = removeTailComma(questionMarksBuffer);
-
-            final String sql = format("UPDATE %s SET %s%s WHERE %s=?",
-                    charon.getPersistBeanName(),
-                    questionMarks,
-                    foreignKeyAndValue.isPresent() ? "," + foreignKeyAndValue.get().fst + "=?" : "",
-                    primaryKeyAndValue.fst);
-
-            try (final Connection connection = getDBConnection()) {
-                final PreparedStatement statement = connection.prepareStatement(sql);
-
-                int i = 1;
-                for (final Pair<Field, Object> column : basicFields) {
-                    setValue(i++, statement, column);
-                }
-
-                if (foreignKeyAndValue.isPresent()) {
-                    statement.setLong(i++, foreignKeyAndValue.get().snd);
-                }
-                statement.setObject(i, primaryKeyAndValue.snd);
-                statement.executeUpdate();
-                logger.debug("Execute SQL: " + sql);
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
+            update(charon.getCurrent(), primaryKeyAndValue, foreignKeyAndValue);
         }
         persistRelations(charon.getCurrent(), primaryKeyAndValue);
+    }
+
+    private void update(final Object obj, final Pair<String, Long> primaryKeyAndValue,
+                        final Optional<Pair<String, Long>> foreignKeyAndValue)
+    {
+        final List<Pair<Field, Object>> basicFields = Atlas.getBasicFieldAndValues(obj);
+
+        if (basicFields.size() == 0) return;
+
+        final StringBuilder questionMarksBuffer = new StringBuilder();
+
+        each(basicFields, field -> {
+            questionMarksBuffer.append(field.fst.getName() + "=?,");
+        });
+
+        final String questionMarks = removeTailComma(questionMarksBuffer);
+
+        final String sql = format("UPDATE %s SET %s%s WHERE %s=?",
+                obj.getClass().getSimpleName(),
+                questionMarks,
+                foreignKeyAndValue.isPresent() ? "," + foreignKeyAndValue.get().fst + "=?" : "",
+                primaryKeyAndValue.fst);
+
+        try (final Connection connection = getDBConnection()) {
+            final PreparedStatement statement = connection.prepareStatement(sql);
+
+            int i = 1;
+            for (final Pair<Field, Object> column : basicFields) {
+                setValue(i++, statement, column);
+            }
+
+            if (foreignKeyAndValue.isPresent()) {
+                statement.setLong(i++, foreignKeyAndValue.get().snd);
+            }
+            statement.setObject(i, primaryKeyAndValue.snd);
+            statement.executeUpdate();
+            logger.debug("Execute SQL: " + sql);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void persistNew(final Object obj, final Optional<Pair<String, Long>> foreignKeyAndValue)

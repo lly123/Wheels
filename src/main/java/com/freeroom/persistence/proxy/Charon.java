@@ -90,11 +90,6 @@ public class Charon implements MethodInterceptor
         return current;
     }
 
-    protected void setOriginal(final Object original)
-    {
-        this.original = Optional.of(original);
-    }
-
     protected String getPersistBeanName()
     {
         return clazz.getSimpleName();
@@ -160,7 +155,7 @@ public class Charon implements MethodInterceptor
                 final Object relation = relationField.fst.get(current);
                 relationField.fst.setAccessible(true);
                 if (relation instanceof Factory) {
-                    relationField.fst.set(obj, ((Hecate)((Factory)relation).getCallback(0)).detach());
+                    relationField.fst.set(obj, ((Hecate) ((Factory) relation).getCallback(0)).detach());
                 }
             }
         } catch (Exception e) {
