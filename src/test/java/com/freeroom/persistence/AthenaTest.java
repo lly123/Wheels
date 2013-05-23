@@ -3,9 +3,7 @@ package com.freeroom.persistence;
 import com.freeroom.persistence.beans.Book;
 import com.freeroom.persistence.beans.Order;
 import com.freeroom.persistence.beans.Publisher;
-import com.freeroom.persistence.proxy.Charon;
 import com.google.common.base.Optional;
-import net.sf.cglib.proxy.Factory;
 import org.hamcrest.CoreMatchers;
 import org.junit.Before;
 import org.junit.Test;
@@ -251,7 +249,7 @@ public class AthenaTest
     public void should_get_absent_given_object_is_not_loaded()
     {
         final Book book = (Book)athena.from(Book.class).find(1).get();
-        final Book detachedBook = (Book)((Charon)((Factory)book).getCallback(0)).detach();
+        final Book detachedBook = (Book)athena.detach(book);
 
         assertThat(detachedBook, CoreMatchers.is(nullValue()));
     }
@@ -261,7 +259,7 @@ public class AthenaTest
     {
         final Book book = (Book)athena.from(Book.class).find(1).get();
         book.getName();
-        final Book detachedBook = (Book)((Charon)((Factory)book).getCallback(0)).detach();
+        final Book detachedBook = (Book)athena.detach(book);
 
         assertThat(detachedBook.getName(), CoreMatchers.is("JBoss Seam"));
         assertThat(detachedBook.getPrice(), CoreMatchers.is(18.39));
@@ -274,7 +272,7 @@ public class AthenaTest
         final Book book = (Book)athena.from(Book.class).find(1).get();
         book.getName();
         book.getPublisher().getName();
-        final Book detachedBook = (Book)((Charon)((Factory)book).getCallback(0)).detach();
+        final Book detachedBook = (Book)athena.detach(book);
 
         assertThat(detachedBook.getName(), CoreMatchers.is("JBoss Seam"));
         assertThat(detachedBook.getPublisher().getName(), CoreMatchers.is("O Reilly"));
@@ -286,7 +284,7 @@ public class AthenaTest
         final Book book = (Book)athena.from(Book.class).find(1).get();
         book.getName();
         book.getOrders().get(0);
-        final Book detachedBook = (Book)((Charon)((Factory)book).getCallback(0)).detach();
+        final Book detachedBook = (Book)athena.detach(book);
 
         assertThat(detachedBook.getName(), CoreMatchers.is("JBoss Seam"));
         assertThat(detachedBook.getOrders().get(0).getMemo(), CoreMatchers.is("Deliver at work time"));
