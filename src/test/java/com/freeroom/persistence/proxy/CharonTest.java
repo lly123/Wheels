@@ -50,7 +50,7 @@ public class CharonTest
     {
         final Book book = (Book)hades.create(Book.class, 1L, 1);
         book.getName();
-        book.getPublisher();
+        book.getPublisher().getName();
         final Book detachedBook = (Book)((Charon)((Factory)book).getCallback(0)).detach();
 
         assertThat(detachedBook.getName(), is("JBoss Seam"));
