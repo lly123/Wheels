@@ -64,18 +64,24 @@ public class Charon implements MethodInterceptor
             }
             current = copy(loadedObj.fst);
 
-            try {
-                int i = 0;
-                for (Pair<Field, String> relation : relations) {
-                    final Class<?> relationClass = relation.fst.getType();
-                    final Long relationId = loadedObj.snd.get(i);
-                    relation.fst.setAccessible(true);
-                    if (hades.exists(relationClass, relationId)) {
-                        relation.fst.set(current, hades.create(relationClass, relationId, blockSize));
-                    }
-                }
-            } catch (Exception ignored) {}
+            initOneToOneRelationsWithForeignKey(relations, loadedObj.snd);
         }
+    }
+
+    private void initOneToOneRelationsWithForeignKey(final List<Pair<Field, String>> relations, final List<Long> relationIds)
+    {
+        try {
+            int i = 0;
+            for (Pair<Field, String> relation : relations) {
+                final Class<?> relationClass = relation.fst.getType();
+                final Long relationId = relationIds.get(i);
+
+                relation.fst.setAccessible(true);
+                if (hades.exists(relationClass, relationId)) {
+                    relation.fst.set(current, hades.create(relationClass, relationId, blockSize));
+                }
+            }
+        } catch (Exception ignored) {}
     }
 
     protected boolean isNotLoaded()
@@ -112,6 +118,11 @@ public class Charon implements MethodInterceptor
     protected String getPersistBeanName()
     {
         return clazz.getSimpleName();
+    }
+
+    protected Class<?> getPersistClass()
+    {
+        return clazz;
     }
 
     protected void removed()

@@ -98,6 +98,17 @@ public class Athena
         return hades.createList(clazz, sql, absent(), getBlockSize());
     }
 
+    public List<Object> all()
+    {
+        assertEntityClassExists();
+
+        final Class<?> clazz = entityClass.get();
+        final String primaryKeyName = Atlas.getPrimaryKeyName(clazz);
+        final String sql = format("SELECT %s FROM %s", primaryKeyName, clazz.getSimpleName());
+
+        return hades.createList(clazz, sql, absent(), getBlockSize());
+    }
+
     public void persist(final Object obj)
     {
         hades.persist(obj, absent());
