@@ -116,12 +116,27 @@ public class Atlas
         });
     }
 
-    public static List<Field> getOneToOneRelations(final Class<?> clazz)
+    public static List<Field> getOneToOneRelationsWithoutForeignKey(final Class<?> clazz)
     {
         return reduce(newArrayList(), copyOf(clazz.getDeclaredFields()), (s, field) -> {
             if (field.isAnnotationPresent(Persist.class) && !isBasicField(field) && !isGenericListField(field)) {
-                field.setAccessible(true);
-                s.add(field);
+                if (!field.getAnnotation(Persist.class).foreignKey()) {
+                    field.setAccessible(true);
+                    s.add(field);
+                }
+            }
+            return s;
+        });
+    }
+
+    public static List<Pair<Field, String>> getOneToOneRelationsWithForeignKey(final Class<?> clazz)
+    {
+        return reduce(newArrayList(), copyOf(clazz.getDeclaredFields()), (s, field) -> {
+            if (field.isAnnotationPresent(Persist.class) && !isBasicField(field) && !isGenericListField(field)) {
+                if (field.getAnnotation(Persist.class).foreignKey()) {
+                    field.setAccessible(true);
+                    s.add(Pair.of(field, field.getType().getSimpleName() + "_" + getPrimaryKeyName(field.getType())));
+                }
             }
             return s;
         });

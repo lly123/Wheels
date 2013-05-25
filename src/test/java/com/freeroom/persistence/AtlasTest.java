@@ -2,7 +2,7 @@ package com.freeroom.persistence;
 
 import com.freeroom.di.util.Pair;
 import com.freeroom.persistence.beans.Book;
-import com.freeroom.persistence.beans.Publisher;
+import com.freeroom.persistence.beans.Reader;
 import org.junit.Test;
 
 import java.lang.reflect.Field;
@@ -53,11 +53,20 @@ public class AtlasTest
     }
 
     @Test
-    public void should_get_ONE_TO_ONE_relations()
+    public void should_get_ONE_TO_ONE_relations_without_foreign_key()
     {
-        final List<Field> relations = Atlas.getOneToOneRelations(Book.class);
+        final List<Field> relations = Atlas.getOneToOneRelationsWithoutForeignKey(Book.class);
 
         assertThat(relations.size(), is(1));
-        assertThat(relations.get(0).getType().equals(Publisher.class), is(true));
+        assertThat(relations.get(0).getType().equals(Reader.class), is(true));
+    }
+
+    @Test
+    public void should_get_ONE_TO_ONE_relations_with_foreign_key()
+    {
+        final List<Pair<Field, String>> relations = Atlas.getOneToOneRelationsWithForeignKey(Book.class);
+
+        assertThat(relations.size(), is(1));
+        assertThat(relations.get(0).snd, is("Publisher_publisherid"));
     }
 }

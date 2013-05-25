@@ -16,9 +16,11 @@ import java.util.Properties;
 import static com.freeroom.di.util.FuncUtils.each;
 import static com.freeroom.di.util.FuncUtils.map;
 import static com.freeroom.persistence.Atlas.isList;
+import static com.freeroom.persistence.proxy.IdPurpose.Locate;
 import static com.freeroom.persistence.proxy.IdPurpose.Remove;
 import static com.freeroom.persistence.proxy.IdPurpose.Update;
 import static com.google.common.base.Optional.absent;
+import static com.google.common.base.Optional.of;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Lists.newArrayList;
@@ -53,13 +55,13 @@ public class Hades
         return (List<Object>)enhancer.create();
     }
 
-    public void persist(final Object obj, final Optional<Pair<String, Long>> foreignKeyAndValue)
+    public Optional<Pair<String, Long>> persist(final Object obj, final Optional<Pair<String, Long>> foreignKeyAndValue)
     {
-        if (obj == null) return;
+        if (obj == null) absent();
 
         if (obj instanceof Factory) {
             if (((Factory)obj).getCallback(0) instanceof Charon) {
-                persistExisted((Factory)obj, foreignKeyAndValue);
+                return of(persistExisted((Factory) obj, foreignKeyAndValue));
             } else {
                 persistExistedList((Factory)obj, foreignKeyAndValue);
             }
@@ -70,20 +72,23 @@ public class Hades
                 final Pair<String, Long> primaryKeyNameAndValue = Atlas.getPrimaryKeyNameAndValue(obj);
                 final Optional<IdPurpose> idPurpose = Atlas.getIdPurpose(obj);
                 if (primaryKeyNameAndValue.snd > 0 && idPurpose.isPresent()) {
-                    if (idPurpose.get() == Update) {
-                        update(obj, primaryKeyNameAndValue, absent());
+                    if (idPurpose.get() == Locate) {
+                        persistRelations(obj, primaryKeyNameAndValue);
+                    } else if (idPurpose.get() == Update) {
+                        persistRelations(obj, primaryKeyNameAndValue);
+                        return of(update(obj, primaryKeyNameAndValue, absent()));
                     } else if (idPurpose.get() == Remove) {
                         remove(obj.getClass().getSimpleName(), primaryKeyNameAndValue);
                     }
-                    persistRelations(obj, primaryKeyNameAndValue);
                 } else {
-                    persistNew(obj, foreignKeyAndValue);
+                    return persistNew(obj, foreignKeyAndValue);
                 }
             }
         }
+        return absent();
     }
 
-    public void persistExisted(final Factory obj, final Optional<Pair<String, Long>> foreignKeyAndValue)
+    public Pair<String, Long> persistExisted(final Factory obj, final Optional<Pair<String, Long>> foreignKeyAndValue)
     {
         final Charon charon = (Charon)obj.getCallback(0);
         final Pair<String, Long> primaryKeyAndValue = charon.getPrimaryKeyAndValue();
@@ -91,17 +96,27 @@ public class Hades
             update(charon.getCurrent(), primaryKeyAndValue, foreignKeyAndValue);
         }
         persistRelations(charon.getCurrent(), primaryKeyAndValue);
+        return primaryKeyAndValue;
     }
 
-    private void update(final Object obj, final Pair<String, Long> primaryKeyAndValue,
-                        final Optional<Pair<String, Long>> foreignKeyAndValue)
+    public void persistExistedList(final Factory obj, final Optional<Pair<String, Long>> foreignKeyAndValue)
+    {
+        if (!isDirtyList(obj)) return;
+
+        final Hecate hecate = (Hecate)obj.getCallback(0);
+        each(hecate.getRemoved(), o -> remove(o));
+        each(hecate.getAdded(), o -> persistNew(o, foreignKeyAndValue));
+        each(hecate.getModified(), o -> persistExisted(o, foreignKeyAndValue));
+    }
+
+    private Pair<String, Long> update(final Object obj, final Pair<String, Long> primaryKeyAndValue,
+                                      final Optional<Pair<String, Long>> foreignKeyAndValue)
     {
         final List<Pair<Field, Object>> basicFields = Atlas.getBasicFieldAndValues(obj);
 
-        if (basicFields.size() == 0) return;
+        if (basicFields.size() == 0) return primaryKeyAndValue;
 
         final StringBuilder questionMarksBuffer = new StringBuilder();
-
         each(basicFields, field -> {
             questionMarksBuffer.append(field.fst.getName() + "=?,");
         });
@@ -125,15 +140,18 @@ public class Hades
             if (foreignKeyAndValue.isPresent()) {
                 statement.setLong(i++, foreignKeyAndValue.get().snd);
             }
+
             statement.setObject(i, primaryKeyAndValue.snd);
             statement.executeUpdate();
             logger.debug("Execute SQL: " + sql);
+
+            return primaryKeyAndValue;
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public void persistNew(final Object obj, final Optional<Pair<String, Long>> foreignKeyAndValue)
+    public Optional<Pair<String, Long>> persistNew(final Object obj, final Optional<Pair<String, Long>> foreignKeyAndValue)
     {
         final List<Pair<Field, Object>> basicFields = Atlas.getBasicFieldAndValues(obj);
 
@@ -169,21 +187,15 @@ public class Hades
 
             final ResultSet generatedKeys = statement.getGeneratedKeys();
             if (generatedKeys.next()) {
-                persistRelations(obj, Pair.of(Atlas.getPrimaryKeyName(obj.getClass()), generatedKeys.getLong(1)));
+                final Pair<String, Long> primaryKeyAndValue =
+                        Pair.of(Atlas.getPrimaryKeyName(obj.getClass()), generatedKeys.getLong(1));
+                persistRelations(obj, primaryKeyAndValue);
+                return of(primaryKeyAndValue);
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    public void persistExistedList(final Factory obj, final Optional<Pair<String, Long>> foreignKeyAndValue)
-    {
-        if (!isDirtyList(obj)) return;
-
-        final Hecate hecate = (Hecate)obj.getCallback(0);
-        each(hecate.getRemoved(), o -> remove(o));
-        each(hecate.getAdded(), o -> persistNew(o, foreignKeyAndValue));
-        each(hecate.getModified(), o -> persistExisted(o, foreignKeyAndValue));
+        return absent();
     }
 
     public void persistNewList(final List objects, final Optional<Pair<String, Long>> foreignKeyAndValue)
@@ -201,16 +213,50 @@ public class Hades
         final List<Pair<Field, Class>> oneToManyRelations = Atlas.getOneToManyRelations(obj.getClass());
         each(oneToManyRelations, relation -> {
             try {
-                persist(relation.fst.get(obj), Optional.of(foreignKeyAndValue));
+                persist(relation.fst.get(obj), of(foreignKeyAndValue));
             } catch (Exception ignored) {}
         });
 
-        final List<Field> oneToOneRelations = Atlas.getOneToOneRelations(obj.getClass());
-        each(oneToOneRelations, relation -> {
+        final List<Field> relationsWithoutFK = Atlas.getOneToOneRelationsWithoutForeignKey(obj.getClass());
+        each(relationsWithoutFK, relation -> {
             try {
-                persist(relation.get(obj), Optional.of(foreignKeyAndValue));
+                persist(relation.get(obj), of(foreignKeyAndValue));
             } catch (Exception ignored) {}
         });
+
+        final StringBuilder questionMarksBuffer = new StringBuilder();
+        final List<Long> childrenIds = newArrayList();
+        final List<Pair<Field, String>> relationsWithFK = Atlas.getOneToOneRelationsWithForeignKey(obj.getClass());
+        each(relationsWithFK, relation -> {
+            try {
+                final Optional<Pair<String, Long>> keyAndValue = persist(relation.fst.get(obj), absent());
+                if (keyAndValue.isPresent()) {
+                    questionMarksBuffer.append(relation.fst.getType().getSimpleName() + "_" + keyAndValue.get().fst + "=?,");
+                    childrenIds.add(keyAndValue.get().snd);
+                }
+            } catch (Exception ignored) {}
+        });
+
+        if (childrenIds.size() > 0) {
+            final String questionMarks = removeTailComma(questionMarksBuffer);
+            final String sql = format("UPDATE %s SET %s WHERE %s=?",
+                    obj.getClass().getSimpleName(), questionMarks, primaryKeyAndValue.fst);
+
+            try (final Connection connection = getDBConnection()) {
+                final PreparedStatement statement = connection.prepareStatement(sql);
+
+                int i = 1;
+                for (final Long id : childrenIds) {
+                    statement.setLong(i++, id);
+                }
+
+                statement.setLong(i, primaryKeyAndValue.snd);
+                statement.executeUpdate();
+                logger.debug("Execute SQL: " + sql);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     public void remove(final Factory obj)
@@ -267,7 +313,8 @@ public class Hades
         return hecate.isDirty();
     }
 
-    protected Object load(final Class<?> clazz, final long primaryKey)
+    protected Pair<Object, List<Long>> load(final Class<?> clazz, final long primaryKey,
+                                            final List<Pair<Field, String>> relations)
     {
         final String sql = format("SELECT * FROM %s WHERE %s=?", clazz.getSimpleName(), Atlas.getPrimaryKeyName(clazz));
 
@@ -287,7 +334,7 @@ public class Hades
                 for (final Field columnField : columnFields) {
                     setBasicFieldValue(columnField, obj, resultSet);
                 }
-                return obj;
+                return Pair.of(obj, relationIds(relations, resultSet));
             }
             throw new RuntimeException(format("Can't find %s with id %s", clazz.getSimpleName(), primaryKey));
         } catch (Exception e) {
@@ -295,7 +342,8 @@ public class Hades
         }
     }
 
-    protected Object load(final Class<?> clazz, final long primaryKey, final ResultSet resultSet)
+    protected Pair<Object, List<Long>> load(final Class<?> clazz, final long primaryKey,
+                                            final ResultSet resultSet, final List<Pair<Field, String>> relations)
     {
         final Object obj = newInstance(clazz);
         final Field pkField = Atlas.getPrimaryKey(clazz);
@@ -306,10 +354,21 @@ public class Hades
             for (final Field columnField : columnFields) {
                 setBasicFieldValue(columnField, obj, resultSet);
             }
-            return obj;
+            return Pair.of(obj, relationIds(relations, resultSet));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private List<Long> relationIds(final List<Pair<Field, String>> relations, final ResultSet resultSet)
+    {
+        List<Long> retVal = newArrayList();
+        try {
+            for (Pair<Field, String> relation : relations) {
+                retVal.add(resultSet.getLong(relation.snd));
+            }
+        } catch (Exception ignored) {}
+        return retVal;
     }
 
     public List<Object> loadList(final Class<?> clazz, final String sql,
@@ -367,6 +426,28 @@ public class Hades
         }
     }
 
+    protected boolean exists(final Class<?> clazz, final long primaryKey)
+    {
+        final String primaryKeyName = Atlas.getPrimaryKeyName(clazz);
+        final String sql = format("SELECT %s FROM %s WHERE %s=?",
+                primaryKeyName, clazz.getSimpleName(), primaryKeyName);
+
+        try (Connection connection = getDBConnection()) {
+            final PreparedStatement statement = connection.prepareStatement(sql);
+            statement.setLong(1, primaryKey);
+
+            final ResultSet resultSet = statement.executeQuery();
+            logger.debug("Execute SQL: " + sql);
+
+            if (resultSet.next()) {
+                return true;
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return false;
+    }
+
     private String getBlockIds(final int beginIndex, final int blockSize, final List<Object> objects)
     {
         Charon charon = (Charon)((Factory)objects.get(beginIndex)).getCallback(0);
@@ -392,7 +473,7 @@ public class Hades
         for (Object o : objects) {
             final Charon charon = (Charon) ((Factory) o).getCallback(0);
             if (charon.getPrimaryKeyAndValue().snd == pk) {
-                charon.load(Optional.of(resultSet));
+                charon.load(of(resultSet));
                 break;
             }
         }

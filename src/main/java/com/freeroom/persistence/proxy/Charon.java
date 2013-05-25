@@ -12,16 +12,18 @@ import java.lang.reflect.Method;
 import java.sql.ResultSet;
 import java.util.List;
 
+import static com.freeroom.di.util.FuncUtils.each;
 import static com.google.common.base.Optional.absent;
 import static com.google.common.base.Optional.of;
 import static com.google.common.collect.Iterables.any;
+import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.String.format;
 
 public class Charon implements MethodInterceptor
 {
     private final Hades hades;
     private final Class<?> clazz;
-    private Pair<String, Long> primaryKeyAndValue;
+    private final Pair<String, Long> primaryKeyAndValue;
     private final int blockSize;
     private Optional<Object> original;
     private Object current;
@@ -50,12 +52,29 @@ public class Charon implements MethodInterceptor
     protected void load(final Optional<ResultSet> resultSet)
     {
         if (isNotLoaded()) {
+            final List<Pair<Field, String>> relations = Atlas.getOneToOneRelationsWithForeignKey(clazz);
+
+            Pair<Object, List<Long>> loadedObj;
             if (resultSet.isPresent()) {
-                original = of(hades.load(clazz, primaryKeyAndValue.snd, resultSet.get()));
+                loadedObj = hades.load(clazz, primaryKeyAndValue.snd, resultSet.get(), relations);
+                original = of(loadedObj.fst);
             } else {
-                original = of(hades.load(clazz, primaryKeyAndValue.snd));
+                loadedObj = hades.load(clazz, primaryKeyAndValue.snd, relations);
+                original = of(loadedObj.fst);
             }
-            current = copy(original.get());
+            current = copy(loadedObj.fst);
+
+            try {
+                int i = 0;
+                for (Pair<Field, String> relation : relations) {
+                    final Class<?> relationClass = relation.fst.getType();
+                    final Long relationId = loadedObj.snd.get(i);
+                    relation.fst.setAccessible(true);
+                    if (hades.exists(relationClass, relationId)) {
+                        relation.fst.set(current, hades.create(relationClass, relationId, blockSize));
+                    }
+                }
+            } catch (Exception ignored) {}
         }
     }
 
@@ -104,7 +123,7 @@ public class Charon implements MethodInterceptor
     {
         final Object obj = copyWithoutRelations(original);
         final List<Pair<Field, Class>> oneToManyRelations = Atlas.getOneToManyRelations(clazz);
-        final List<Field> oneToOneRelations = Atlas.getOneToOneRelations(clazz);
+        final List<Field> oneToOneRelationsWithoutForeignKey = Atlas.getOneToOneRelationsWithoutForeignKey(clazz);
 
         try {
             final String sql = "SELECT %s FROM %s WHERE %s=?";
@@ -116,7 +135,7 @@ public class Charon implements MethodInterceptor
                         Optional.of(primaryKeyAndValue.snd), blockSize));
             }
 
-            for (Field relation : oneToOneRelations) {
+            for (Field relation : oneToOneRelationsWithoutForeignKey) {
                 final List<Object> objects = hades.loadList(relation.getType(),
                         format(sql, Atlas.getPrimaryKeyName(relation.getType()),
                                 relation.getType().getSimpleName(), clazz.getSimpleName() + "_" + primaryKeyAndValue.fst),
@@ -141,21 +160,24 @@ public class Charon implements MethodInterceptor
         final Object obj = copyWithoutRelations(current);
 
         try {
-            final List<Field> oneToOneRelations = Atlas.getOneToOneRelations(clazz);
-            for (Field relationField : oneToOneRelations) {
-                final Object relation = relationField.get(current);
-                relationField.setAccessible(true);
-                if (relation instanceof Factory) {
-                    relationField.set(obj, ((Charon)((Factory)relation).getCallback(0)).detach());
-                }
-            }
-
             final List<Pair<Field, Class>> oneToManyRelations = Atlas.getOneToManyRelations(clazz);
             for (Pair<Field, Class> relationField : oneToManyRelations) {
                 final Object relation = relationField.fst.get(current);
                 relationField.fst.setAccessible(true);
                 if (relation instanceof Factory) {
                     relationField.fst.set(obj, ((Hecate) ((Factory) relation).getCallback(0)).detach());
+                }
+            }
+
+            final List<Field> oneToOneRelations = newArrayList(Atlas.getOneToOneRelationsWithoutForeignKey(clazz));
+            final List<Pair<Field, String>> relations = Atlas.getOneToOneRelationsWithForeignKey(clazz);
+            each(relations, relation -> oneToOneRelations.add(relation.fst));
+
+            for (Field relationField : oneToOneRelations) {
+                final Object relation = relationField.get(current);
+                relationField.setAccessible(true);
+                if (relation instanceof Factory) {
+                    relationField.set(obj, ((Charon)((Factory)relation).getCallback(0)).detach());
                 }
             }
         } catch (Exception e) {

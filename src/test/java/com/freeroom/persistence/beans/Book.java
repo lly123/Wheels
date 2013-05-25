@@ -26,11 +26,14 @@ public class Book
     @Persist
     private List<Long> tags;
 
-    @Persist
+    @Persist(foreignKey = true)
     private Publisher publisher;
 
     @Persist
     private List<Order> orders;
+
+    @Persist
+    private Reader reader;
 
     private IdPurpose idPurpose;
 
