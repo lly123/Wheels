@@ -23,4 +23,9 @@ public class BooksController
         bookRepo.delete(isbn);
         return render("html:example/index.html").put("books", bookRepo.getBooks());
     }
+
+    public Model search(final String bookName)
+    {
+        return render("html:example/index.html").put("books", bookRepo.findByName(bookName));
+    }
 }

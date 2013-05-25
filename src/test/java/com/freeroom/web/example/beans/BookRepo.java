@@ -16,8 +16,9 @@ public class BookRepo
     public List<Book> getBooks()
     {
         final List<Object> books = athena.from(Book.class).all();
-        for (Object book : books) {
-            ((Book)book).getIsbn();
+        for (int i = 0; i < books.size(); i++) {
+            Book book = (Book)books.get(i);
+            book.getIsbn();
         }
         return (List<Book>)athena.detach(books);
     }
@@ -33,5 +34,15 @@ public class BookRepo
         if (book.isPresent()) {
             athena.remove(book.get());
         }
+    }
+
+    public List<Book> findByName(final String bookName)
+    {
+        final List<Object> books = athena.from(Book.class).find("UPPER(name) like '%" + bookName.toUpperCase() + "%'");
+        for (int i = 0; i < books.size(); i++) {
+            Book book = (Book)books.get(i);
+            book.getIsbn();
+        }
+        return (List<Book>)athena.detach(books);
     }
 }
