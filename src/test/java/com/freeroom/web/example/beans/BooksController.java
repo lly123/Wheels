@@ -14,7 +14,7 @@ public class BooksController
 
     public Model create(final Book book)
     {
-        bookRepo.add(book);
+        bookRepo.addBook(book);
         return render("html:example/index.html").put("books", bookRepo.getBooks());
     }
 

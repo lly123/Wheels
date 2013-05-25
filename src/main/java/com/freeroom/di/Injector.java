@@ -1,7 +1,6 @@
 package com.freeroom.di;
 
 import com.freeroom.di.exceptions.ConstructorCycleDependencyException;
-import com.google.common.base.Predicate;
 
 import java.util.Collection;
 import java.util.Stack;
@@ -75,8 +74,9 @@ class Injector
 
         waitingForConstruction.push(pod);
         each(unreadyPods, unreadyPod -> {
-            waitingForConstruction.push(unreadyPod);
             assertNoCycleDependency(pod, unreadyPod, waitingForConstruction);
+            waitingForConstruction.remove(unreadyPod);
+            waitingForConstruction.push(unreadyPod);
         });
     }
 
@@ -92,11 +92,13 @@ class Injector
 
     private void assertNoCycleDependency(final SoyPod pod, final SoyPod unreadyPod, final Stack<Pod> waitingForConstruction)
     {
-        if (waitingForConstruction.indexOf(unreadyPod) > -1) {
-            throw new ConstructorCycleDependencyException(
-                    "Bean " + pod.getBeanName() + " and " + unreadyPod.getBeanName() +
-                            " have constructor cycle dependencies."
-            );
+        if (waitingForConstruction.contains(unreadyPod)) {
+            if (((ConstructorHole)unreadyPod.getConstructorHole()).getUnreadyPods().contains(pod)) {
+                throw new ConstructorCycleDependencyException(
+                        "Bean " + pod.getBeanName() + " and " + unreadyPod.getBeanName() +
+                                " have constructor cycle dependencies."
+                );
+            }
         }
     }
 

@@ -10,8 +10,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.List;
+import java.util.Properties;
 
-import static com.freeroom.persistence.DBFixture.getDbProperties;
 import static com.freeroom.persistence.DBFixture.prepareDB;
 import static com.freeroom.persistence.proxy.IdPurpose.*;
 import static com.google.common.collect.Lists.newArrayList;
@@ -27,7 +27,12 @@ public class AthenaTest
     public void setUp() throws Exception
     {
         prepareDB();
-        athena = new Athena(getDbProperties());
+        athena = new Athena(new DBConfig() {
+            @Override
+            public Properties getDbProperties() {
+                return DBFixture.getDbProperties();
+            }
+        });
     }
 
     @Test

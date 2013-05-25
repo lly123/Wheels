@@ -1,5 +1,7 @@
 package com.freeroom.persistence;
 
+import com.freeroom.di.annotations.Bean;
+import com.freeroom.di.annotations.Inject;
 import com.freeroom.persistence.exceptions.NotOnlyResultException;
 import com.freeroom.persistence.proxy.Charon;
 import com.freeroom.persistence.proxy.Hades;
@@ -18,6 +20,7 @@ import static com.google.common.base.Optional.of;
 import static java.lang.Integer.parseInt;
 import static java.lang.String.format;
 
+@Bean
 public class Athena
 {
     private static Logger logger = Logger.getLogger(Athena.class);
@@ -26,9 +29,10 @@ public class Athena
     private final Hades hades;
     private Optional<Class<?>> entityClass;
 
-    public Athena(final Properties properties)
+    @Inject
+    public Athena(final DBConfig dbConfig)
     {
-        this.properties = properties;
+        this.properties = dbConfig.getDbProperties();
         this.hades = new Hades(properties);
     }
 

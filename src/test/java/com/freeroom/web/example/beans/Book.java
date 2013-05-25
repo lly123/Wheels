@@ -1,51 +1,32 @@
 package com.freeroom.web.example.beans;
 
+import com.freeroom.persistence.annotations.ID;
+import com.freeroom.persistence.annotations.Persist;
+
 import java.util.List;
 
 public class Book
 {
+    @ID
+    private long id;
+
+    @Persist
     private long isbn;
+
+    @Persist
     private String name;
+
+    @Persist
     private double price;
+
+    @Persist
     private long publishDate;
-    private List<Integer> tags;
 
-    public Book()
-    {
-    }
-
-    public Book(final long isbn, final String name, final double price,
-                final long publishDate, List<Integer> tags)
-    {
-        this.isbn = isbn;
-        this.name = name;
-        this.price = price;
-        this.publishDate = publishDate;
-        this.tags = tags;
-    }
-
-    public String getName()
-    {
-        return name;
-    }
-
-    public double getPrice()
-    {
-        return price;
-    }
-
-    public long getPublishDate()
-    {
-        return publishDate;
-    }
+    @Persist
+    private List<Long> tags;
 
     public long getIsbn()
     {
         return isbn;
-    }
-
-    public List<Integer> getTags()
-    {
-        return tags;
     }
 }

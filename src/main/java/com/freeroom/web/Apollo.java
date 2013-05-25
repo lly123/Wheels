@@ -3,6 +3,7 @@ package com.freeroom.web;
 
 import com.freeroom.di.BeanContext;
 import com.freeroom.di.util.Pair;
+import com.freeroom.persistence.Athena;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -25,6 +26,7 @@ public class Apollo extends HttpServlet
     {
         this.beanContext = BeanContext.load(root);
         this.beanContext.addBean(Prometheus.class);
+        this.beanContext.addBean(Athena.class);
     }
 
     protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException

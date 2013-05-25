@@ -45,6 +45,7 @@ class ConstructorHole extends Hole
             if (pod.isPresent()) {
                 if (pod.get().isBeanReady()) {
                     readyBeans.add(pod.get().getBean().get());
+                    unreadyPods.remove(pod.get());
                 } else {
                     unreadyPods.add((SoyPod)pod.get());
                 }
