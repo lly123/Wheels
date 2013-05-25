@@ -59,6 +59,9 @@ public class DBFixture
             statement.executeUpdate(
                     "INSERT INTO PUBLIC.PUBLISHER (NAME, PROFILE) "+
                     "VALUES ('O Reilly', 'A Publisher')");
+            statement.executeUpdate(
+                    "INSERT INTO PUBLIC.PUBLISHER (NAME, PROFILE) "+
+                    "VALUES ('Wrox', 'Programmer To Programmer')");
 
             statement.executeUpdate(
                     "CREATE MEMORY TABLE PUBLIC.READER("+

@@ -359,6 +359,25 @@ public class AthenaTest
     }
 
     @Test
+    public void should_persist_book_with_id_and_ONE_TO_ONE_replace_relation()
+    {
+        Book book = new Book();
+        book.setBookid(1L);
+        book.setIdPurpose(Locate);
+
+        final Publisher publisher = new Publisher();
+        publisher.setPublisherid(2L);
+        publisher.setIdPurpose(Locate);
+        book.setPublisher(publisher);
+
+        athena.persist(book);
+
+        book = (Book)athena.from(Book.class).find(1).get();
+        assertThat(book.getIsbn(), is(123L));
+        assertThat(book.getPublisher().getName(), is("Wrox"));
+    }
+
+    @Test
     public void should_persist_book_with_id_and_ONE_TO_ONE_remove_relation()
     {
         Book book = new Book();

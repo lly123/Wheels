@@ -74,9 +74,11 @@ public class Hades
                 if (primaryKeyNameAndValue.snd > 0 && idPurpose.isPresent()) {
                     if (idPurpose.get() == Locate) {
                         persistRelations(obj, primaryKeyNameAndValue);
+                        return of(primaryKeyNameAndValue);
                     } else if (idPurpose.get() == Update) {
+                        update(obj, primaryKeyNameAndValue, absent());
                         persistRelations(obj, primaryKeyNameAndValue);
-                        return of(update(obj, primaryKeyNameAndValue, absent()));
+                        return of(primaryKeyNameAndValue);
                     } else if (idPurpose.get() == Remove) {
                         remove(obj.getClass().getSimpleName(), primaryKeyNameAndValue);
                     }
@@ -227,7 +229,7 @@ public class Hades
         final StringBuilder questionMarksBuffer = new StringBuilder();
         final List<Long> childrenIds = newArrayList();
         final List<Pair<Field, String>> relationsWithFK = Atlas.getOneToOneRelationsWithForeignKey(obj.getClass());
-        each(relationsWithFK, relation -> {
+        for (Pair<Field, String> relation : relationsWithFK) {
             try {
                 final Optional<Pair<String, Long>> keyAndValue = persist(relation.fst.get(obj), absent());
                 if (keyAndValue.isPresent()) {
@@ -235,7 +237,7 @@ public class Hades
                     childrenIds.add(keyAndValue.get().snd);
                 }
             } catch (Exception ignored) {}
-        });
+        }
 
         if (childrenIds.size() > 0) {
             final String questionMarks = removeTailComma(questionMarksBuffer);
