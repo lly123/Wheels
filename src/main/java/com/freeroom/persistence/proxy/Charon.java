@@ -77,7 +77,7 @@ public class Charon implements MethodInterceptor
                 final Long relationId = relationIds.get(i);
 
                 relation.fst.setAccessible(true);
-                if (hades.exists(relationClass, relationId)) {
+                if (relationId > 0) {
                     relation.fst.set(current, hades.create(relationClass, relationId, blockSize));
                 }
             }

@@ -234,7 +234,12 @@ public class Hades
                 final Class<?> childClass = relation.fst.getType();
                 final Object relatedObj = relation.fst.get(obj);
 
-                if (relatedObj == null) {
+                Optional<IdPurpose> idPurpose = absent();
+                if (relatedObj != null) {
+                    idPurpose = Atlas.getIdPurpose(relatedObj);
+                }
+
+                if (relatedObj == null || (idPurpose.isPresent() && idPurpose.get().equals(Remove))) {
                     final String primaryKeyName = Atlas.getPrimaryKeyName(childClass);
                     addChildId(questionMarksBuffer, childrenIds, childClass, primaryKeyName, 0L);
                 }
@@ -471,28 +476,6 @@ public class Hades
         } catch (Exception e){
             throw new RuntimeException("Get exception when creating " + clazz, e);
         }
-    }
-
-    protected boolean exists(final Class<?> clazz, final long primaryKey)
-    {
-        final String primaryKeyName = Atlas.getPrimaryKeyName(clazz);
-        final String sql = format("SELECT %s FROM %s WHERE %s=?",
-                primaryKeyName, clazz.getSimpleName(), primaryKeyName);
-
-        try (Connection connection = getDBConnection()) {
-            final PreparedStatement statement = connection.prepareStatement(sql);
-            statement.setLong(1, primaryKey);
-
-            final ResultSet resultSet = statement.executeQuery();
-            logger.debug("Execute SQL: " + sql);
-
-            if (resultSet.next()) {
-                return true;
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        return false;
     }
 
     private String getBlockIds(final int beginIndex, final int blockSize, final List<Object> objects)

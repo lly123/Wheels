@@ -25,6 +25,9 @@ public class Book
     @Persist
     private List<Long> tags;
 
+    @Persist(foreignKey = true)
+    private Publisher publisher;
+
     public long getIsbn()
     {
         return isbn;

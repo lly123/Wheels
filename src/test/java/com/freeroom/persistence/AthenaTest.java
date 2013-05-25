@@ -398,6 +398,7 @@ public class AthenaTest
         Book book = new Book();
         book.setBookid(1L);
         book.setIsbn(456L);
+        book.setPublisher(null);
         book.setIdPurpose(Update);
 
         final Publisher publisher = new Publisher();
