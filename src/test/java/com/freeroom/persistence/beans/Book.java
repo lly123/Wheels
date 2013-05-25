@@ -112,6 +112,16 @@ public class Book
         this.publisher = publisher;
     }
 
+    public Reader getReader()
+    {
+        return reader;
+    }
+
+    public void setReader(final Reader reader)
+    {
+        this.reader = reader;
+    }
+
     public void setIdPurpose(final IdPurpose idPurpose)
     {
         this.idPurpose = idPurpose;

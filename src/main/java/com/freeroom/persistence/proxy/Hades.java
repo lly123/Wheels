@@ -80,7 +80,7 @@ public class Hades
                         persistRelations(obj, primaryKeyNameAndValue);
                         return of(primaryKeyNameAndValue);
                     } else if (idPurpose.get() == Remove) {
-                        remove(obj.getClass().getSimpleName(), primaryKeyNameAndValue);
+                        remove((Factory)create(obj.getClass(), primaryKeyNameAndValue.snd, 1));
                     }
                 } else {
                     return persistNew(obj, foreignKeyAndValue);
@@ -231,10 +231,17 @@ public class Hades
         final List<Pair<Field, String>> relationsWithFK = Atlas.getOneToOneRelationsWithForeignKey(obj.getClass());
         for (Pair<Field, String> relation : relationsWithFK) {
             try {
-                final Optional<Pair<String, Long>> keyAndValue = persist(relation.fst.get(obj), absent());
+                final Class<?> childClass = relation.fst.getType();
+                final Object relatedObj = relation.fst.get(obj);
+
+                if (relatedObj == null) {
+                    final String primaryKeyName = Atlas.getPrimaryKeyName(childClass);
+                    addChildId(questionMarksBuffer, childrenIds, childClass, primaryKeyName, 0L);
+                }
+
+                final Optional<Pair<String, Long>> keyAndValue = persist(relatedObj, absent());
                 if (keyAndValue.isPresent()) {
-                    questionMarksBuffer.append(relation.fst.getType().getSimpleName() + "_" + keyAndValue.get().fst + "=?,");
-                    childrenIds.add(keyAndValue.get().snd);
+                    addChildId(questionMarksBuffer, childrenIds, childClass, keyAndValue.get().fst, keyAndValue.get().snd);
                 }
             } catch (Exception ignored) {}
         }
@@ -259,6 +266,13 @@ public class Hades
                 throw new RuntimeException(e);
             }
         }
+    }
+
+    private void addChildId(final StringBuilder questionMarksBuffer, final List<Long> childrenIds,
+                            final Class<?> childClass, final String childPrimaryKey, final Long childId)
+    {
+        questionMarksBuffer.append(childClass.getSimpleName() + "_" + childPrimaryKey + "=?,");
+        childrenIds.add(childId);
     }
 
     public void remove(final Factory obj)

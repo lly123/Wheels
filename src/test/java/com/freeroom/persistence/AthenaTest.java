@@ -13,9 +13,7 @@ import java.util.List;
 
 import static com.freeroom.persistence.DBFixture.getDbProperties;
 import static com.freeroom.persistence.DBFixture.prepareDB;
-import static com.freeroom.persistence.proxy.IdPurpose.Locate;
-import static com.freeroom.persistence.proxy.IdPurpose.Remove;
-import static com.freeroom.persistence.proxy.IdPurpose.Update;
+import static com.freeroom.persistence.proxy.IdPurpose.*;
 import static com.google.common.collect.Lists.newArrayList;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -115,7 +113,7 @@ public class AthenaTest
         athena.remove(book.get());
 
         assertThat(athena.from(Book.class).find(1L).isPresent(), is(false));
-        assertThat(athena.from(Publisher.class).all().size(), is(0));
+        assertThat(athena.from(Publisher.class).all().size(), is(1));
         assertThat(athena.from(Reader.class).all().size(), is(0));
         assertThat(athena.from(Order.class).all().size(), is(0));
     }
@@ -209,6 +207,18 @@ public class AthenaTest
         final Optional<Object> book = athena.from(Book.class).find(1);
 
         assertThat(((Book)book.get()).getPublisher().getName(), is("O Reilly"));
+    }
+
+    @Test
+    public void should_remove_ONE_TO_ONE_relations()
+    {
+        Book book = (Book)athena.from(Book.class).find(1).get();
+
+        book.setPublisher(null);
+        athena.persist(book);
+
+        book = (Book)athena.from(Book.class).find(1).get();
+        assertThat(book.getPublisher(), is(nullValue()));
     }
 
     @Test
