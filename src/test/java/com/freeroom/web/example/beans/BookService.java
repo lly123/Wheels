@@ -7,6 +7,8 @@ import com.google.common.base.Optional;
 
 import java.util.List;
 
+import static com.google.common.base.Optional.absent;
+
 @Bean
 public class BookService
 {
@@ -23,14 +25,29 @@ public class BookService
         return (List<Book>)athena.detach(books);
     }
 
+    public Optional<Book> get(final String isbn)
+    {
+        final Optional<Object> book = athena.from(Book.class).findOnly("isbn=" + isbn);
+        if (book.isPresent()) {
+            ((Book)book.get()).getPublisher().getName();
+            return Optional.of((Book)athena.detach(book.get()));
+        }
+        return absent();
+    }
+
     public void addBook(final Book book)
+    {
+        athena.persist(book);
+    }
+
+    public void updateBook(final Book book)
     {
         athena.persist(book);
     }
 
     public void delete(final String isbn)
     {
-        final Optional<Object> book = athena.findOnly("isbn=" + isbn);
+        final Optional<Object> book = athena.from(Book.class).findOnly("isbn=" + isbn);
         if (book.isPresent()) {
             athena.remove(book.get());
         }

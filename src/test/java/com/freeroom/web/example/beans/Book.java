@@ -2,6 +2,7 @@ package com.freeroom.web.example.beans;
 
 import com.freeroom.persistence.annotations.ID;
 import com.freeroom.persistence.annotations.Persist;
+import com.freeroom.persistence.proxy.IdPurpose;
 
 import java.util.List;
 
@@ -27,6 +28,8 @@ public class Book
 
     @Persist(foreignKey = true)
     private Publisher publisher;
+
+    private IdPurpose idPurpose;
 
     public long getIsbn()
     {

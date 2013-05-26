@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Book Shelf</title>
+    <link href="/example/css/bootstrap.min.css" rel="stylesheet">
+    <script type="text/javascript" src="/example/js/jquery.min.js"></script>
+    <script type="text/javascript" src="/example/js/angular.min.js"></script>
+    <script type="text/javascript" src="/example/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="/example/js/dateExtension.js"></script>
+
+    <script type="text/javascript">
+        angular.module('bookApp', [], function($locationProvider)
+        {
+            $locationProvider.html5Mode(true);
+        });
+
+        Ctrl = function($scope)
+        {
+            $scope.publisher = $scope.book.publisher.id;
+            $scope.publishDateStr = new Date($scope.book.publishDate).format("d MMM, yyyy");
+
+            $scope.parsePublishDateStr = function()
+            {
+                return Date.parse($scope.publishDateStr);
+            }
+
+            $scope.isChecked = function(tagid)
+            {
+                var checked = false;
+                angular.forEach($scope.book.tags, function(tag) {
+                    if (tag == tagid) checked = true;
+                });
+                return checked;
+            }
+        }
+    </script>
+</head>
+<body ng-app="bookApp" ng-init='[MODEL_DATA]'>
+    <div class="container" ng-controller="Ctrl">
+        <div class="row-fluid">
+            <div class="span12">
+                <h1><a href="/">Edit Book:</a></h1>
+            </div>
+        </div>
+        <div class="row-fluid"><div class="span12"> </div></div>
+        <div class="row-fluid">
+            <div class="span12 alert alert-info">
+                Name: {{book.name}} | ISBN: {{book.isbn}} | Publisher: {{book.publisher.name}}
+            </div>
+        </div>
+        <form class="form-horizontal" action="/books/update" method="post">
+            <input type="hidden" id="id" name="book_id" value="{{book.id}}"/>
+            <input type="hidden" id="name" name="book_name" value="{{book.name}}"/>
+            <input type="hidden" id="isbn" name="book_isbn" value="{{book.isbn}}"/>
+            <input type="hidden" id="publishDate" name="book_publishDate" value="{{parsePublishDateStr()}}"/>
+            <input type="hidden" id="idPurpose" name="book_idPurpose" value="Update"/>
+            <div class="row-fluid">
+                <div class="span12">
+                    <div class="control-group">
+                        <label class="control-label" for="price">Price</label>
+                        <div class="controls">
+                            <input type="text" id="price" name="book_price" placeholder="Price" value="{{book.price}}" required/>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label" for="publishDate">Publisher</label>
+                        <div class="controls">
+                            <input type="hidden" id="publisherId" name="book_publisher_id" value="{{publisher}}"/>
+                            <input type="hidden" id="publisherIdPurpose" name="book_publisher_idPurpose" value="Locate"/>
+                            <select ng-model="publisher" ng-options="p.id as p.name for p in Publishers"></select>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label" for="publishDate">Publish Date</label>
+                        <div class="controls">
+                            <input type="text" ng-model="publishDateStr" placeholder="Publish Date" required/>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Tags</label>
+                        <div class="controls">
+                            <div ng-repeat="tag in Tags">
+                                <input type="checkbox" name="book_tags[{{$index}}]" value="{{tag.id}}" ng-checked="isChecked(tag.id)"/>
+                                <span class='label {{tag.label}}'>{{tag.text}}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row-fluid">
+                <div class="span12">
+                    <button class="btn btn-primary" type="submit">Save</button>
+                    <button class="btn">Cancel</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

@@ -13,8 +13,10 @@
             $locationProvider.html5Mode(true);
         });
 
-        listCtrl = function($scope, $window)
+        Ctrl = function($scope, $window)
         {
+            $scope.publisher = 1;
+
             $scope.findTag = function(tagId)
             {
                 var selected;
@@ -24,15 +26,24 @@
                 return selected;
             }
 
-            $scope.del = function(isbn)
+            $scope.currentIsbn = function(isbn)
             {
-                $window.location.href = "/books/delete?isbn=" + isbn;
+                $scope.bookIsbn = isbn;
             }
-        }
 
-        addCtrl = function($scope)
-        {
-            $scope.publisher = 1;
+            $scope.edit = function()
+            {
+                if ($scope.bookIsbn) {
+                    $window.location.href = "/books/edit?isbn=" + $scope.bookIsbn;
+                }
+            }
+
+            $scope.del = function()
+            {
+                if ($scope.bookIsbn) {
+                    $window.location.href = "/books/delete?isbn=" + $scope.bookIsbn;
+                }
+            }
 
             $scope.parsePublishDateStr = function()
             {
@@ -41,8 +52,8 @@
         }
     </script>
 </head>
-<body ng-app="bookApp">
-    <div class="container" ng-init='[MODEL_DATA]' ng-controller="listCtrl">
+<body ng-app="bookApp" ng-init='[MODEL_DATA]' ng-controller="Ctrl">
+    <div class="container">
         <div class="row-fluid">
             <div class="span12">
                 <h1><a href="/">Book List:</a></h1>
@@ -62,15 +73,16 @@
                 <table class="table table-striped">
                     <thead>
                         <tr>
+                            <th></th>
                             <th>ISBN</th>
                             <th>Name</th>
                             <th>Price</th>
                             <th>Publish Date</th>
-                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr ng-repeat="book in books">
+                            <td><input type="radio" name="bookIsbn" ng-click="currentIsbn(book.isbn)"/></td>
                             <td>{{book.isbn}}</td>
                             <td>{{book.publisher.name}} - {{book.name}}<br/>
                                 <span ng-repeat="tagId in book.tags">
@@ -79,7 +91,6 @@
                             </td>
                             <td>{{book.price | currency}}</td>
                             <td>{{book.publishDate | date:'mediumDate'}}</td>
-                            <td><button class="btn btn-danger" ng-click="del(book.isbn)">Delete</button></td>
                         </tr>
                     </tbody>
                 </table>
@@ -88,11 +99,13 @@
         <div class="row-fluid">
             <div class="span12">
                 <a href="#addBook" role="button" class="btn btn-info" data-toggle="modal">Add Book</a>
+                <button class="btn btn-info" ng-click="edit()">Edit Book</button>
+                <button class="btn btn-danger" ng-click="del()">Delete Book</button>
             </div>
         </div>
     </div>
 
-    <form class="form-horizontal" action="/books/create" method="post" ng-init='[MODEL_DATA]' ng-controller="addCtrl">
+    <form class="form-horizontal" action="/books/create" method="post">
         <input type="hidden" name="book_publishDate" value="{{parsePublishDateStr()}}"/>
 
         <div id="addBook" class="modal hide fade" tabindex="-1" role="dialog">

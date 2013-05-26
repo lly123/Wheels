@@ -284,53 +284,15 @@ public class Hades
     {
         final Charon charon = (Charon)obj.getCallback(0);
         final Pair<String, Long> primaryKeyAndValue = charon.getPrimaryKeyAndValue();
-        charon.load(absent());
-        remove(charon.getPersistBeanName(), primaryKeyAndValue);
-        charon.removed();
-
-        final List<Pair<Field, Class>> oneToManyRelations = Atlas.getOneToManyRelations(charon.getPersistClass());
-        each(oneToManyRelations, relation -> {
-            try {
-                final Object relatedObjs = relation.fst.get(charon.getCurrent());
-                if (Atlas.isList(relatedObjs)) {
-                    for (Object relatedObj : (List) relatedObjs) {
-                        if (relatedObj instanceof Factory) remove((Factory)relatedObj);
-                    }
-                }
-            } catch (Exception ignored) {}
-        });
-
-        final List<Field> relationsWithoutFK = Atlas.getOneToOneRelationsWithoutForeignKey(charon.getPersistClass());
-        each(relationsWithoutFK, relation -> {
-            try {
-                final Object relatedObj = relation.get(charon.getCurrent());
-                if (relatedObj instanceof Factory) remove((Factory)relatedObj);
-            } catch (Exception ignored) {}
-        });
-
-        final List<Pair<Field, String>> relationsWithFK = Atlas.getOneToOneRelationsWithForeignKey(charon.getPersistClass());
-        each(relationsWithFK, relation -> {
-            try {
-                final Object relatedObj = relation.fst.get(charon.getCurrent());
-                if (relatedObj instanceof Factory) remove((Factory)relatedObj);
-            } catch (Exception ignored) {
-                ignored.printStackTrace();
-            }
-        });
-    }
-
-    private void remove(final String className, final Pair<String, Long> primaryKeyAndValue)
-    {
-        final String sql = format("DELETE FROM %s WHERE %s=?", className, primaryKeyAndValue.fst);
+        final String sql = format("DELETE FROM %s WHERE %s=?", charon.getPersistBeanName(), primaryKeyAndValue.fst);
 
         try (final Connection connection = getDBConnection()) {
             final PreparedStatement statement = connection.prepareStatement(sql);
             statement.setLong(1, primaryKeyAndValue.snd);
             statement.executeUpdate();
             logger.debug("Execute SQL: " + sql);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        } catch (SQLException ignored) {}
+        charon.removed();
     }
 
     private void setValue(final int i, final PreparedStatement statement,
