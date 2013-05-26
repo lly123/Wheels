@@ -34,6 +34,8 @@ public class Ares
             put(".html", "text/html");
             put(".js", "application/x-javascript");
             put(".css", "text/css");
+            put(".ico", "image/x-icon" +
+                    "");
         }
     };
 

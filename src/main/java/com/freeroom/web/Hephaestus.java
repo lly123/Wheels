@@ -15,7 +15,7 @@ import static com.google.common.collect.Iterables.tryFind;
 public class Hephaestus
 {
     private static final String CONTROLLER_BEAN_SUFFIX = "Controller";
-    private static final String[] RESOURCE_FILE_SUFFIX = new String[]{".js", ".css"};
+    private static final String[] RESOURCE_FILE_SUFFIX = new String[]{".js", ".css", ".ico"};
     private final BeanContext beanContext;
     private final HttpServletRequest req;
 

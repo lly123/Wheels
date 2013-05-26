@@ -21,6 +21,7 @@ public class BookService
         for (int i = 0; i < books.size(); i++) {
             Book book = (Book)books.get(i);
             book.getPublisher().getName();
+            book.getOrders().size();
         }
         return (List<Book>)athena.detach(books);
     }
@@ -30,6 +31,9 @@ public class BookService
         final Optional<Object> book = athena.from(Book.class).findOnly("isbn=" + isbn);
         if (book.isPresent()) {
             ((Book)book.get()).getPublisher().getName();
+            for (int i = 0; i < ((Book)book.get()).getOrders().size(); i++) {
+                ((Book)book.get()).getOrders().get(i).getName();
+            }
             return Optional.of((Book)athena.detach(book.get()));
         }
         return absent();

@@ -29,6 +29,9 @@ public class Book
     @Persist(foreignKey = true)
     private Publisher publisher;
 
+    @Persist
+    private List<Order> orders;
+
     private IdPurpose idPurpose;
 
     public long getIsbn()
@@ -39,5 +42,10 @@ public class Book
     public Publisher getPublisher()
     {
         return publisher;
+    }
+
+    public List<Order> getOrders()
+    {
+        return orders;
     }
 }

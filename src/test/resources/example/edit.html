@@ -14,7 +14,7 @@
             $locationProvider.html5Mode(true);
         });
 
-        Ctrl = function($scope)
+        Ctrl = function($scope, $window)
         {
             $scope.publisher = $scope.book.publisher.id;
             $scope.publishDateStr = new Date($scope.book.publishDate).format("d MMM, yyyy");
@@ -31,6 +31,26 @@
                     if (tag == tagid) checked = true;
                 });
                 return checked;
+            }
+
+            $scope.homepage = function()
+            {
+                $window.location.href = "/";
+            }
+
+            $scope.idPurpose = function(removed)
+            {
+                console.log(removed);
+                if (removed) {
+                    return 'Remove';
+                } else {
+                    return 'Update';
+                }
+            }
+
+            $scope.addOrder = function()
+            {
+                $scope.book.orders.push({id: 0});
             }
         }
     </script>
@@ -87,10 +107,21 @@
                     </div>
                 </div>
             </div>
+            <div class="row-fluid" ng-repeat="order in book.orders">
+                <div class="span12 alert alert-success" ng-show="!order.removed">
+                    <button type="button" class="close" ng-click="order.removed=true">&times;</button>
+                    <input type="hidden" name="book_orders[{{$index}}]_id" value="{{order.id}}"/>
+                    <input type="hidden" name="book_orders[{{$index}}]_idPurpose" value="{{idPurpose(order.removed)}}"/>
+                    Name: <input type="text" class="input-small" name="book_orders[{{$index}}]_name" placeholder="Name" value="{{order.name}}" required/>&nbsp;&nbsp;&nbsp;
+                    Phone: <input type="text" class="input-mediumt5y" name="book_orders[{{$index}}]_phone" placeholder="Phone" value="{{order.phone}}" required/>&nbsp;&nbsp;&nbsp;
+                    Address: <input type="text" class="input-large" name="book_orders[{{$index}}]_address" placeholder="Address" value="{{order.address}}" required/>
+                </div>
+            </div>
             <div class="row-fluid">
                 <div class="span12">
                     <button class="btn btn-primary" type="submit">Save</button>
-                    <button class="btn">Cancel</button>
+                    <a class="btn btn-info" ng-click="addOrder()">Add Order</a>
+                    <a class="btn" href="/">Cancel</a>
                 </div>
             </div>
         </form>
