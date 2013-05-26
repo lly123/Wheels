@@ -3,7 +3,6 @@ package com.freeroom.persistence;
 import com.freeroom.persistence.beans.Book;
 import com.freeroom.persistence.beans.Order;
 import com.freeroom.persistence.beans.Publisher;
-import com.freeroom.persistence.beans.Reader;
 import com.google.common.base.Optional;
 import org.hamcrest.CoreMatchers;
 import org.junit.Before;
@@ -108,19 +107,6 @@ public class AthenaTest
         book.setName("ABC");
         athena.persist(book);
         assertThat(athena.from(Book.class).findOnly("isbn=1449323391").isPresent(), is(false));
-    }
-
-    @Test
-    public void should_cascading_remove_persisted_book()
-    {
-        final Optional<Object> book = athena.from(Book.class).find(1L);
-
-        athena.remove(book.get());
-
-        assertThat(athena.from(Book.class).find(1L).isPresent(), is(false));
-        assertThat(athena.from(Publisher.class).all().size(), is(1));
-        assertThat(athena.from(Reader.class).all().size(), is(0));
-        assertThat(athena.from(Order.class).all().size(), is(0));
     }
 
     @Test
