@@ -10,22 +10,31 @@ import static com.freeroom.web.Model.render;
 public class BooksController
 {
     @Inject
-    private BookRepo bookRepo;
+    private BookService bookService;
 
     public Model create(final Book book)
     {
-        bookRepo.addBook(book);
-        return render("html:example/index.html").put("books", bookRepo.getBooks());
+        bookService.addBook(book);
+        return render("html:example/index.html").
+                put("books", bookService.getBooks()).
+                put("Tags", bookService.getTags()).
+                put("Publishers", bookService.getPublishers());
     }
 
     public Model delete(final String isbn)
     {
-        bookRepo.delete(isbn);
-        return render("html:example/index.html").put("books", bookRepo.getBooks());
+        bookService.delete(isbn);
+        return render("html:example/index.html").
+                put("books", bookService.getBooks()).
+                put("Tags", bookService.getTags()).
+                put("Publishers", bookService.getPublishers());
     }
 
     public Model search(final String bookName)
     {
-        return render("html:example/index.html").put("books", bookRepo.findByName(bookName));
+        return render("html:example/index.html").
+                put("books", bookService.findByName(bookName)).
+                put("Tags", bookService.getTags()).
+                put("Publishers", bookService.getPublishers());
     }
 }

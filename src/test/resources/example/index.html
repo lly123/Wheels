@@ -11,19 +11,18 @@
         angular.module('bookApp', [], function($locationProvider)
         {
             $locationProvider.html5Mode(true);
-        })
-        .value("Tags",
-        {
-            101: [101, "label-success", "Web Development & Design"],
-            102: [102, "label-warning", "Networking"],
-            103: [103, "label-important", " Internet & Web Culture"],
-            104: [104, "label-info", "Programming"],
-            105: [105, "label-inverse", "Databases"]
         });
 
-        listCtrl = function($scope, $window, Tags)
+        listCtrl = function($scope, $window)
         {
-            $scope.Tags = Tags;
+            $scope.findTag = function(tagId)
+            {
+                var selected;
+                angular.forEach($scope.Tags, function(tag) {
+                    if (tag.id == tagId) selected = tag;
+                });
+                return selected;
+            }
 
             $scope.del = function(isbn)
             {
@@ -31,18 +30,13 @@
             }
         }
 
-        addCtrl = function($scope, Tags)
+        addCtrl = function($scope)
         {
-            $scope.Tags = Tags;
+            $scope.publisher = 1;
 
             $scope.parsePublishDateStr = function()
             {
                 return Date.parse($scope.publishDateStr);
-            }
-
-            $scope.oopp = function(tag)
-            {
-                console.log(tag[0]);
             }
         }
     </script>
@@ -78,9 +72,9 @@
                     <tbody>
                         <tr ng-repeat="book in books">
                             <td>{{book.isbn}}</td>
-                            <td>{{book.name}}<br/>
+                            <td>{{book.publisher.name}} - {{book.name}}<br/>
                                 <span ng-repeat="tagId in book.tags">
-                                    <span class='label {{Tags[tagId][1]}}'>{{Tags[tagId][2]}}</span>
+                                    <span class='label {{findTag(tagId).label}}'>{{findTag(tagId).text}}</span>
                                 </span>
                             </td>
                             <td>{{book.price | currency}}</td>
@@ -98,7 +92,7 @@
         </div>
     </div>
 
-    <form class="form-horizontal" action="/books/create" method="post" ng-controller="addCtrl">
+    <form class="form-horizontal" action="/books/create" method="post" ng-init='[MODEL_DATA]' ng-controller="addCtrl">
         <input type="hidden" name="book_publishDate" value="{{parsePublishDateStr()}}"/>
 
         <div id="addBook" class="modal hide fade" tabindex="-1" role="dialog">
@@ -126,6 +120,14 @@
                     </div>
                 </div>
                 <div class="control-group">
+                    <label class="control-label" for="publishDate">Publisher</label>
+                    <div class="controls">
+                        <input type="hidden" id="publisherId" name="book_publisher_id" value="{{publisher}}"/>
+                        <input type="hidden" id="publisherIdPurpose" name="book_publisher_idPurpose" value="Locate"/>
+                        <select ng-model="publisher" ng-options="p.id as p.name for p in Publishers"></select>
+                    </div>
+                </div>
+                <div class="control-group">
                     <label class="control-label" for="publishDate">Publish Date</label>
                     <div class="controls">
                         <input type="text" id="publishDate" ng-model="publishDateStr" placeholder="Publish Date" required/>
@@ -135,8 +137,8 @@
                     <label class="control-label">Tags</label>
                     <div class="controls">
                         <div ng-repeat="tag in Tags">
-                            <input type="checkbox" name="book_tags[{{$index}}]" value="{{tag[0]}}"/>
-                            <span class='label {{tag[1]}}'>{{tag[2]}}</span>
+                            <input type="checkbox" name="book_tags[{{$index}}]" value="{{tag.id}}"/>
+                            <span class='label {{tag.label}}'>{{tag.text}}</span>
                         </div>
                     </div>
                 </div>

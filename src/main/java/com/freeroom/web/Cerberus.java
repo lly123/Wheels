@@ -1,6 +1,7 @@
 package com.freeroom.web;
 
 import com.freeroom.di.util.Pair;
+import com.freeroom.persistence.proxy.IdPurpose;
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 
@@ -150,6 +151,8 @@ public class Cerberus
             parsedValue = parseDouble(value);
         } else if (fieldType.equals(boolean.class) || fieldType.equals(Boolean.class)) {
             parsedValue = parseBoolean(value);
+        } else if (fieldType.equals(IdPurpose.class)) {
+            parsedValue = Enum.valueOf(IdPurpose.class, value);
         }
         return parsedValue;
     }

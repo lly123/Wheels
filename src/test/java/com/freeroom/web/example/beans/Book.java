@@ -32,4 +32,9 @@ public class Book
     {
         return isbn;
     }
+
+    public Publisher getPublisher()
+    {
+        return publisher;
+    }
 }

@@ -10,10 +10,13 @@ import static com.freeroom.web.Model.render;
 public class HomeController
 {
     @Inject
-    private BookRepo bookRepo;
+    private BookService bookService;
 
     public Model index()
     {
-        return render("html:example/index.html").put("books", bookRepo.getBooks());
+        return render("html:example/index.html").
+                put("books", bookService.getBooks()).
+                put("Tags", bookService.getTags()).
+                put("Publishers", bookService.getPublishers());
     }
 }
