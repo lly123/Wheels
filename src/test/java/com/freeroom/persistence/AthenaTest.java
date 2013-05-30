@@ -52,20 +52,6 @@ public class AthenaTest
     }
 
     @Test
-    public void should_persist_existed_book()
-    {
-        Book book = (Book)athena.from(Book.class).find(1).get();
-        book.setIsbn(1449323073L);
-        book.setName("Learning Node");
-
-        athena.persist(book);
-
-        book = (Book)athena.from(Book.class).find(1).get();
-        assertThat(book.getIsbn(), is(1449323073L));
-        assertThat(book.getName(), is("Learning Node"));
-    }
-
-    @Test
     public void should_persist_new_book()
     {
         Book book = new Book();
@@ -77,6 +63,20 @@ public class AthenaTest
         book = (Book)athena.from(Book.class).find(3).get();
         assertThat(book.getIsbn(), is(1449323391L));
         assertThat(book.getName(), is("Testable JavaScript"));
+    }
+
+    @Test
+    public void should_persist_existed_book()
+    {
+        Book book = (Book)athena.from(Book.class).find(1).get();
+        book.setIsbn(1449323073L);
+        book.setName("Learning Node");
+
+        athena.persist(book);
+
+        book = (Book)athena.from(Book.class).find(1).get();
+        assertThat(book.getIsbn(), is(1449323073L));
+        assertThat(book.getName(), is("Learning Node"));
     }
 
     @Test
@@ -98,9 +98,20 @@ public class AthenaTest
     @Test
     public void should_remove_persisted_book()
     {
-        should_keep_null();
+        final Book book = (Book)athena.from(Book.class).find(1).get();
 
-        final Book book = (Book)athena.from(Book.class).findOnly("isbn=1449323391").get();
+        athena.remove(book);
+
+        assertThat(athena.from(Book.class).find(1).isPresent(), is(false));
+    }
+
+    @Test
+    public void should_not_persist_removed_book()
+    {
+        Book book = new Book();
+        book.setIsbn(1449323391L);
+        athena.persist(book);
+        book = (Book)athena.from(Book.class).findOnly("isbn=1449323391").get();
 
         athena.remove(book);
 
@@ -113,10 +124,9 @@ public class AthenaTest
     public void should_persist_list_with_removed_obj()
     {
         List<Object> books = athena.from(Book.class).find("price=18.39");
-
         assertThat(books.size(), is(2));
-
         books.remove(0);
+
         athena.persist(books);
 
         books = athena.from(Book.class).find("price=18.39");
@@ -127,7 +137,6 @@ public class AthenaTest
     public void should_persist_list_with_added_obj()
     {
         List<Object> books = athena.from(Book.class).find("price=18.39");
-
         assertThat(books.size(), is(2));
 
         Book book = new Book();
@@ -135,6 +144,7 @@ public class AthenaTest
         book.setName("Testable JavaScript");
         book.setPrice(18.39);
         books.add(book);
+
         athena.persist(books);
 
         books = athena.from(Book.class).find("price=18.39");
@@ -145,10 +155,9 @@ public class AthenaTest
     public void should_persist_list_with_modified_obj()
     {
         List<Object> books = athena.from(Book.class).find("price=18.39");
-
         assertThat(books.size(), is(2));
-
         ((Book)books.get(0)).setName("A Book");
+
         athena.persist(books);
 
         books = athena.from(Book.class).find("name='A Book'");
@@ -187,6 +196,7 @@ public class AthenaTest
         final Optional<Object> book = athena.from(Book.class).find(1);
 
         final List<Order> orders = ((Book)book.get()).getOrders();
+
         assertThat(orders.size(), is(2));
         assertThat(orders.get(0).getAmount(), is(8));
         assertThat(orders.get(0).getMemo(), is("Deliver at work time"));
@@ -204,8 +214,8 @@ public class AthenaTest
     public void should_remove_ONE_TO_ONE_relations()
     {
         Book book = (Book)athena.from(Book.class).find(1).get();
-
         book.setPublisher(null);
+
         athena.persist(book);
 
         book = (Book)athena.from(Book.class).find(1).get();
@@ -220,22 +230,20 @@ public class AthenaTest
         book.setName("Testable JavaScript");
 
         final Publisher publisher = new Publisher();
-        publisher.setName("O' Reilly");
+        publisher.setName("A Publisher");
         book.setPublisher(publisher);
 
         final Order order = new Order();
-        order.setAmount(1);
+        order.setAmount(18);
         order.setMemo("Deliver on time.");
         book.setOrders(newArrayList(order));
 
         athena.persist(book);
 
-        book = (Book)athena.from(Book.class).find(3).get();
-        assertThat(book.getIsbn(), is(1449323391L));
+        book = (Book)athena.from(Book.class).findOnly("isbn=1449323391").get();
         assertThat(book.getName(), is("Testable JavaScript"));
-
-        assertThat(book.getPublisher().getName(), is("O' Reilly"));
-        assertThat(book.getOrders().get(0).getAmount(), is(1));
+        assertThat(book.getPublisher().getName(), is("A Publisher"));
+        assertThat(book.getOrders().get(0).getAmount(), is(18));
     }
 
     @Test
@@ -246,7 +254,7 @@ public class AthenaTest
 
         athena.remove(book.getPublisher());
         final Publisher publisher = new Publisher();
-        publisher.setName("O' Reilly");
+        publisher.setName("A Publisher");
         book.setPublisher(publisher);
 
         final Order order = new Order();
@@ -258,8 +266,7 @@ public class AthenaTest
 
         book = (Book)athena.from(Book.class).find(1).get();
         assertThat(book.getPrice(), is(19.88));
-
-        assertThat(book.getPublisher().getName(), is("O' Reilly"));
+        assertThat(book.getPublisher().getName(), is("A Publisher"));
         assertThat(book.getOrders().size(), is(3));
     }
 
@@ -277,10 +284,14 @@ public class AthenaTest
     {
         final Book book = (Book)athena.from(Book.class).find(1).get();
         book.getName();
+
         final Book detachedBook = (Book)athena.detach(book);
 
         assertThat(detachedBook.getName(), CoreMatchers.is("JBoss Seam"));
         assertThat(detachedBook.getPrice(), CoreMatchers.is(18.39));
+        assertThat(detachedBook.getPublisher(), is(nullValue()));
+        assertThat(detachedBook.getReader(), is(nullValue()));
+        assertThat(detachedBook.getOrders(), is(nullValue()));
     }
 
 
@@ -290,10 +301,13 @@ public class AthenaTest
         final Book book = (Book)athena.from(Book.class).find(1).get();
         book.getName();
         book.getPublisher().getName();
+
         final Book detachedBook = (Book)athena.detach(book);
 
         assertThat(detachedBook.getName(), CoreMatchers.is("JBoss Seam"));
         assertThat(detachedBook.getPublisher().getName(), CoreMatchers.is("O Reilly"));
+        assertThat(detachedBook.getReader(), is(nullValue()));
+        assertThat(detachedBook.getOrders(), is(nullValue()));
     }
 
     @Test
@@ -302,14 +316,17 @@ public class AthenaTest
         final Book book = (Book)athena.from(Book.class).find(1).get();
         book.getName();
         book.getOrders().get(0);
+
         final Book detachedBook = (Book)athena.detach(book);
 
         assertThat(detachedBook.getName(), CoreMatchers.is("JBoss Seam"));
+        assertThat(detachedBook.getPublisher(), is(nullValue()));
+        assertThat(detachedBook.getReader(), is(nullValue()));
         assertThat(detachedBook.getOrders().get(0).getMemo(), CoreMatchers.is("Deliver at work time"));
     }
 
     @Test
-    public void should_persist_book_with_id()
+    public void should_persist_book_with_id_purpose_is_Update()
     {
         Book book = new Book();
         book.setBookid(1L);
@@ -325,7 +342,7 @@ public class AthenaTest
     }
 
     @Test
-    public void should_remove_book_with_id()
+    public void should_remove_book_with_id_purpose_is_Remove()
     {
         Book book = new Book();
         book.setBookid(1L);
