@@ -111,48 +111,6 @@ public class Hades
         each(hecate.getModified(), o -> persistExisted(o, foreignKeyAndValue));
     }
 
-    private Pair<String, Long> update(final Object obj, final Pair<String, Long> primaryKeyAndValue,
-                                      final Optional<Pair<String, Long>> foreignKeyAndValue)
-    {
-        final List<Pair<Field, Object>> basicFields = Atlas.getBasicFieldAndValues(obj);
-
-        if (basicFields.size() == 0) return primaryKeyAndValue;
-
-        final StringBuilder questionMarksBuffer = new StringBuilder();
-        each(basicFields, field -> {
-            questionMarksBuffer.append(field.fst.getName() + "=?,");
-        });
-
-        final String questionMarks = removeTailComma(questionMarksBuffer);
-
-        final String sql = format("UPDATE %s SET %s%s WHERE %s=?",
-                obj.getClass().getSimpleName(),
-                questionMarks,
-                foreignKeyAndValue.isPresent() ? "," + foreignKeyAndValue.get().fst + "=?" : "",
-                primaryKeyAndValue.fst);
-
-        try (final Connection connection = getDBConnection()) {
-            final PreparedStatement statement = connection.prepareStatement(sql);
-
-            int i = 1;
-            for (final Pair<Field, Object> column : basicFields) {
-                setValue(i++, statement, column);
-            }
-
-            if (foreignKeyAndValue.isPresent()) {
-                statement.setLong(i++, foreignKeyAndValue.get().snd);
-            }
-
-            statement.setObject(i, primaryKeyAndValue.snd);
-            statement.executeUpdate();
-            logger.debug("Execute SQL: " + sql);
-
-            return primaryKeyAndValue;
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     public Optional<Pair<String, Long>> persistNew(final Object obj, final Optional<Pair<String, Long>> foreignKeyAndValue)
     {
         final List<Pair<Field, Object>> basicFields = Atlas.getBasicFieldAndValues(obj);
@@ -226,6 +184,11 @@ public class Hades
             } catch (Exception ignored) {}
         });
 
+        persistOneToOneRelationsWithForeignKey(obj, primaryKeyAndValue);
+    }
+
+    private void persistOneToOneRelationsWithForeignKey(final Object obj, final Pair<String, Long> primaryKeyAndValue)
+    {
         final StringBuilder questionMarksBuffer = new StringBuilder();
         final List<Long> childrenIds = newArrayList();
         final List<Pair<Field, String>> relationsWithFK = Atlas.getOneToOneRelationsWithForeignKey(obj.getClass());
@@ -273,11 +236,46 @@ public class Hades
         }
     }
 
-    private void addChildId(final StringBuilder questionMarksBuffer, final List<Long> childrenIds,
-                            final Class<?> childClass, final String childPrimaryKey, final Long childId)
+    private Pair<String, Long> update(final Object obj, final Pair<String, Long> primaryKeyAndValue,
+                                      final Optional<Pair<String, Long>> foreignKeyAndValue)
     {
-        questionMarksBuffer.append(childClass.getSimpleName() + "_" + childPrimaryKey + "=?,");
-        childrenIds.add(childId);
+        final List<Pair<Field, Object>> basicFields = Atlas.getBasicFieldAndValues(obj);
+
+        if (basicFields.size() == 0) return primaryKeyAndValue;
+
+        final StringBuilder questionMarksBuffer = new StringBuilder();
+        each(basicFields, field -> {
+            questionMarksBuffer.append(field.fst.getName() + "=?,");
+        });
+
+        final String questionMarks = removeTailComma(questionMarksBuffer);
+
+        final String sql = format("UPDATE %s SET %s%s WHERE %s=?",
+                obj.getClass().getSimpleName(),
+                questionMarks,
+                foreignKeyAndValue.isPresent() ? "," + foreignKeyAndValue.get().fst + "=?" : "",
+                primaryKeyAndValue.fst);
+
+        try (final Connection connection = getDBConnection()) {
+            final PreparedStatement statement = connection.prepareStatement(sql);
+
+            int i = 1;
+            for (final Pair<Field, Object> column : basicFields) {
+                setValue(i++, statement, column);
+            }
+
+            if (foreignKeyAndValue.isPresent()) {
+                statement.setLong(i++, foreignKeyAndValue.get().snd);
+            }
+
+            statement.setObject(i, primaryKeyAndValue.snd);
+            statement.executeUpdate();
+            logger.debug("Execute SQL: " + sql);
+
+            return primaryKeyAndValue;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void remove(final Factory obj)
@@ -293,6 +291,13 @@ public class Hades
             logger.debug("Execute SQL: " + sql);
         } catch (SQLException ignored) {}
         charon.removed();
+    }
+
+    private void addChildId(final StringBuilder questionMarksBuffer, final List<Long> childrenIds,
+                            final Class<?> childClass, final String childPrimaryKey, final Long childId)
+    {
+        questionMarksBuffer.append(childClass.getSimpleName() + "_" + childPrimaryKey + "=?,");
+        childrenIds.add(childId);
     }
 
     private void setValue(final int i, final PreparedStatement statement,
