@@ -16,19 +16,13 @@ public class BooksController
     public Model create(final Book book)
     {
         bookService.addBook(book);
-        return render("html:example/index.html").
-                put("books", bookService.getBooks()).
-                put("Tags", bookService.getTags()).
-                put("Publishers", bookService.getPublishers());
+        return homePage();
     }
 
     public Model delete(final String isbn)
     {
         bookService.delete(isbn);
-        return render("html:example/index.html").
-                put("books", bookService.getBooks()).
-                put("Tags", bookService.getTags()).
-                put("Publishers", bookService.getPublishers());
+        return homePage();
     }
 
     public Model search(final String bookName)
@@ -44,15 +38,21 @@ public class BooksController
         final Optional<Book> book = bookService.get(isbn);
         final Model model = render("html:example/edit.html");
         if (book.isPresent()) {
-            model.put("book", book.get());
+            return model.put("book", book.get()).
+                    put("Publishers", bookService.getPublishers()).
+                    put("Tags", bookService.getTags());
         }
-        return model.put("Publishers", bookService.getPublishers()).
-                     put("Tags", bookService.getTags());
+        return render("html:example/error.html");
     }
 
     public Model update(final Book book)
     {
         bookService.updateBook(book);
+        return homePage();
+    }
+
+    private Model homePage()
+    {
         return render("html:example/index.html").
                 put("books", bookService.getBooks()).
                 put("Tags", bookService.getTags()).
