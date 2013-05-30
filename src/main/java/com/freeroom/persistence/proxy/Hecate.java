@@ -56,6 +56,18 @@ public class Hecate implements MethodInterceptor
         return method.invoke(current, args);
     }
 
+    public Object detach()
+    {
+        if (!original.isPresent()) return null;
+
+        return reduce(newArrayList(), current, (s, o) -> {
+            if (o instanceof Factory) {
+                s.add(((Charon)((Factory)o).getCallback(0)).detach());
+            }
+            return s;
+        });
+    }
+
     protected boolean isDirty()
     {
         return areIDsNotSame(current, original.get()) || areObjsDirty(current);
@@ -92,18 +104,6 @@ public class Hecate implements MethodInterceptor
         return reduce(newArrayList(), current, (s, obj) -> {
             if ((obj instanceof Factory) && ((Charon)((Factory)obj).getCallback(0)).isDirty()) {
                 s.add((Factory)obj);
-            }
-            return s;
-        });
-    }
-
-    protected Object detach()
-    {
-        if (!original.isPresent()) return null;
-
-        return reduce(newArrayList(), current, (s, o) -> {
-            if (o instanceof Factory) {
-                s.add(((Charon)((Factory)o).getCallback(0)).detach());
             }
             return s;
         });

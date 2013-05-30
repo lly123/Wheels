@@ -49,6 +49,40 @@ public class Charon implements MethodInterceptor
         return method.invoke(current, args);
     }
 
+    public Object detach()
+    {
+        if (!original.isPresent()) return null;
+
+        final Object obj = copyWithoutRelations(current);
+
+        try {
+            final List<Pair<Field, Class>> oneToManyRelations = Atlas.getOneToManyRelations(clazz);
+            for (Pair<Field, Class> relationField : oneToManyRelations) {
+                final Object relation = relationField.fst.get(current);
+                relationField.fst.setAccessible(true);
+                if (relation instanceof Factory) {
+                    relationField.fst.set(obj, ((Hecate) ((Factory) relation).getCallback(0)).detach());
+                }
+            }
+
+            final List<Field> oneToOneRelations = newArrayList(Atlas.getOneToOneRelationsWithoutForeignKey(clazz));
+            final List<Pair<Field, String>> relations = Atlas.getOneToOneRelationsWithForeignKey(clazz);
+            each(relations, relation -> oneToOneRelations.add(relation.fst));
+
+            for (Field relationField : oneToOneRelations) {
+                final Object relation = relationField.get(current);
+                relationField.setAccessible(true);
+                if (relation instanceof Factory) {
+                    relationField.set(obj, ((Charon)((Factory)relation).getCallback(0)).detach());
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        return obj;
+    }
+
     protected void load(final Optional<ResultSet> resultSet)
     {
         if (isNotLoaded()) {
@@ -156,40 +190,6 @@ public class Charon implements MethodInterceptor
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        return obj;
-    }
-
-    protected Object detach()
-    {
-        if (!original.isPresent()) return null;
-
-        final Object obj = copyWithoutRelations(current);
-
-        try {
-            final List<Pair<Field, Class>> oneToManyRelations = Atlas.getOneToManyRelations(clazz);
-            for (Pair<Field, Class> relationField : oneToManyRelations) {
-                final Object relation = relationField.fst.get(current);
-                relationField.fst.setAccessible(true);
-                if (relation instanceof Factory) {
-                    relationField.fst.set(obj, ((Hecate) ((Factory) relation).getCallback(0)).detach());
-                }
-            }
-
-            final List<Field> oneToOneRelations = newArrayList(Atlas.getOneToOneRelationsWithoutForeignKey(clazz));
-            final List<Pair<Field, String>> relations = Atlas.getOneToOneRelationsWithForeignKey(clazz);
-            each(relations, relation -> oneToOneRelations.add(relation.fst));
-
-            for (Field relationField : oneToOneRelations) {
-                final Object relation = relationField.get(current);
-                relationField.setAccessible(true);
-                if (relation instanceof Factory) {
-                    relationField.set(obj, ((Charon)((Factory)relation).getCallback(0)).detach());
-                }
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
         return obj;
     }
 

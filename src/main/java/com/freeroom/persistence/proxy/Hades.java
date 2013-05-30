@@ -38,7 +38,7 @@ public class Hades
         this.properties = properties;
     }
 
-    protected Object create(final Class<?> clazz, final Long primaryKey, final int blockSize)
+    public Object create(final Class<?> clazz, final Long primaryKey, final int blockSize)
     {
         final Enhancer enhancer = new Enhancer();
         enhancer.setSuperclass(clazz);
@@ -46,7 +46,7 @@ public class Hades
         return enhancer.create();
     }
 
-    protected List<Object> createList(final Class<?> clazz, final String sql,
+    public List<Object> createList(final Class<?> clazz, final String sql,
                                    final Optional<Long> foreignKey, final int blockSize)
     {
         final Enhancer enhancer = new Enhancer();
@@ -55,7 +55,7 @@ public class Hades
         return (List<Object>)enhancer.create();
     }
 
-    protected Optional<Pair<String, Long>> persist(final Object obj, final Optional<Pair<String, Long>> foreignKeyAndValue)
+    public Optional<Pair<String, Long>> persist(final Object obj, final Optional<Pair<String, Long>> foreignKeyAndValue)
     {
         if (obj == null) absent();
 
@@ -90,7 +90,54 @@ public class Hades
         return absent();
     }
 
-    protected void remove(final Factory obj)
+    protected Optional<Pair<String, Long>> persistNew(final Object obj, final Optional<Pair<String, Long>> foreignKeyAndValue)
+    {
+        final List<Pair<Field, Object>> basicFields = Atlas.getBasicFieldAndValues(obj);
+
+        final StringBuilder fieldNamesBuffer = new StringBuilder();
+        final StringBuilder questionMarksBuffer = new StringBuilder();
+
+        each(basicFields, field -> {
+            fieldNamesBuffer.append(field.fst.getName() + ",");
+            questionMarksBuffer.append("?,");
+        });
+
+        final String fieldNames = removeTailComma(fieldNamesBuffer);
+        final String questionMarks = removeTailComma(questionMarksBuffer);
+
+        final String sql = format("INSERT INTO %s (%s%s) VALUES (%s%s)",
+                obj.getClass().getSimpleName(),
+                fieldNames, foreignKeyAndValue.isPresent() ? "," + foreignKeyAndValue.get().fst : "",
+                questionMarks, foreignKeyAndValue.isPresent() ? ",?" : "");
+
+        try (final Connection connection = getDBConnection()) {
+            final PreparedStatement statement = connection.prepareStatement(sql, RETURN_GENERATED_KEYS);
+
+            int i = 1;
+            for (final Pair<Field, Object> column : basicFields) {
+                setValue(i++, statement, column);
+            }
+
+            if (foreignKeyAndValue.isPresent()) {
+                statement.setLong(i, foreignKeyAndValue.get().snd);
+            }
+            statement.executeUpdate();
+            logger.debug("Execute SQL: " + sql);
+
+            final ResultSet generatedKeys = statement.getGeneratedKeys();
+            if (generatedKeys.next()) {
+                final Pair<String, Long> primaryKeyAndValue =
+                        Pair.of(Atlas.getPrimaryKeyName(obj.getClass()), generatedKeys.getLong(1));
+                persistRelations(obj, primaryKeyAndValue);
+                return of(primaryKeyAndValue);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return absent();
+    }
+
+    public void remove(final Factory obj)
     {
         final Charon charon = (Charon)obj.getCallback(0);
         final Pair<String, Long> primaryKeyAndValue = charon.getPrimaryKeyAndValue();
@@ -242,53 +289,6 @@ public class Hades
         each(hecate.getRemoved(), o -> remove(o));
         each(hecate.getAdded(), o -> persistNew(o, foreignKeyAndValue));
         each(hecate.getModified(), o -> persistExisted(o, foreignKeyAndValue));
-    }
-
-    private Optional<Pair<String, Long>> persistNew(final Object obj, final Optional<Pair<String, Long>> foreignKeyAndValue)
-    {
-        final List<Pair<Field, Object>> basicFields = Atlas.getBasicFieldAndValues(obj);
-
-        final StringBuilder fieldNamesBuffer = new StringBuilder();
-        final StringBuilder questionMarksBuffer = new StringBuilder();
-
-        each(basicFields, field -> {
-            fieldNamesBuffer.append(field.fst.getName() + ",");
-            questionMarksBuffer.append("?,");
-        });
-
-        final String fieldNames = removeTailComma(fieldNamesBuffer);
-        final String questionMarks = removeTailComma(questionMarksBuffer);
-
-        final String sql = format("INSERT INTO %s (%s%s) VALUES (%s%s)",
-                obj.getClass().getSimpleName(),
-                fieldNames, foreignKeyAndValue.isPresent() ? "," + foreignKeyAndValue.get().fst : "",
-                questionMarks, foreignKeyAndValue.isPresent() ? ",?" : "");
-
-        try (final Connection connection = getDBConnection()) {
-            final PreparedStatement statement = connection.prepareStatement(sql, RETURN_GENERATED_KEYS);
-
-            int i = 1;
-            for (final Pair<Field, Object> column : basicFields) {
-                setValue(i++, statement, column);
-            }
-
-            if (foreignKeyAndValue.isPresent()) {
-                statement.setLong(i, foreignKeyAndValue.get().snd);
-            }
-            statement.executeUpdate();
-            logger.debug("Execute SQL: " + sql);
-
-            final ResultSet generatedKeys = statement.getGeneratedKeys();
-            if (generatedKeys.next()) {
-                final Pair<String, Long> primaryKeyAndValue =
-                        Pair.of(Atlas.getPrimaryKeyName(obj.getClass()), generatedKeys.getLong(1));
-                persistRelations(obj, primaryKeyAndValue);
-                return of(primaryKeyAndValue);
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-        return absent();
     }
 
     private void persistNewList(final List objects, final Optional<Pair<String, Long>> foreignKeyAndValue)
