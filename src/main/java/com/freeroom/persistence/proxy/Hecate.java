@@ -56,14 +56,62 @@ public class Hecate implements MethodInterceptor
         return method.invoke(current, args);
     }
 
+    protected boolean isDirty()
+    {
+        return areIDsNotSame(current, original.get()) || areObjsDirty(current);
+    }
+
+    protected List<Factory> getRemoved()
+    {
+        return reduce(newArrayList(), original.get(), (s, obj) -> {
+            if (notContainsInCurrent(getPrimaryKeyValue((Factory)obj))) {
+                s.add((Factory)obj);
+            }
+            return s;
+        });
+    }
+
+    protected List<Object> getAdded()
+    {
+        return reduce(newArrayList(), current, (s, obj) -> {
+            if (!(obj instanceof Factory)) {
+                s.add(obj);
+            }
+            return s;
+        });
+    }
+
+    private boolean notContainsInCurrent(final Long primaryKey)
+    {
+        return !tryFind(current, o ->
+                (o instanceof Factory) && getPrimaryKeyValue((Factory) o) == primaryKey).isPresent();
+    }
+
+    protected List<Factory> getModified()
+    {
+        return reduce(newArrayList(), current, (s, obj) -> {
+            if ((obj instanceof Factory) && ((Charon)((Factory)obj).getCallback(0)).isDirty()) {
+                s.add((Factory)obj);
+            }
+            return s;
+        });
+    }
+
+    protected Object detach()
+    {
+        if (!original.isPresent()) return null;
+
+        return reduce(newArrayList(), current, (s, o) -> {
+            if (o instanceof Factory) {
+                s.add(((Charon)((Factory)o).getCallback(0)).detach());
+            }
+            return s;
+        });
+    }
+
     private Optional<List<Object>> copy(final List<Object> current)
     {
         return of(map(current, obj -> obj));
-    }
-
-    public boolean isDirty()
-    {
-        return areIDsNotSame(current, original.get()) || areObjsDirty(current);
     }
 
     private boolean areIDsNotSame(final List<Object> current, final List<Object> original)
@@ -97,53 +145,5 @@ public class Hecate implements MethodInterceptor
     private boolean areObjsDirty(final List<Object> current)
     {
         return !all(copyOf(current), o -> (o instanceof Factory) && !((Charon)((Factory)o).getCallback(0)).isDirty());
-    }
-
-    public List<Factory> getRemoved()
-    {
-        return reduce(newArrayList(), original.get(), (s, obj) -> {
-            if (notContainsInCurrent(getPrimaryKeyValue((Factory)obj))) {
-                s.add((Factory)obj);
-            }
-            return s;
-        });
-    }
-
-    public List<Object> getAdded()
-    {
-        return reduce(newArrayList(), current, (s, obj) -> {
-            if (!(obj instanceof Factory)) {
-                s.add(obj);
-            }
-            return s;
-        });
-    }
-
-    private boolean notContainsInCurrent(final Long primaryKey)
-    {
-        return !tryFind(current, o ->
-                (o instanceof Factory) && getPrimaryKeyValue((Factory) o) == primaryKey).isPresent();
-    }
-
-    public List<Factory> getModified()
-    {
-        return reduce(newArrayList(), current, (s, obj) -> {
-            if ((obj instanceof Factory) && ((Charon)((Factory)obj).getCallback(0)).isDirty()) {
-                s.add((Factory)obj);
-            }
-            return s;
-        });
-    }
-
-    public Object detach()
-    {
-        if (!original.isPresent()) return null;
-
-        return reduce(newArrayList(), current, (s, o) -> {
-            if (o instanceof Factory) {
-                s.add(((Charon)((Factory)o).getCallback(0)).detach());
-            }
-            return s;
-        });
     }
 }

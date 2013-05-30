@@ -68,22 +68,6 @@ public class Charon implements MethodInterceptor
         }
     }
 
-    private void initOneToOneRelationsWithForeignKey(final List<Pair<Field, String>> relations, final List<Long> relationIds)
-    {
-        try {
-            int i = 0;
-            for (Pair<Field, String> relation : relations) {
-                final Class<?> relationClass = relation.fst.getType();
-                final Long relationId = relationIds.get(i);
-
-                relation.fst.setAccessible(true);
-                if (relationId > 0) {
-                    relation.fst.set(current, hades.create(relationClass, relationId, blockSize));
-                }
-            }
-        } catch (Exception ignored) {}
-    }
-
     protected boolean isNotLoaded()
     {
         return !original.isPresent() && !removed;
@@ -120,14 +104,25 @@ public class Charon implements MethodInterceptor
         return clazz.getSimpleName();
     }
 
-    protected Class<?> getPersistClass()
-    {
-        return clazz;
-    }
-
     protected void removed()
     {
         this.removed = true;
+    }
+
+    private void initOneToOneRelationsWithForeignKey(final List<Pair<Field, String>> relations, final List<Long> relationIds)
+    {
+        try {
+            int i = 0;
+            for (Pair<Field, String> relation : relations) {
+                final Class<?> relationClass = relation.fst.getType();
+                final Long relationId = relationIds.get(i);
+
+                relation.fst.setAccessible(true);
+                if (relationId > 0) {
+                    relation.fst.set(current, hades.create(relationClass, relationId, blockSize));
+                }
+            }
+        } catch (Exception ignored) {}
     }
 
     private Object copy(final Object original)
@@ -164,7 +159,7 @@ public class Charon implements MethodInterceptor
         return obj;
     }
 
-    public Object detach()
+    protected Object detach()
     {
         if (!original.isPresent()) return null;
 
