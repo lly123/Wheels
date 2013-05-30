@@ -38,7 +38,7 @@ public class Hades
         this.properties = properties;
     }
 
-    public Object create(final Class<?> clazz, final Long primaryKey, final int blockSize)
+    protected Object create(final Class<?> clazz, final Long primaryKey, final int blockSize)
     {
         final Enhancer enhancer = new Enhancer();
         enhancer.setSuperclass(clazz);
@@ -46,7 +46,7 @@ public class Hades
         return enhancer.create();
     }
 
-    public List<Object> createList(final Class<?> clazz, final String sql,
+    protected List<Object> createList(final Class<?> clazz, final String sql,
                                    final Optional<Long> foreignKey, final int blockSize)
     {
         final Enhancer enhancer = new Enhancer();
@@ -55,7 +55,7 @@ public class Hades
         return (List<Object>)enhancer.create();
     }
 
-    public Optional<Pair<String, Long>> persist(final Object obj, final Optional<Pair<String, Long>> foreignKeyAndValue)
+    protected Optional<Pair<String, Long>> persist(final Object obj, final Optional<Pair<String, Long>> foreignKeyAndValue)
     {
         if (obj == null) absent();
 
@@ -90,7 +90,140 @@ public class Hades
         return absent();
     }
 
-    public Pair<String, Long> persistExisted(final Factory obj, final Optional<Pair<String, Long>> foreignKeyAndValue)
+    protected void remove(final Factory obj)
+    {
+        final Charon charon = (Charon)obj.getCallback(0);
+        final Pair<String, Long> primaryKeyAndValue = charon.getPrimaryKeyAndValue();
+        final String sql = format("DELETE FROM %s WHERE %s=?", charon.getPersistBeanName(), primaryKeyAndValue.fst);
+
+        try (final Connection connection = getDBConnection()) {
+            final PreparedStatement statement = connection.prepareStatement(sql);
+            statement.setLong(1, primaryKeyAndValue.snd);
+            statement.executeUpdate();
+            logger.debug("Execute SQL: " + sql);
+        } catch (SQLException ignored) {}
+        charon.removed();
+    }
+
+    protected boolean isDirty(final Object obj)
+    {
+        if (!(obj instanceof Factory)) return false;
+
+        final Charon charon = (Charon)((Factory)obj).getCallback(0);
+        return charon.isDirty();
+    }
+
+    protected boolean isDirtyList(final Object objs)
+    {
+        if (!(objs instanceof Factory)) return false;
+
+        final Hecate hecate = (Hecate)((Factory)objs).getCallback(0);
+        return hecate.isDirty();
+    }
+
+    protected Pair<Object, List<Long>> load(final Class<?> clazz, final long primaryKey,
+                                            final List<Pair<Field, String>> relations)
+    {
+        final String sql = format("SELECT * FROM %s WHERE %s=?", clazz.getSimpleName(), Atlas.getPrimaryKeyName(clazz));
+
+        try (Connection connection = getDBConnection()) {
+            final Object obj = newInstance(clazz);
+            final Field pkField = Atlas.getPrimaryKey(clazz);
+            final List<Field> columnFields = Atlas.getBasicFields(clazz);
+
+            final PreparedStatement statement = connection.prepareStatement(sql);
+            statement.setLong(1, primaryKey);
+
+            final ResultSet resultSet = statement.executeQuery();
+            logger.debug("Execute SQL: " + sql);
+
+            if (resultSet.next()) {
+                pkField.setLong(obj, primaryKey);
+                for (final Field columnField : columnFields) {
+                    setBasicFieldValue(columnField, obj, resultSet);
+                }
+                return Pair.of(obj, relationIds(relations, resultSet));
+            }
+            throw new RuntimeException(format("Can't find %s with id %s", clazz.getSimpleName(), primaryKey));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    protected Pair<Object, List<Long>> load(final Class<?> clazz, final long primaryKey,
+                                            final ResultSet resultSet, final List<Pair<Field, String>> relations)
+    {
+        final Object obj = newInstance(clazz);
+        final Field pkField = Atlas.getPrimaryKey(clazz);
+        final List<Field> columnFields = Atlas.getBasicFields(clazz);
+
+        try {
+            pkField.setLong(obj, primaryKey);
+            for (final Field columnField : columnFields) {
+                setBasicFieldValue(columnField, obj, resultSet);
+            }
+            return Pair.of(obj, relationIds(relations, resultSet));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    protected List<Object> loadList(final Class<?> clazz, final String sql,
+                                    final Optional<Long> foreignKey, final int blockSize)
+    {
+        try (Connection connection = getDBConnection()) {
+            final PreparedStatement statement = connection.prepareStatement(sql);
+
+            if (foreignKey.isPresent()) {
+                statement.setLong(1, foreignKey.get());
+            }
+
+            final ResultSet resultSet = statement.executeQuery();
+            logger.debug("Execute SQL: " + sql);
+
+            final List<Object> retVal = newArrayList();
+            while (resultSet.next()) {
+                retVal.add(create(clazz, resultSet.getLong(1), blockSize));
+            }
+            return retVal;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    protected void loadBatch(final Class<?> clazz, final int beginIndex, final int blockSize, List<Object> objects)
+    {
+        final String primaryKeyName = Atlas.getPrimaryKeyName(clazz);
+        final String ids = getBlockIds(beginIndex, blockSize, objects);
+
+        if (ids.length() > 0) {
+            final String sql = format("SELECT * FROM %s WHERE %s in (%s)", clazz.getSimpleName(), primaryKeyName, ids);
+
+            try (Connection connection = getDBConnection()) {
+                final PreparedStatement statement = connection.prepareStatement(sql);
+
+                final ResultSet resultSet = statement.executeQuery();
+                logger.debug("Execute SQL: " + sql);
+
+                while (resultSet.next()) {
+                    fillObjectByResultSet(objects, primaryKeyName, resultSet);
+                }
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    protected Object newInstance(final Class<?> clazz)
+    {
+        try {
+            return clazz.getConstructor().newInstance();
+        } catch (Exception e){
+            throw new RuntimeException("Get exception when creating " + clazz, e);
+        }
+    }
+
+    private Pair<String, Long> persistExisted(final Factory obj, final Optional<Pair<String, Long>> foreignKeyAndValue)
     {
         final Charon charon = (Charon)obj.getCallback(0);
         final Pair<String, Long> primaryKeyAndValue = charon.getPrimaryKeyAndValue();
@@ -101,7 +234,7 @@ public class Hades
         return primaryKeyAndValue;
     }
 
-    public void persistExistedList(final Factory obj, final Optional<Pair<String, Long>> foreignKeyAndValue)
+    private void persistExistedList(final Factory obj, final Optional<Pair<String, Long>> foreignKeyAndValue)
     {
         if (!isDirtyList(obj)) return;
 
@@ -111,7 +244,7 @@ public class Hades
         each(hecate.getModified(), o -> persistExisted(o, foreignKeyAndValue));
     }
 
-    public Optional<Pair<String, Long>> persistNew(final Object obj, final Optional<Pair<String, Long>> foreignKeyAndValue)
+    private Optional<Pair<String, Long>> persistNew(final Object obj, final Optional<Pair<String, Long>> foreignKeyAndValue)
     {
         final List<Pair<Field, Object>> basicFields = Atlas.getBasicFieldAndValues(obj);
 
@@ -158,7 +291,7 @@ public class Hades
         return absent();
     }
 
-    public void persistNewList(final List objects, final Optional<Pair<String, Long>> foreignKeyAndValue)
+    private void persistNewList(final List objects, final Optional<Pair<String, Long>> foreignKeyAndValue)
     {
         for (final Object o : objects) {
             persist(o, foreignKeyAndValue);
@@ -278,21 +411,6 @@ public class Hades
         }
     }
 
-    public void remove(final Factory obj)
-    {
-        final Charon charon = (Charon)obj.getCallback(0);
-        final Pair<String, Long> primaryKeyAndValue = charon.getPrimaryKeyAndValue();
-        final String sql = format("DELETE FROM %s WHERE %s=?", charon.getPersistBeanName(), primaryKeyAndValue.fst);
-
-        try (final Connection connection = getDBConnection()) {
-            final PreparedStatement statement = connection.prepareStatement(sql);
-            statement.setLong(1, primaryKeyAndValue.snd);
-            statement.executeUpdate();
-            logger.debug("Execute SQL: " + sql);
-        } catch (SQLException ignored) {}
-        charon.removed();
-    }
-
     private void addChildId(final StringBuilder questionMarksBuffer, final List<Long> childrenIds,
                             final Class<?> childClass, final String childPrimaryKey, final Long childId)
     {
@@ -316,69 +434,6 @@ public class Hades
         }
     }
 
-    public boolean isDirty(final Object obj)
-    {
-        if (!(obj instanceof Factory)) return false;
-
-        final Charon charon = (Charon)((Factory)obj).getCallback(0);
-        return charon.isDirty();
-    }
-
-    public boolean isDirtyList(final Object objs)
-    {
-        if (!(objs instanceof Factory)) return false;
-
-        final Hecate hecate = (Hecate)((Factory)objs).getCallback(0);
-        return hecate.isDirty();
-    }
-
-    protected Pair<Object, List<Long>> load(final Class<?> clazz, final long primaryKey,
-                                            final List<Pair<Field, String>> relations)
-    {
-        final String sql = format("SELECT * FROM %s WHERE %s=?", clazz.getSimpleName(), Atlas.getPrimaryKeyName(clazz));
-
-        try (Connection connection = getDBConnection()) {
-            final Object obj = newInstance(clazz);
-            final Field pkField = Atlas.getPrimaryKey(clazz);
-            final List<Field> columnFields = Atlas.getBasicFields(clazz);
-
-            final PreparedStatement statement = connection.prepareStatement(sql);
-            statement.setLong(1, primaryKey);
-
-            final ResultSet resultSet = statement.executeQuery();
-            logger.debug("Execute SQL: " + sql);
-
-            if (resultSet.next()) {
-                pkField.setLong(obj, primaryKey);
-                for (final Field columnField : columnFields) {
-                    setBasicFieldValue(columnField, obj, resultSet);
-                }
-                return Pair.of(obj, relationIds(relations, resultSet));
-            }
-            throw new RuntimeException(format("Can't find %s with id %s", clazz.getSimpleName(), primaryKey));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    protected Pair<Object, List<Long>> load(final Class<?> clazz, final long primaryKey,
-                                            final ResultSet resultSet, final List<Pair<Field, String>> relations)
-    {
-        final Object obj = newInstance(clazz);
-        final Field pkField = Atlas.getPrimaryKey(clazz);
-        final List<Field> columnFields = Atlas.getBasicFields(clazz);
-
-        try {
-            pkField.setLong(obj, primaryKey);
-            for (final Field columnField : columnFields) {
-                setBasicFieldValue(columnField, obj, resultSet);
-            }
-            return Pair.of(obj, relationIds(relations, resultSet));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     private List<Long> relationIds(final List<Pair<Field, String>> relations, final ResultSet resultSet)
     {
         List<Long> retVal = newArrayList();
@@ -388,61 +443,6 @@ public class Hades
             }
         } catch (Exception ignored) {}
         return retVal;
-    }
-
-    public List<Object> loadList(final Class<?> clazz, final String sql,
-                                 final Optional<Long> foreignKey, final int blockSize)
-    {
-        try (Connection connection = getDBConnection()) {
-            final PreparedStatement statement = connection.prepareStatement(sql);
-
-            if (foreignKey.isPresent()) {
-                statement.setLong(1, foreignKey.get());
-            }
-
-            final ResultSet resultSet = statement.executeQuery();
-            logger.debug("Execute SQL: " + sql);
-
-            final List<Object> retVal = newArrayList();
-            while (resultSet.next()) {
-                retVal.add(create(clazz, resultSet.getLong(1), blockSize));
-            }
-            return retVal;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public void loadBatch(final Class<?> clazz, final int beginIndex, final int blockSize, List<Object> objects)
-    {
-        final String primaryKeyName = Atlas.getPrimaryKeyName(clazz);
-        final String ids = getBlockIds(beginIndex, blockSize, objects);
-
-        if (ids.length() > 0) {
-            final String sql = format("SELECT * FROM %s WHERE %s in (%s)", clazz.getSimpleName(), primaryKeyName, ids);
-
-            try (Connection connection = getDBConnection()) {
-                final PreparedStatement statement = connection.prepareStatement(sql);
-
-                final ResultSet resultSet = statement.executeQuery();
-                logger.debug("Execute SQL: " + sql);
-
-                while (resultSet.next()) {
-                    fillObjectByResultSet(objects, primaryKeyName, resultSet);
-                }
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
-
-    protected Object newInstance(final Class<?> clazz)
-    {
-        try {
-            return clazz.getConstructor().newInstance();
-        } catch (Exception e){
-            throw new RuntimeException("Get exception when creating " + clazz, e);
-        }
     }
 
     private String getBlockIds(final int beginIndex, final int blockSize, final List<Object> objects)
