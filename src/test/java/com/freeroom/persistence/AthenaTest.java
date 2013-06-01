@@ -1,5 +1,6 @@
 package com.freeroom.persistence;
 
+import com.freeroom.persistence.beans.Binding;
 import com.freeroom.persistence.beans.Book;
 import com.freeroom.persistence.beans.Order;
 import com.freeroom.persistence.beans.Publisher;
@@ -12,6 +13,7 @@ import java.util.List;
 import java.util.Properties;
 
 import static com.freeroom.persistence.DBFixture.prepareDB;
+import static com.freeroom.persistence.beans.Binding.Paperback;
 import static com.freeroom.persistence.proxy.IdPurpose.*;
 import static com.google.common.collect.Lists.newArrayList;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -63,6 +65,19 @@ public class AthenaTest
         book = (Book)athena.from(Book.class).find(3).get();
         assertThat(book.getIsbn(), is(1449323391L));
         assertThat(book.getName(), is("Testable JavaScript"));
+    }
+
+    @Test
+    public void should_persist_Enum()
+    {
+        Book book = new Book();
+        book.setIsbn(1449323391L);
+        book.setBinding(Paperback);
+
+        athena.persist(book);
+
+        book = (Book) athena.from(Book.class).findOnly("isbn=1449323391").get();
+        assertThat(book.getBinding(), is(Paperback));
     }
 
     @Test

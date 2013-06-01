@@ -24,6 +24,9 @@ public class Book
     private long publishDate;
 
     @Persist
+    private Binding binding;
+
+    @Persist
     private List<Long> tags;
 
     @Persist(foreignKey = true)
@@ -125,5 +128,15 @@ public class Book
     public void setIdPurpose(final IdPurpose idPurpose)
     {
         this.idPurpose = idPurpose;
+    }
+
+    public Binding getBinding()
+    {
+        return binding;
+    }
+
+    public void setBinding(final Binding binding)
+    {
+        this.binding = binding;
     }
 }

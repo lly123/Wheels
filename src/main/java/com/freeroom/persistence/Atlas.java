@@ -87,7 +87,8 @@ public class Atlas
     private static boolean isBasicField(final Field field)
     {
         final Class<?> fieldType = field.getType();
-        return fieldType.isPrimitive() || fieldType.equals(String.class) || isListLong(field);
+        return fieldType.isPrimitive() || fieldType.equals(String.class) ||
+               isEnumType(fieldType) || isListLong(field);
     }
 
     public static boolean isListLong(final Field field)
@@ -153,6 +154,11 @@ public class Atlas
         } catch (Exception ignored) {}
 
         return absent();
+    }
+
+    public static boolean isEnumType(Type type)
+    {
+        return type instanceof Class && Enum.class.isAssignableFrom((Class)type);
     }
 
     private static boolean isGenericListField(final Field field)
