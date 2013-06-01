@@ -16,6 +16,7 @@
         Ctrl = function($scope, $window)
         {
             $scope.publisher = 1;
+            $scope.binding = 'Kindle';
 
             $scope.findTag = function(tagId)
             {
@@ -85,7 +86,7 @@
                         <tr ng-repeat="book in books">
                             <td><input type="radio" name="bookIsbn" ng-click="currentIsbn(book.isbn)"/></td>
                             <td>{{book.isbn}}</td>
-                            <td>{{book.publisher.name}} - {{book.name}}<br/>
+                            <td><span class="badge">{{book.binding}}</span> {{book.publisher.name}} - {{book.name}}<br/>
                                 <span ng-repeat="tagId in book.tags">
                                     <span class='label {{findTag(tagId).label}}'>{{findTag(tagId).text}}</span>
                                 </span>
@@ -146,6 +147,17 @@
                     <label class="control-label" for="publishDate">Publish Date</label>
                     <div class="controls">
                         <input type="text" id="publishDate" ng-model="publishDateStr" placeholder="Publish Date" required/>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Binding</label>
+                    <div class="controls">
+                        <input type="hidden" name="book_binding" value="{{binding}}"/>
+                        <div class="btn-group" data-toggle="buttons-radio">
+                            <button type="button" class="btn active" ng-click="binding='Kindle'">Kindle</button>
+                            <button type="button" class="btn" ng-click="binding='Paperback'">Paperback</button>
+                            <button type="button" class="btn" ng-click="binding='Hardback'">Hardback</button>
+                        </div>
                     </div>
                 </div>
                 <div class="control-group">

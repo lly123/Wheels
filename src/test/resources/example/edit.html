@@ -97,6 +97,17 @@
                         </div>
                     </div>
                     <div class="control-group">
+                        <label class="control-label">Binding</label>
+                        <div class="controls">
+                            <input type="hidden" name="book_binding" value="{{book.binding}}"/>
+                            <div class="btn-group" data-toggle="buttons-radio">
+                                <button type="button" class="btn" ng-class="{active: book.binding=='Kindle'}" ng-click="book.binding='Kindle'">Kindle</button>
+                                <button type="button" class="btn" ng-class="{active: book.binding=='Paperback'}" ng-click="book.binding='Paperback'">Paperback</button>
+                                <button type="button" class="btn" ng-class="{active: book.binding=='Hardback'}" ng-click="book.binding='Hardback'">Hardback</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="control-group">
                         <label class="control-label">Tags</label>
                         <div class="controls">
                             <div ng-repeat="tag in Tags">
@@ -113,7 +124,7 @@
                     <input type="hidden" name="book_orders[{{$index}}]_id" value="{{order.id}}"/>
                     <input type="hidden" name="book_orders[{{$index}}]_idPurpose" value="{{idPurpose(order.removed)}}"/>
                     Name: <input type="text" class="input-small" name="book_orders[{{$index}}]_name" placeholder="Name" value="{{order.name}}" required/>&nbsp;&nbsp;&nbsp;
-                    Phone: <input type="text" class="input-mediumt5y" name="book_orders[{{$index}}]_phone" placeholder="Phone" value="{{order.phone}}" required/>&nbsp;&nbsp;&nbsp;
+                    Phone: <input type="text" class="input-medium" name="book_orders[{{$index}}]_phone" placeholder="Phone" value="{{order.phone}}" required/>&nbsp;&nbsp;&nbsp;
                     Address: <input type="text" class="input-large" name="book_orders[{{$index}}]_address" placeholder="Address" value="{{order.address}}" required/>
                 </div>
             </div>

@@ -24,6 +24,9 @@ public class Book
     private long publishDate;
 
     @Persist
+    private Binding binding;
+
+    @Persist
     private List<Long> tags;
 
     @Persist(foreignKey = true)

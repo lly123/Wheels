@@ -140,7 +140,7 @@ public class Cerberus
         } catch (Exception ignored) {}
     }
 
-    private Object parse(final Class<?> fieldType, final String value)
+    private Object parse(final Class fieldType, final String value)
     {
         Object parsedValue = value;
         if (fieldType.equals(int.class) || fieldType.equals(Integer.class)) {
@@ -151,6 +151,8 @@ public class Cerberus
             parsedValue = parseDouble(value);
         } else if (fieldType.equals(boolean.class) || fieldType.equals(Boolean.class)) {
             parsedValue = parseBoolean(value);
+        } else if (isEnumType(fieldType)) {
+            parsedValue = Enum.valueOf(fieldType, value);
         } else if (fieldType.equals(IdPurpose.class)) {
             parsedValue = Enum.valueOf(IdPurpose.class, value);
         }
@@ -192,5 +194,10 @@ public class Cerberus
     private boolean isKeyNotValid(final String key)
     {
         return Strings.isNullOrEmpty(key) || key.equals(KEY_SEPARATOR);
+    }
+
+    private boolean isEnumType(Type type)
+    {
+        return type instanceof Class && Enum.class.isAssignableFrom((Class)type);
     }
 }
