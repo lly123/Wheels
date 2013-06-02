@@ -10,8 +10,8 @@ import net.sf.cglib.proxy.MethodProxy;
 import java.lang.reflect.Method;
 import java.util.List;
 
-import static com.freeroom.di.util.FuncUtils.map;
-import static com.freeroom.di.util.FuncUtils.reduce;
+import static com.freeroom.util.FuncUtils.map;
+import static com.freeroom.util.FuncUtils.reduce;
 import static com.google.common.base.Optional.absent;
 import static com.google.common.base.Optional.of;
 import static com.google.common.collect.ImmutableList.copyOf;

@@ -1,10 +1,10 @@
-package com.freeroom.di.util;
+package com.freeroom.util;
 
 import org.junit.Test;
 
 import java.util.Collection;
 
-import static com.freeroom.di.util.FuncUtils.reduce;
+import static com.freeroom.util.FuncUtils.reduce;
 import static com.google.common.collect.Lists.newArrayList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;

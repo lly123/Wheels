@@ -7,8 +7,8 @@ import com.google.common.base.Optional;
 import java.util.Collection;
 import java.util.List;
 
-import static com.freeroom.di.util.FuncUtils.each;
-import static com.freeroom.di.util.FuncUtils.reduce;
+import static com.freeroom.util.FuncUtils.each;
+import static com.freeroom.util.FuncUtils.reduce;
 import static com.google.common.base.Optional.absent;
 import static com.google.common.base.Optional.of;
 import static com.google.common.collect.Collections2.filter;

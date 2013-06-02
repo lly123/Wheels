@@ -16,8 +16,8 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Stack;
 
-import static com.freeroom.di.util.FuncUtils.each;
-import static com.freeroom.di.util.FuncUtils.reduce;
+import static com.freeroom.util.FuncUtils.each;
+import static com.freeroom.util.FuncUtils.reduce;
 import static com.google.common.base.Optional.absent;
 import static com.google.common.base.Optional.of;
 import static com.google.common.collect.ImmutableList.copyOf;

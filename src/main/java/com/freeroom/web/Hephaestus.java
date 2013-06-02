@@ -1,7 +1,7 @@
 package com.freeroom.web;
 
 import com.freeroom.di.BeanContext;
-import com.freeroom.di.util.Pair;
+import com.freeroom.util.Pair;
 import com.freeroom.web.exceptions.NotFoundException;
 import com.google.common.base.Optional;
 

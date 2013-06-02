@@ -1,7 +1,7 @@
 package com.freeroom.di;
 
 import com.freeroom.di.annotations.Inject;
-import com.freeroom.di.util.Pair;
+import com.freeroom.util.Pair;
 import com.google.common.base.Optional;
 
 import java.lang.annotation.Annotation;
@@ -9,8 +9,8 @@ import java.lang.reflect.Constructor;
 import java.util.Collection;
 import java.util.List;
 
-import static com.freeroom.di.util.FuncUtils.each;
-import static com.freeroom.di.util.FuncUtils.map;
+import static com.freeroom.util.FuncUtils.each;
+import static com.freeroom.util.FuncUtils.map;
 import static com.google.common.base.Optional.absent;
 import static com.google.common.base.Optional.of;
 import static com.google.common.base.Strings.isNullOrEmpty;

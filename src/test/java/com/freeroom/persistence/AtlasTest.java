@@ -1,6 +1,6 @@
 package com.freeroom.persistence;
 
-import com.freeroom.di.util.Pair;
+import com.freeroom.util.Pair;
 import com.freeroom.persistence.beans.Book;
 import com.freeroom.persistence.beans.Reader;
 import org.junit.Test;

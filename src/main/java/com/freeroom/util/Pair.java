@@ -1,4 +1,4 @@
-package com.freeroom.di.util;
+package com.freeroom.util;
 
 public class Pair<A, B>
 {

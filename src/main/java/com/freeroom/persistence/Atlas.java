@@ -1,6 +1,6 @@
 package com.freeroom.persistence;
 
-import com.freeroom.di.util.Pair;
+import com.freeroom.util.Pair;
 import com.freeroom.persistence.annotations.ID;
 import com.freeroom.persistence.annotations.Persist;
 import com.freeroom.persistence.proxy.IdPurpose;
@@ -11,8 +11,8 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.List;
 
-import static com.freeroom.di.util.EnumUtil.isEnumType;
-import static com.freeroom.di.util.FuncUtils.reduce;
+import static com.freeroom.util.EnumUtil.isEnumType;
+import static com.freeroom.util.FuncUtils.reduce;
 import static com.google.common.base.Optional.absent;
 import static com.google.common.base.Optional.of;
 import static com.google.common.collect.ImmutableList.copyOf;

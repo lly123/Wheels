@@ -1,6 +1,6 @@
 package com.freeroom.persistence.proxy;
 
-import com.freeroom.di.util.Pair;
+import com.freeroom.util.Pair;
 import com.freeroom.persistence.Atlas;
 import com.google.common.base.Optional;
 import net.sf.cglib.proxy.Enhancer;
@@ -13,9 +13,9 @@ import java.sql.*;
 import java.util.List;
 import java.util.Properties;
 
-import static com.freeroom.di.util.EnumUtil.*;
-import static com.freeroom.di.util.FuncUtils.each;
-import static com.freeroom.di.util.FuncUtils.map;
+import static com.freeroom.util.EnumUtil.*;
+import static com.freeroom.util.FuncUtils.each;
+import static com.freeroom.util.FuncUtils.map;
 import static com.freeroom.persistence.Atlas.isList;
 import static com.freeroom.persistence.proxy.IdPurpose.*;
 import static com.google.common.base.Optional.absent;

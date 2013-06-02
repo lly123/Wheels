@@ -1,6 +1,6 @@
 package com.freeroom.web;
 
-import com.freeroom.di.util.Pair;
+import com.freeroom.util.Pair;
 import com.google.common.base.Optional;
 import com.google.gson.Gson;
 import com.thoughtworks.paranamer.BytecodeReadingParanamer;
@@ -17,8 +17,8 @@ import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.freeroom.di.util.FuncUtils.each;
-import static com.freeroom.di.util.FuncUtils.reduce;
+import static com.freeroom.util.FuncUtils.each;
+import static com.freeroom.util.FuncUtils.reduce;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Iterables.tryFind;

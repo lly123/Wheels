@@ -5,7 +5,7 @@ import com.freeroom.di.exceptions.ConstructorCycleDependencyException;
 import java.util.Collection;
 import java.util.Stack;
 
-import static com.freeroom.di.util.FuncUtils.each;
+import static com.freeroom.util.FuncUtils.each;
 import static com.google.common.collect.Collections2.filter;
 
 class Injector

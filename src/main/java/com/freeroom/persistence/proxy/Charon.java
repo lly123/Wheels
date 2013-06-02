@@ -1,6 +1,6 @@
 package com.freeroom.persistence.proxy;
 
-import com.freeroom.di.util.Pair;
+import com.freeroom.util.Pair;
 import com.freeroom.persistence.Atlas;
 import com.google.common.base.Optional;
 import net.sf.cglib.proxy.Factory;
@@ -12,7 +12,7 @@ import java.lang.reflect.Method;
 import java.sql.ResultSet;
 import java.util.List;
 
-import static com.freeroom.di.util.FuncUtils.each;
+import static com.freeroom.util.FuncUtils.each;
 import static com.google.common.base.Optional.absent;
 import static com.google.common.base.Optional.of;
 import static com.google.common.collect.Iterables.any;

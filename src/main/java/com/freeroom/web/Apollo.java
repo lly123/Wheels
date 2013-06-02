@@ -2,7 +2,7 @@ package com.freeroom.web;
 
 
 import com.freeroom.di.BeanContext;
-import com.freeroom.di.util.Pair;
+import com.freeroom.util.Pair;
 import com.freeroom.persistence.Athena;
 
 import javax.servlet.ServletException;

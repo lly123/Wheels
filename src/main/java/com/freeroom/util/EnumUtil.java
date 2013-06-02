@@ -1,4 +1,4 @@
-package com.freeroom.di.util;
+package com.freeroom.util;
 
 import java.lang.reflect.Type;
 
