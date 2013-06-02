@@ -13,12 +13,11 @@ import java.sql.*;
 import java.util.List;
 import java.util.Properties;
 
+import static com.freeroom.di.util.EnumUtil.*;
 import static com.freeroom.di.util.FuncUtils.each;
 import static com.freeroom.di.util.FuncUtils.map;
 import static com.freeroom.persistence.Atlas.isList;
-import static com.freeroom.persistence.proxy.IdPurpose.Locate;
-import static com.freeroom.persistence.proxy.IdPurpose.Remove;
-import static com.freeroom.persistence.proxy.IdPurpose.Update;
+import static com.freeroom.persistence.proxy.IdPurpose.*;
 import static com.google.common.base.Optional.absent;
 import static com.google.common.base.Optional.of;
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -429,8 +428,8 @@ public class Hades
             }
 
             statement.setString(i, removeTailComma(buffer));
-        } else if (Atlas.isEnumType(column.fst.getType())) {
-            statement.setString(i, column.snd.toString());
+        } else if (isEnumType(column.fst.getType())) {
+            statement.setString(i, enumToString((Enum)column.snd));
         } else {
             statement.setObject(i, column.snd);
         }
@@ -491,8 +490,8 @@ public class Hades
             field.setDouble(obj, resultSet.getDouble(field.getName()));
         } else if (fieldType.equals(boolean.class) || fieldType.equals(Boolean.class)) {
             field.setBoolean(obj, resultSet.getBoolean(field.getName()));
-        } else if (Atlas.isEnumType(fieldType)) {
-            field.set(obj, Enum.valueOf((Class)fieldType, resultSet.getString(field.getName())));
+        } else if (isEnumType(fieldType)) {
+            field.set(obj, stringToEnum((Class) fieldType, resultSet.getString(field.getName())));
         } else if (Atlas.isListLong(field)) {
             String values = resultSet.getString(field.getName());
             if (!isNullOrEmpty(values)) {

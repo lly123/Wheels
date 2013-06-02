@@ -11,6 +11,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.List;
 
+import static com.freeroom.di.util.EnumUtil.isEnumType;
 import static com.freeroom.di.util.FuncUtils.reduce;
 import static com.google.common.base.Optional.absent;
 import static com.google.common.base.Optional.of;
@@ -154,11 +155,6 @@ public class Atlas
         } catch (Exception ignored) {}
 
         return absent();
-    }
-
-    public static boolean isEnumType(Type type)
-    {
-        return type instanceof Class && Enum.class.isAssignableFrom((Class)type);
     }
 
     private static boolean isGenericListField(final Field field)

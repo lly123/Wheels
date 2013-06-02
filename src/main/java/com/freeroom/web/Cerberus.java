@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
 
+import static com.freeroom.di.util.EnumUtil.stringToEnum;
 import static com.freeroom.di.util.FuncUtils.each;
 import static com.freeroom.di.util.FuncUtils.reduce;
 import static com.google.common.base.Optional.*;
@@ -152,7 +153,7 @@ public class Cerberus
         } else if (fieldType.equals(boolean.class) || fieldType.equals(Boolean.class)) {
             parsedValue = parseBoolean(value);
         } else if (isEnumType(fieldType)) {
-            parsedValue = Enum.valueOf(fieldType, value);
+            parsedValue = stringToEnum(fieldType, value);
         } else if (fieldType.equals(IdPurpose.class)) {
             parsedValue = Enum.valueOf(IdPurpose.class, value);
         }

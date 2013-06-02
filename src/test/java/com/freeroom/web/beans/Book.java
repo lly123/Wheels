@@ -8,6 +8,7 @@ public class Book
     private int pageNumber;
     private boolean imported;
     private Address address;
+    private Binding binding;
     private List<String> authors;
     private List<Integer> tagIds;
     private List<Order> orders;
@@ -45,5 +46,10 @@ public class Book
     public List<Integer> getTagIds()
     {
         return tagIds;
+    }
+
+    public Binding getBinding()
+    {
+        return binding;
     }
 }

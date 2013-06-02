@@ -6,9 +6,11 @@ import org.junit.Test;
 
 import java.util.List;
 
+import static com.freeroom.web.beans.Binding.Paperback;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 
 public class CerberusTest
 {
@@ -28,6 +30,30 @@ public class CerberusTest
         cerberus.add("key=value=value");
 
         assertThat((String)cerberus.getValue("key").get(), is("value=value"));
+    }
+
+    @Test
+    public void should_fill_Enum()
+    {
+        final Cerberus cerberus = new Cerberus("UTF-8");
+        cerberus.addValues("name=AngularJS&binding=Paperback&imported=true");
+
+        final Book book = (Book)cerberus.fill(Book.class);
+        assertThat(book.getName(), is("AngularJS"));
+        assertThat(book.getBinding(), is(Paperback));
+        assertThat(book.isImported(), is(true));
+    }
+
+    @Test
+    public void should_fill_Enum_with_null()
+    {
+        final Cerberus cerberus = new Cerberus("UTF-8");
+        cerberus.addValues("name=AngularJS&binding=&imported=true");
+
+        final Book book = (Book)cerberus.fill(Book.class);
+        assertThat(book.getName(), is("AngularJS"));
+        assertThat(book.getBinding(), is(nullValue()));
+        assertThat(book.isImported(), is(true));
     }
 
     @Test
