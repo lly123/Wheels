@@ -54,6 +54,7 @@ public class Apollo extends HttpServlet
     private void setRequestInformation(final HttpServletRequest req, final Cerberus cerberus)
     {
         cerberus.add("uri=" + req.getRequestURI());
+        cerberus.add("httpMethod=" + req.getMethod().toUpperCase());
 
         final String queryString = req.getQueryString();
         if (!isNullOrEmpty(queryString)) {

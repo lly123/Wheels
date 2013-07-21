@@ -11,6 +11,7 @@ import org.apache.velocity.app.VelocityEngine;
 
 import java.io.*;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
@@ -19,6 +20,8 @@ import java.util.Map;
 
 import static com.freeroom.util.FuncUtils.each;
 import static com.freeroom.util.FuncUtils.reduce;
+import static com.google.common.base.Optional.absent;
+import static com.google.common.base.Optional.of;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Iterables.tryFind;
@@ -89,10 +92,13 @@ public class Ares
         }
     }
 
-    private FileChannel getRenderFileChannel(final Model model) throws FileNotFoundException
+    private Optional<FileChannel> getRenderFileChannel(final Model model) throws FileNotFoundException
     {
-        final String filePath = getClassLoader().getResource(model.getPath()).getFile();
-        return new FileInputStream(new File(filePath)).getChannel();
+        final URL resource = getClassLoader().getResource(model.getPath());
+        if (resource == null) {
+            return absent();
+        }
+        return of(new FileInputStream(new File(resource.getFile())).getChannel());
     }
 
     private Object[] resolveArgs()
@@ -146,18 +152,21 @@ public class Ares
         each(map.entrySet(), entry -> context.put(entry.getKey(), entry.getValue()));
     }
 
-    private String readFromChannel(final FileChannel content)
+    private String readFromChannel(final Optional<FileChannel> content)
     {
+        if (!content.isPresent()) {
+            return "";
+        }
+
         final StringBuilder sb = new StringBuilder();
-        try {
+        try (final FileChannel fileChannel = content.get()) {
             final ByteBuffer byteBuffer = ByteBuffer.allocate(1024);
             final Charset charset = Charset.forName("UTF-8");
-            while(content.read(byteBuffer) != -1) {
+            while(fileChannel.read(byteBuffer) != -1) {
                 byteBuffer.flip();
                 sb.append(charset.decode(byteBuffer));
                 byteBuffer.clear();
             }
-            content.close();
         } catch (Exception ignored) {}
         return sb.toString();
     }
