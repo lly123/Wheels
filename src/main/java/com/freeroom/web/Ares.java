@@ -85,6 +85,11 @@ public class Ares
 
                     return Pair.of("application/x-javascript", content);
                 }
+            }  else if (templateName.equals("text")) {
+                return  Pair.of(
+                        "text/plain",
+                        (String)((Model)model).getMap().get("content")
+                );
             }
             return Pair.of("text/plain", "");
         } catch (Exception e) {
